@@ -3,9 +3,13 @@ import AppKit
 
 struct MessageBubble: View, Equatable {
     let message: ChatMessage
+    var isLastAssistant: Bool = false
+    var onRegenerate: (() -> Void)? = nil
+    var onDelete: (() -> Void)? = nil
     @Environment(\.colorScheme) private var colorScheme
     @State private var showCopied = false
     @State private var copyHover = false
+    @State private var hover = false
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 6) {
@@ -22,6 +26,13 @@ struct MessageBubble: View, Equatable {
             if message.role == .assistant { Spacer(minLength: 60) }
         }
         .padding(.horizontal, 16)
+        .onHover { hover = $0 }
+        .contextMenu {
+            Button("Copy message") { copy() }
+            if let onDelete {
+                Button("Delete message", role: .destructive, action: onDelete)
+            }
+        }
     }
 
     @ViewBuilder
@@ -82,6 +93,17 @@ struct MessageBubble: View, Equatable {
                 Label(L.chatInterrupted, systemImage: "exclamationmark.triangle")
                     .font(.caption2).foregroundStyle(.orange)
             }
+            if isLastAssistant, let onRegenerate, message.status == .complete {
+                Button(action: onRegenerate) {
+                    Label("Regenerate", systemImage: "arrow.clockwise")
+                        .labelStyle(.titleAndIcon)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.borderless)
+                .help("Regenerate this response")
+                .opacity(hover ? 1.0 : 0.7)
+            }
             if !message.content.isEmpty, message.status != .streaming {
                 Button(action: copy) {
                     Text(showCopied ? "Copied" : "Copy")
@@ -109,5 +131,7 @@ struct MessageBubble: View, Equatable {
         }
     }
 
-    nonisolated static func == (l: Self, r: Self) -> Bool { l.message == r.message }
+    nonisolated static func == (l: Self, r: Self) -> Bool {
+        l.message == r.message && l.isLastAssistant == r.isLastAssistant
+    }
 }

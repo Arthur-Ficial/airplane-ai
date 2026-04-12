@@ -34,8 +34,17 @@ struct ChatView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: Metrics.Padding.large) {
-                    ForEach(state.activeConversation?.messages ?? []) { msg in
-                        MessageBubble(message: msg).equatable().id(msg.id)
+                    let messages = state.activeConversation?.messages ?? []
+                    let lastAssistantID = messages.last(where: { $0.role == .assistant })?.id
+                    ForEach(messages) { msg in
+                        MessageBubble(
+                            message: msg,
+                            isLastAssistant: msg.id == lastAssistantID,
+                            onRegenerate: msg.id == lastAssistantID ? { Task { await controller.regenerateLastAssistant() } } : nil,
+                            onDelete: { controller.deleteMessage(msg.id) }
+                        )
+                        .equatable()
+                        .id(msg.id)
                     }
                 }
                 .padding(.vertical, 20)
