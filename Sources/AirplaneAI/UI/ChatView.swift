@@ -120,33 +120,60 @@ struct InputBar: View {
         VStack(spacing: 0) {
             Divider()
             HStack(alignment: .bottom, spacing: Metrics.Composer.gap) {
-                TextField(placeholder, text: $draft, axis: .vertical)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.body)
-                    .focused(focused)
-                    .lineLimit(Metrics.Composer.minLines...Metrics.Composer.maxLines)
-                    .frame(minHeight: composerHeight, maxHeight: composerHeight)
-                    .onSubmit {
-                        state.chatState == .generating ? onStop() : onSubmit()
-                    }
-                    .onKeyPress(.escape) {
-                        if state.chatState == .generating { onStop(); return .handled }
-                        if !draft.isEmpty { draft = ""; return .handled }
-                        return .ignored
-                    }
+                editor
                 SendButton(
                     generating: state.chatState == .generating,
                     canSend: !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                     awaitingFirstToken: state.awaitingFirstToken,
                     onTap: state.chatState == .generating ? onStop : onSubmit
                 )
-                .padding(.bottom, 2)
+                .padding(.bottom, 4)
             }
             .padding(.horizontal, Metrics.Composer.horizontalPadding)
             .padding(.vertical, Metrics.Composer.verticalPadding)
             .overlay(resizeHandle, alignment: .topTrailing)
         }
         .onAppear { focused.wrappedValue = true }
+    }
+
+    // TextEditor honors explicit frames, unlike multi-line TextField. Placeholder
+    // overlay on empty text.
+    private var editor: some View {
+        ZStack(alignment: .topLeading) {
+            TextEditor(text: $draft)
+                .font(.body)
+                .focused(focused)
+                .scrollContentBackground(.hidden)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .frame(height: composerHeight)
+                .onKeyPress(phases: .down) { press in
+                    guard press.key == .return else { return .ignored }
+                    if press.modifiers.contains(.shift) { return .ignored }
+                    if state.chatState == .generating { onStop(); return .handled }
+                    onSubmit()
+                    return .handled
+                }
+                .onKeyPress(.escape) {
+                    if state.chatState == .generating { onStop(); return .handled }
+                    if !draft.isEmpty { draft = ""; return .handled }
+                    return .ignored
+                }
+            if draft.isEmpty {
+                Text(placeholder)
+                    .font(.body)
+                    .foregroundStyle(.tertiary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 12)
+                    .allowsHitTesting(false)
+            }
+        }
+        .background(Color(nsColor: .textBackgroundColor))
+        .overlay(
+            RoundedRectangle(cornerRadius: Metrics.Radius.regular)
+                .strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: Metrics.Radius.regular))
     }
 
     // Small grab handle on top-right of the composer strip. Drag up to grow, down to shrink.
