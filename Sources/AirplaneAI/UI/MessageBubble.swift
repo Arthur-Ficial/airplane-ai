@@ -6,6 +6,7 @@ struct MessageBubble: View, Equatable {
     var isLastAssistant: Bool = false
     var onRegenerate: (() -> Void)? = nil
     var onDelete: (() -> Void)? = nil
+    var onQuote: ((String) -> Void)? = nil
     @Environment(\.colorScheme) private var colorScheme
     @State private var showCopied = false
     @State private var copyHover = false
@@ -29,6 +30,15 @@ struct MessageBubble: View, Equatable {
         .onHover { hover = $0 }
         .contextMenu {
             Button("Copy message") { copy() }
+            if let onQuote {
+                Button("Quote in reply") {
+                    let quoted = OutputSanitizer.stripLeakingMarkers(message.content).0
+                        .split(separator: "\n", omittingEmptySubsequences: false)
+                        .map { "> \($0)" }
+                        .joined(separator: "\n")
+                    onQuote(quoted + "\n\n")
+                }
+            }
             if let onDelete {
                 Button("Delete message", role: .destructive, action: onDelete)
             }

@@ -80,7 +80,11 @@ struct ChatView: View {
                             message: msg,
                             isLastAssistant: msg.id == lastAssistantID,
                             onRegenerate: msg.id == lastAssistantID ? { Task { await controller.regenerateLastAssistant() } } : nil,
-                            onDelete: { controller.deleteMessage(msg.id) }
+                            onDelete: { controller.deleteMessage(msg.id) },
+                            onQuote: { quoted in
+                                draft = quoted + draft
+                                composerFocused = true
+                            }
                         )
                         .equatable()
                         .id(msg.id)
