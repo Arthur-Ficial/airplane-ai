@@ -69,22 +69,37 @@ struct MessageBubble: View, Equatable {
 
     private func codeBlock(_ block: MarkdownRenderer.Block) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            if let lang = block.language, !lang.isEmpty {
-                HStack {
+            HStack {
+                if let lang = block.language, !lang.isEmpty {
                     Text(lang).font(.caption.weight(.medium)).foregroundStyle(.secondary)
-                    Spacer()
                 }
-                .padding(.horizontal, 10).padding(.vertical, 4)
-                .background(colorScheme == .dark ? Color(white: 0.12) : Color(white: 0.88))
+                Spacer()
+                Button(action: { copyText(block.content) }) {
+                    Label(showCopied ? "Copied" : "Copy", systemImage: showCopied ? "checkmark" : "doc.on.doc")
+                        .labelStyle(.titleAndIcon)
+                        .font(.caption)
+                        .foregroundStyle(showCopied ? .green : .secondary)
+                }
+                .buttonStyle(.borderless)
+                .help("Copy code")
             }
+            .padding(.horizontal, 10).padding(.vertical, 4)
+            .background(Palette.codeHeader(colorScheme))
             ScrollView(.horizontal, showsIndicators: false) {
                 Text(block.content)
                     .font(.system(.callout, design: .monospaced))
                     .textSelection(.enabled).padding(10)
             }
-            .background(colorScheme == .dark ? Color(white: 0.15) : Color(white: 0.93))
+            .background(Palette.codeBackground(colorScheme))
         }
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .clipShape(RoundedRectangle(cornerRadius: Metrics.Radius.small))
+    }
+
+    private func copyText(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        showCopied = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { showCopied = false }
     }
 
     private var footer: some View {
