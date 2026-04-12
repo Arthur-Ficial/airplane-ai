@@ -92,6 +92,11 @@ struct InputBar: View {
                     .onSubmit {
                         state.chatState == .generating ? onStop() : onSubmit()
                     }
+                    .onKeyPress(.escape) {
+                        if state.chatState == .generating { onStop(); return .handled }
+                        if !draft.isEmpty { draft = ""; return .handled }
+                        return .ignored
+                    }
                 SendButton(
                     generating: state.chatState == .generating,
                     canSend: !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,

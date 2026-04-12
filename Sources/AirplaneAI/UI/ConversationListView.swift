@@ -52,8 +52,12 @@ struct ConversationListView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(conv.title.isEmpty ? "New Chat" : conv.title)
                     .font(.body).lineLimit(1)
-                Text(conv.updatedAt, format: .dateTime.month(.abbreviated).day().hour().minute())
-                    .font(.caption2).foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    Text("\(conv.messages.count) msg\(conv.messages.count == 1 ? "" : "s")")
+                    Text("·")
+                    Text(conv.updatedAt, format: .relative(presentation: .numeric))
+                }
+                .font(.caption2).foregroundStyle(.secondary).lineLimit(1)
             }
             .tag(conv.id as UUID?)
             .contextMenu {

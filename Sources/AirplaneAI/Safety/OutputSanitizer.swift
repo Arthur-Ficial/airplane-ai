@@ -7,6 +7,18 @@ public final class OutputSanitizer: @unchecked Sendable {
     public let maxRepeatLine: Int             // same line N times in a row
     public let maxWhitespaceRun: Int          // consecutive whitespace-only tokens
 
+    // Chat-template control tokens that Gemma / ChatML may emit when the template
+    // doesn't wrap the prompt exactly right. Strip from the user-facing stream.
+    public static let stopStrings: [String] = [
+        "<|file_separator|>",
+        "<|im_start|>",
+        "<|im_end|>",
+        "<|end_of_turn|>",
+        "<|start_of_turn|>",
+        "<end_of_turn>",
+        "<start_of_turn>",
+    ]
+
     private var lastTokenID: Int32?
     private var repeatCount = 0
     private var lines: [String] = []
