@@ -30,6 +30,8 @@ struct ConversationControllerTests {
         let store = MockConversationStore()
         let c = ConversationController(state: state, store: store)
         c.newConversation()
+        // Put a message into the first chat so the debounce lets us create a second.
+        state.conversations[0].messages.append(ChatMessage(role: .user, content: "hi"))
         c.newConversation()
         let first = state.conversations[0].id
         await c.delete(id: first)
@@ -47,6 +49,17 @@ struct ConversationControllerTests {
         #expect(state.conversations[0].title == "My Cool Chat")
         let saved = try await store.conversation(id: id)
         #expect(saved?.title == "My Cool Chat")
+    }
+
+    @Test func newConversationDebouncedWhenActiveIsEmpty() async throws {
+        let state = AppState()
+        let store = MockConversationStore()
+        let c = ConversationController(state: state, store: store)
+        c.newConversation()
+        c.newConversation()
+        c.newConversation()
+        // Three rapid taps should produce just one empty conversation.
+        #expect(state.conversations.count == 1)
     }
 
     @Test func renameEmptyTitleFallsBackToNewChat() async throws {

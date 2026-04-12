@@ -20,6 +20,9 @@ public final class ConversationController {
     }
 
     public func newConversation() {
+        // Don't spawn a fresh conversation if the active one is already empty —
+        // prevents the user rapid-tapping ⌘N from creating many zero-message rows.
+        if let active = state.activeConversation, active.messages.isEmpty { return }
         let c = Conversation()
         state.conversations.insert(c, at: 0)
         state.activeConversationID = c.id
