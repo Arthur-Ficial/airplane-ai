@@ -1,11 +1,11 @@
 // swift-tools-version: 6.0
-// NOTE: llama.cpp has no Package.swift upstream. It is vendored in Milestone 5 as a
-// cTarget pinned to llama.cpp release b8763 (SHA ff5ef8278615a2462b79b50abdf3cc95cfb31c6f).
-// Until then, the foundation layer (Domain, Contracts, Safety, Persistence) builds
-// and tests without the engine. This matches the spec's dependency rule: only the
-// Inference layer touches llama.cpp.
+// llama.cpp is linked from vendored dylibs at Vendor/llama.cpp/llama-b8763
+// (release b8763, SHA ff5ef8278615a2462b79b50abdf3cc95cfb31c6f).
+// Dylibs are embedded into AirplaneAI.app/Contents/Frameworks by scripts/build-app.sh.
 
 import PackageDescription
+
+let vendorDylibsDir = "./Vendor/llama.cpp/llama-b8763"
 
 let package = Package(
     name: "AirplaneAI",
@@ -14,8 +14,34 @@ let package = Package(
         .executable(name: "AirplaneAI", targets: ["AirplaneAI"]),
     ],
     targets: [
+        .target(
+            name: "CLlama",
+            path: "Sources/CLlama",
+            publicHeadersPath: "include",
+            cSettings: [
+                .headerSearchPath("include"),
+            ],
+            linkerSettings: [
+                .unsafeFlags([
+                    "-L", vendorDylibsDir,
+                    "-Xlinker", "-rpath",
+                    "-Xlinker", "@executable_path/../Frameworks",
+                    "-Xlinker", "-rpath",
+                    "-Xlinker", "@loader_path/../Frameworks",
+                    // Dev rpath so `swift test` and `swift run` find the dylibs without bundling.
+                    "-Xlinker", "-rpath",
+                    "-Xlinker", "/Users/franzenzenhofer/dev/airplane-ai/Vendor/llama.cpp/llama-b8763",
+                ]),
+                .linkedLibrary("llama"),
+                .linkedLibrary("ggml"),
+                .linkedLibrary("ggml-base"),
+                .linkedLibrary("ggml-cpu"),
+                .linkedLibrary("ggml-metal"),
+            ]
+        ),
         .executableTarget(
             name: "AirplaneAI",
+            dependencies: ["CLlama"],
             path: "Sources/AirplaneAI",
             exclude: [
                 "Resources/models/airplane-model.gguf.partial",
@@ -32,6 +58,10 @@ let package = Package(
                     "-Xlinker", "__TEXT",
                     "-Xlinker", "__info_plist",
                     "-Xlinker", "./Info.plist",
+                    "-Xlinker", "-rpath",
+                    "-Xlinker", "@executable_path/../Frameworks",
+                    "-Xlinker", "-rpath",
+                    "-Xlinker", "@loader_path/../Frameworks",
                 ]),
             ]
         ),

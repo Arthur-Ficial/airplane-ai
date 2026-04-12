@@ -32,5 +32,17 @@
 	<true/>
 	<key>NSSupportsSuddenTermination</key>
 	<false/>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>LSUIElement</key>
+	<false/>
+	<key>CFBundleDocumentTypes</key>
+	<array/>
+	<key>UTExportedTypeDeclarations</key>
+	<array/>
 </dict>
 </plist>

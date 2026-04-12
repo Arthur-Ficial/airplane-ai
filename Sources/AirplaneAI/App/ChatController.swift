@@ -1,0 +1,129 @@
+import Foundation
+
+@MainActor
+public final class ChatController {
+    private let state: AppState
+    private let engine: any InferenceEngine
+    private let store: any ConversationStore
+    private let contextManager: ContextManager
+    private let tokenCounter: any TokenCounter
+    private let systemPrompt: String
+    private var generationTask: Task<Void, Never>?
+
+    public init(
+        state: AppState,
+        engine: any InferenceEngine,
+        store: any ConversationStore,
+        contextManager: ContextManager,
+        tokenCounter: any TokenCounter,
+        systemPrompt: String
+    ) {
+        self.state = state
+        self.engine = engine
+        self.store = store
+        self.contextManager = contextManager
+        self.tokenCounter = tokenCounter
+        self.systemPrompt = systemPrompt
+    }
+
+    public func send(_ text: String) async {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, state.chatState == .idle else { return }
+
+        let convo = ensureActiveConversation(firstUserContent: trimmed)
+        let userMessage = ChatMessage(role: .user, content: trimmed)
+        append(userMessage, to: convo.id)
+
+        do {
+            let fit = try await contextManager.fitToContext(
+                systemPrompt: systemPrompt,
+                messages: activeMessages(),
+                tokenCounter: tokenCounter
+            )
+            beginGeneration(messages: fit)
+        } catch let e as AppError {
+            state.lastError = e
+        } catch {
+            state.lastError = .generationFailed(summary: error.localizedDescription)
+        }
+    }
+
+    public func stop() {
+        guard state.chatState == .generating else { return }
+        state.chatState = .cancelling
+        let engine = self.engine
+        Task { await engine.cancelGeneration() }
+    }
+
+    private func beginGeneration(messages: [ChatMessage]) {
+        state.chatState = .generating
+        var assistant = ChatMessage(role: .assistant, content: "", status: .streaming)
+        append(assistant, to: state.activeConversationID!)
+
+        let engine = self.engine
+        let params = GenerationParameters().clamped()
+        generationTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                for try await ev in engine.generate(messages: messages, parameters: params) {
+                    switch ev {
+                    case .token(let t):
+                        assistant.content += t.text
+                        self.updateStreaming(message: assistant)
+                    case .finished(let reason):
+                        assistant.status = reason == .cancelledByUser || reason == .interruptedByLifecycle ? .interrupted : .complete
+                        assistant.stopReason = reason
+                        self.finalize(message: assistant)
+                    }
+                }
+            } catch {
+                assistant.status = .failed
+                assistant.stopReason = .engineError
+                self.finalize(message: assistant)
+                self.state.lastError = .generationFailed(summary: error.localizedDescription)
+            }
+            self.state.chatState = .idle
+        }
+    }
+
+    // MARK: - conversation mutation helpers
+
+    private func ensureActiveConversation(firstUserContent: String) -> Conversation {
+        if let c = state.activeConversation { return c }
+        var c = Conversation(title: Conversation.derivedTitle(from: firstUserContent))
+        state.conversations.insert(c, at: 0)
+        state.activeConversationID = c.id
+        persist(c)
+        return c
+    }
+
+    private func append(_ m: ChatMessage, to convoID: UUID) {
+        guard let idx = state.conversations.firstIndex(where: { $0.id == convoID }) else { return }
+        state.conversations[idx].messages.append(m)
+        state.conversations[idx].updatedAt = .now
+        persist(state.conversations[idx])
+    }
+
+    private func updateStreaming(message: ChatMessage) {
+        guard let convoIdx = state.conversations.firstIndex(where: { $0.id == state.activeConversationID }),
+              let msgIdx = state.conversations[convoIdx].messages.firstIndex(where: { $0.id == message.id })
+        else { return }
+        state.conversations[convoIdx].messages[msgIdx] = message
+    }
+
+    private func finalize(message: ChatMessage) {
+        updateStreaming(message: message)
+        guard let convoIdx = state.conversations.firstIndex(where: { $0.id == state.activeConversationID }) else { return }
+        state.conversations[convoIdx].updatedAt = .now
+        persist(state.conversations[convoIdx])
+    }
+
+    private func activeMessages() -> [ChatMessage] {
+        state.activeConversation?.messages ?? []
+    }
+
+    private func persist(_ c: Conversation) {
+        let store = self.store
+        Task.detached(priority: .utility) { try? await store.save(c) }
+    }
+}

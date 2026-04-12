@@ -1,0 +1,14 @@
+module CLlama {
+    header "include/llama_shim.h"
+    header "include/llama.h"
+    header "include/ggml.h"
+    header "include/ggml-alloc.h"
+    header "include/ggml-backend.h"
+    header "include/ggml-cpu.h"
+    link "llama"
+    link "ggml"
+    link "ggml-base"
+    link "ggml-cpu"
+    link "ggml-metal"
+    export *
+}

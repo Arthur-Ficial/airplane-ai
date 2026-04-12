@@ -8,6 +8,7 @@ APP_NAME="AirplaneAI"
 APP_BUNDLE="$ROOT_DIR/build/${APP_NAME}.app"
 VERSION="$(tr -d '\n' < "$ROOT_DIR/.version")"
 ICON_SOURCE="$ROOT_DIR/Sources/AirplaneAI/Resources/AppIcon.icns"
+LLAMA_DYLIB_DIR="$ROOT_DIR/Vendor/llama.cpp/llama-b8763"
 SIGN_IDENTITY="${SIGN_IDENTITY:--}"
 ENTITLEMENTS="${ENTITLEMENTS:-$ROOT_DIR/AirplaneAI.entitlements}"
 
@@ -27,11 +28,26 @@ BIN_DIR="$(swift build -c release --show-bin-path --package-path "$ROOT_DIR")"
 BIN_PATH="${BIN_DIR}/${APP_NAME}"
 
 rm -rf "$APP_BUNDLE"
-mkdir -p "$APP_BUNDLE/Contents/MacOS" "$APP_BUNDLE/Contents/Resources"
+mkdir -p "$APP_BUNDLE/Contents/MacOS" "$APP_BUNDLE/Contents/Resources" "$APP_BUNDLE/Contents/Frameworks"
 
 cp "$BIN_PATH" "$APP_BUNDLE/Contents/MacOS/${APP_NAME}"
 chmod +x "$APP_BUNDLE/Contents/MacOS/${APP_NAME}"
 cp "$ROOT_DIR/Info.plist" "$APP_BUNDLE/Contents/Info.plist"
+
+# Bundle llama.cpp dylibs into Contents/Frameworks (@rpath @executable_path/../Frameworks).
+for dylib in libllama libggml libggml-base libggml-cpu libggml-metal libggml-blas libggml-rpc libmtmd; do
+    for f in "$LLAMA_DYLIB_DIR/${dylib}"*.dylib; do
+        [[ -f "$f" ]] || continue
+        cp "$f" "$APP_BUNDLE/Contents/Frameworks/"
+    done
+done
+
+# Copy Metal shader blobs if the llama.cpp release shipped them.
+setopt NULL_GLOB
+for shader in "$LLAMA_DYLIB_DIR"/*.metallib "$LLAMA_DYLIB_DIR"/*.metal; do
+    cp "$shader" "$APP_BUNDLE/Contents/Resources/"
+done
+unsetopt NULL_GLOB
 
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${VERSION}" "$APP_BUNDLE/Contents/Info.plist" >/dev/null
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${VERSION}" "$APP_BUNDLE/Contents/Info.plist" >/dev/null

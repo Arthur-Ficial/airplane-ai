@@ -1,13 +1,28 @@
 import SwiftUI
 
-// Single-window macOS app. Spec §14: use Window, not WindowGroup.
-// UI views are filled in during Milestone 7; this file is the stable entry point.
 @main
 struct AirplaneAIApp: App {
+    @State private var wiring: AppWiring?
+    @State private var bootError: String?
+
     var body: some Scene {
         Window("Airplane AI", id: "main") {
-            RootWindow()
+            RootWindow(wiring: wiring, bootError: bootError)
+                .task { await boot() }
         }
         .windowResizability(.contentSize)
+
+        Settings { SettingsView() }
+    }
+
+    @MainActor private func boot() async {
+        guard wiring == nil else { return }
+        do {
+            let w = try AppWiring()
+            await w.boot()
+            wiring = w
+        } catch {
+            bootError = error.localizedDescription
+        }
     }
 }

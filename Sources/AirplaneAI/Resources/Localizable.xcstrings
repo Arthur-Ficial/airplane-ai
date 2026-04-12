@@ -1,0 +1,126 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "app.tagline" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "AI that never phones home." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "KI, die niemals Daten nach Hause sendet." } }
+      }
+    },
+    "model.verifying" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Verifying AI model…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "KI-Modell wird überprüft…" } }
+      }
+    },
+    "model.loading" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading AI model…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "KI-Modell wird geladen…" } }
+      }
+    },
+    "model.ready" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Ready" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Bereit" } }
+      }
+    },
+    "model.warming" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Warming up…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aufwärmen…" } }
+      }
+    },
+    "memory.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not enough memory" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Nicht genug Arbeitsspeicher" } }
+      }
+    },
+    "disk.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not enough free disk space" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Nicht genug freier Speicherplatz" } }
+      }
+    },
+    "model.corrupt.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "AI model is damaged" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "KI-Modell ist beschädigt" } }
+      }
+    },
+    "model.corrupt.body" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Please delete and re-install Airplane AI from the App Store." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Bitte löschen Sie Airplane AI und installieren Sie es erneut aus dem App Store." } }
+      }
+    },
+    "context.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Message is too long" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Nachricht ist zu lang" } }
+      }
+    },
+    "context.body" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This message does not fit in the current context budget on this Mac." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Diese Nachricht passt auf diesem Mac nicht in das aktuelle Kontextbudget." } }
+      }
+    },
+    "chat.placeholder" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Ask anything…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Fragen Sie alles…" } }
+      }
+    },
+    "chat.generating" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Thinking…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Denkt nach…" } }
+      }
+    },
+    "chat.interrupted" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Interrupted" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Unterbrochen" } }
+      }
+    },
+    "action.send" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Send" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Senden" } }
+      }
+    },
+    "action.stop" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stop" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Anhalten" } }
+      }
+    },
+    "action.retry" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Retry" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Erneut versuchen" } }
+      }
+    },
+    "action.new_chat" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New Chat" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Neuer Chat" } }
+      }
+    },
+    "action.delete" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Löschen" } }
+      }
+    },
+    "sidebar.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Conversations" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Gespräche" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}
