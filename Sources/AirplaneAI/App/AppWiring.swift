@@ -63,5 +63,9 @@ public final class AppWiring {
         ))
         await conversationController.loadAll()
         await modelController.bringUp()
+        // After the model is ready, backfill AI titles for any default-named chats.
+        if state.modelState == .ready {
+            Task { await chatController.backfillTitles() }
+        }
     }
 }

@@ -48,6 +48,17 @@ public final class ChatController {
         }
     }
 
+    // On app launch, catch up any pre-existing default-titled chats that already
+    // have an assistant response — generate titles for them now.
+    public func backfillTitles() async {
+        for convo in state.conversations {
+            guard Self.isDefaultTitle(convo.title),
+                  convo.messages.contains(where: { $0.role == .assistant && !$0.content.isEmpty })
+            else { continue }
+            await generateTitle(for: convo.id)
+        }
+    }
+
     public func stop() {
         guard state.chatState == .generating else { return }
         state.chatState = .cancelling
@@ -86,10 +97,10 @@ public final class ChatController {
 
         let engine = self.engine
         let params = GenerationParameters().clamped()
-        // Snapshot whether this conversation still needs an AI-generated title.
-        // Trigger = first assistant response in a chat whose title is still the derived
-        // short form of the user message (not yet AI-titled or user-renamed).
-        let shouldGenerateTitle = (state.activeConversation?.messages.filter { $0.role == .assistant }.isEmpty ?? false)
+        // Retrigger whenever the current title is still a default — covers both
+        // brand-new chats and pre-existing "New Chat" rows that were saved before
+        // the title feature existed. User-renamed / AI-titled chats are never touched.
+        let shouldGenerateTitle = Self.isDefaultTitle(state.activeConversation?.title)
         let activeConvoID = state.activeConversationID
         generationTask = Task { [weak self] in
             guard let self else { return }
@@ -129,6 +140,12 @@ public final class ChatController {
                 await self.generateTitle(for: cid)
             }
         }
+    }
+
+    // Default-title detection — used to decide whether to retrigger AI title gen.
+    static func isDefaultTitle(_ title: String?) -> Bool {
+        guard let t = title?.trimmingCharacters(in: .whitespacesAndNewlines) else { return true }
+        return t.isEmpty || t == "New Chat"
     }
 
     // Apfel-chat-aligned title generation. Separate system + user messages;

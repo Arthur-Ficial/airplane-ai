@@ -12,6 +12,7 @@ let package = Package(
     platforms: [.macOS(.v15)],
     products: [
         .executable(name: "AirplaneAI", targets: ["AirplaneAI"]),
+        .executable(name: "AirplaneIconRender", targets: ["AirplaneIconRender"]),
     ],
     targets: [
         .target(
@@ -69,6 +70,10 @@ let package = Package(
             name: "AirplaneAITests",
             dependencies: ["AirplaneAI"],
             path: "Tests"
+        ),
+        .executableTarget(
+            name: "AirplaneIconRender",
+            path: "Tools/iconrender"
         ),
     ]
 )
