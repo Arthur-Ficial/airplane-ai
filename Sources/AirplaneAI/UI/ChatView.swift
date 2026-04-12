@@ -97,12 +97,13 @@ struct InputBar: View {
     var body: some View {
         VStack(spacing: 0) {
             Divider()
-            HStack(alignment: .center, spacing: 10) {
-                TextField(placeholder, text: $draft)
+            HStack(alignment: .bottom, spacing: 10) {
+                TextField(placeholder, text: $draft, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 15))
+                    .font(.body)
                     .focused(focused)
-                    .frame(minHeight: 36)
+                    .lineLimit(3...10)
+                    .frame(minHeight: 72)
                     .onSubmit {
                         state.chatState == .generating ? onStop() : onSubmit()
                     }

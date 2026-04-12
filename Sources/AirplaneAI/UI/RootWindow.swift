@@ -33,13 +33,25 @@ struct RootWindow: View {
     private func mainLayout(wiring: AppWiring) -> some View {
         let hasTitle = wiring.state.activeConversation?.title.isEmpty == false
         let title = hasTitle ? wiring.state.activeConversation!.title : "Airplane AI"
+        let dot = dotColor(for: wiring.state.modelState)
+        // Inline SF Symbol tinted at the symbol level — Text concatenation in
+        // navigationTitle preserves the tint when the Image has renderingMode(.template).
+        let dotText = Text(Image(systemName: "circle.fill")).foregroundColor(dot)
+        let titleText = dotText + Text("  ") + Text(title)
         return NavigationSplitView {
             ConversationListView(state: wiring.state, controller: wiring.conversationController)
                 .frame(minWidth: 240)
         } detail: {
             ChatView(state: wiring.state, controller: wiring.chatController)
-                .navigationTitle(title)
-                .navigationSubtitle(wiring.state.modelState == .ready ? "● Ready" : "○ Loading…")
+                .navigationTitle(titleText)
+        }
+    }
+
+    private func dotColor(for s: ModelLifecycle) -> Color {
+        switch s {
+        case .ready: .green
+        case .blockedInsufficientResources, .loadFailed, .modelCorrupt, .modelMissing, .migrationFailed: .red
+        default: .blue
         }
     }
 

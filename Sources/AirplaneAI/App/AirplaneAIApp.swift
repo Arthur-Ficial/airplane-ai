@@ -12,7 +12,7 @@ struct AirplaneAIApp: App {
         }
         .windowResizability(.contentSize)
 
-        Settings { SettingsView() }
+        Settings { SettingsView(state: wiring?.state) }
     }
 
     @MainActor private func boot() async {
