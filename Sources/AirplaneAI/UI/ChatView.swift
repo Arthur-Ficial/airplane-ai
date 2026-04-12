@@ -7,6 +7,7 @@ struct ChatView: View {
     @State private var draft: String = ""
     @State private var isFollowingTail = true
     @FocusState private var composerFocused: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(spacing: 0) {
@@ -96,8 +97,12 @@ struct ChatView: View {
                 guard new > old else { return }
                 let userJustSent = state.activeConversation?.messages.last?.role == .user
                 guard isFollowingTail || new <= 2 || userJustSent else { return }
-                withAnimation(.easeOut(duration: Metrics.Duration.quickAnimation)) {
+                if reduceMotion {
                     proxy.scrollTo("bottom", anchor: .bottom)
+                } else {
+                    withAnimation(.easeOut(duration: Metrics.Duration.quickAnimation)) {
+                        proxy.scrollTo("bottom", anchor: .bottom)
+                    }
                 }
             }
             .onChange(of: state.activeConversation?.messages.last?.content) { _, _ in

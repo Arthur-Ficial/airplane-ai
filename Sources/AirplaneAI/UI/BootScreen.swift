@@ -4,6 +4,7 @@ struct BootScreen: View {
     let state: AppState
     @State private var tick: Int = 0
     @State private var displayedFraction: Double = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let rotatingDetails = [
         "checking memory",
@@ -64,9 +65,9 @@ struct BootScreen: View {
                 // Fallback forward motion for the bar — never exceed the real fraction by more than 5%.
                 let floor = state.boot.fraction
                 if displayedFraction < floor + 0.05 {
-                    withAnimation(.linear(duration: 0.35)) {
-                        displayedFraction = min(0.95, max(displayedFraction, floor) + 0.02)
-                    }
+                    let next = min(0.95, max(displayedFraction, floor) + 0.02)
+                    if reduceMotion { displayedFraction = next }
+                    else { withAnimation(.linear(duration: 0.35)) { displayedFraction = next } }
                 }
             }
         }
