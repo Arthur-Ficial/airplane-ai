@@ -56,6 +56,21 @@ struct RootWindow: View {
         } detail: {
             ChatView(state: wiring.state, controller: wiring.chatController)
                 .navigationTitle(titleText)
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            if #available(macOS 14, *) {
+                                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                            } else {
+                                NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+                            }
+                        } label: {
+                            Image(systemName: "gearshape")
+                        }
+                        .help("Settings (⌘,)")
+                        .accessibilityLabel("Open Settings")
+                    }
+                }
         }
     }
 

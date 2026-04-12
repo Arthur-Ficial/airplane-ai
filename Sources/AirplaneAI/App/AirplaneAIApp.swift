@@ -16,7 +16,8 @@ struct AirplaneAIApp: App {
         }
         .windowResizability(.contentSize)
         .commands {
-            CommandGroup(after: .newItem) {
+            // File menu — replace default 'New' items with 'New Chat' + 'Focus Search'.
+            CommandGroup(replacing: .newItem) {
                 Button("New Chat") { wiring?.conversationController.newConversation() }
                     .keyboardShortcut("n", modifiers: .command)
                 Button("Focus Search") {
@@ -24,8 +25,20 @@ struct AirplaneAIApp: App {
                 }
                 .keyboardShortcut("k", modifiers: .command)
             }
-            // Route the App > About Airplane AI menu item to the Settings About tab
-            // instead of showing AppKit's default (empty) about panel.
+            // Airplane AI has no files — strip the default Save/Open/Print items.
+            CommandGroup(replacing: .saveItem) { }
+            CommandGroup(replacing: .importExport) { }
+            CommandGroup(replacing: .printItem) { }
+            // No rich-text formatting anywhere in the app.
+            CommandGroup(replacing: .textFormatting) { }
+
+            // Help → GitHub instead of an empty help book.
+            CommandGroup(replacing: .help) {
+                Link("Airplane AI on GitHub",
+                     destination: URL(string: "https://github.com/franzenzenhofer/airplane-ai")!)
+            }
+
+            // App > About Airplane AI routes to the Settings About tab.
             CommandGroup(replacing: .appInfo) {
                 Button("About Airplane AI") {
                     if #available(macOS 14, *) {
