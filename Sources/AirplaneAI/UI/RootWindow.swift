@@ -4,6 +4,7 @@ struct RootWindow: View {
     let wiring: AppWiring?
     let bootError: String?
     @AppStorage("airplane.appearance") private var appearance: String = "system"
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         Group {
@@ -13,6 +14,9 @@ struct RootWindow: View {
         }
         .frame(minWidth: 960, minHeight: 640)
         .preferredColorScheme(preferredScheme)
+        .onReceive(NotificationCenter.default.publisher(for: .airplaneOpenSettings)) { _ in
+            openSettings()
+        }
     }
 
     private var preferredScheme: ColorScheme? {
@@ -58,13 +62,7 @@ struct RootWindow: View {
                 .navigationTitle(titleText)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
-                        Button {
-                            if #available(macOS 14, *) {
-                                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-                            } else {
-                                NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
-                            }
-                        } label: {
+                        Button { openSettings() } label: {
                             Image(systemName: "gearshape")
                         }
                         .help("Settings (⌘,)")

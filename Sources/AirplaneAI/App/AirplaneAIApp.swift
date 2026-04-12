@@ -2,6 +2,7 @@ import SwiftUI
 
 extension Notification.Name {
     static let airplaneFocusSearch = Notification.Name("airplane.focusSearch")
+    static let airplaneOpenSettings = Notification.Name("airplane.openSettings")
 }
 
 @main
@@ -41,11 +42,7 @@ struct AirplaneAIApp: App {
             // App > About Airplane AI routes to the Settings About tab.
             CommandGroup(replacing: .appInfo) {
                 Button("About Airplane AI") {
-                    if #available(macOS 14, *) {
-                        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-                    } else {
-                        NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
-                    }
+                    NotificationCenter.default.post(name: .airplaneOpenSettings, object: nil)
                 }
             }
         }
