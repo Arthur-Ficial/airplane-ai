@@ -113,6 +113,7 @@ struct InputBar: View {
     var focused: FocusState<Bool>.Binding
     let onSubmit: () -> Void
     let onStop: () -> Void
+    @AppStorage("airplane.sendWith") private var sendWith: String = "enter"
 
     @State private var composerHeight: CGFloat = Metrics.Composer.minHeight
 
@@ -132,6 +133,15 @@ struct InputBar: View {
             .padding(.horizontal, Metrics.Composer.horizontalPadding)
             .padding(.vertical, Metrics.Composer.verticalPadding)
             .overlay(resizeHandle, alignment: .topTrailing)
+            .overlay(alignment: .bottomTrailing) {
+                if draft.count > 500 {
+                    Text("\(draft.count)")
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.tertiary)
+                        .padding(.trailing, 56)
+                        .padding(.bottom, 2)
+                }
+            }
         }
         .onAppear { focused.wrappedValue = true }
     }
@@ -149,7 +159,16 @@ struct InputBar: View {
                 .frame(height: composerHeight)
                 .onKeyPress(phases: .down) { press in
                     guard press.key == .return else { return .ignored }
-                    if press.modifiers.contains(.shift) { return .ignored }
+                    // Setting: Enter vs Cmd+Enter as the send shortcut.
+                    let cmdMode = sendWith == "cmd-enter"
+                    let mods = press.modifiers
+                    if cmdMode {
+                        // Cmd+Enter sends, plain Enter = newline.
+                        if !mods.contains(.command) { return .ignored }
+                    } else {
+                        // Enter sends, Shift+Enter = newline.
+                        if mods.contains(.shift) { return .ignored }
+                    }
                     if state.chatState == .generating { onStop(); return .handled }
                     onSubmit()
                     return .handled

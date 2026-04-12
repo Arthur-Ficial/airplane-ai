@@ -4,6 +4,7 @@ import SwiftUI
 struct ConversationListView: View {
     let state: AppState
     let controller: ConversationController
+    @AppStorage("airplane.timeFormat") private var timeFormat: String = "relative"
 
     @State private var search: String = ""
     @State private var editingId: UUID?
@@ -58,7 +59,7 @@ struct ConversationListView: View {
                 HStack(spacing: 4) {
                     Text("\(conv.messages.count) msg\(conv.messages.count == 1 ? "" : "s")")
                     Text("·")
-                    Text(conv.updatedAt, format: .relative(presentation: .numeric))
+                    timestampText(conv.updatedAt)
                 }
                 .font(.caption2).foregroundStyle(.secondary).lineLimit(1)
             }
@@ -84,5 +85,14 @@ struct ConversationListView: View {
         let newTitle = editTitle
         editingId = nil
         Task { await controller.rename(id: conv.id, to: newTitle) }
+    }
+
+    @ViewBuilder
+    private func timestampText(_ date: Date) -> some View {
+        if timeFormat == "absolute" {
+            Text(date, format: .dateTime.month(.abbreviated).day().hour().minute())
+        } else {
+            Text(date, format: .relative(presentation: .numeric))
+        }
     }
 }
