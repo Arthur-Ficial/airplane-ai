@@ -4,6 +4,7 @@ import AppKit
 struct MessageBubble: View, Equatable {
     let message: ChatMessage
     var isLastAssistant: Bool = false
+    var isOutOfContext: Bool = false
     var onRegenerate: (() -> Void)? = nil
     var onDelete: (() -> Void)? = nil
     var onQuote: ((String) -> Void)? = nil
@@ -27,6 +28,8 @@ struct MessageBubble: View, Equatable {
             if message.role == .assistant { Spacer(minLength: 60) }
         }
         .padding(.horizontal, 16)
+        .saturation(isOutOfContext ? 0.0 : 1.0)
+        .opacity(isOutOfContext ? 0.5 : 1.0)
         .onHover { hover = $0 }
         .contextMenu {
             Button("Copy message") { copy() }
@@ -163,6 +166,6 @@ struct MessageBubble: View, Equatable {
     }
 
     nonisolated static func == (l: Self, r: Self) -> Bool {
-        l.message == r.message && l.isLastAssistant == r.isLastAssistant
+        l.message == r.message && l.isLastAssistant == r.isLastAssistant && l.isOutOfContext == r.isOutOfContext
     }
 }

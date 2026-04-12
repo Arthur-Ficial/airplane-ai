@@ -76,10 +76,17 @@ struct ChatView: View {
                 LazyVStack(spacing: Metrics.Padding.large) {
                     let messages = state.activeConversation?.messages ?? []
                     let lastAssistantID = messages.last(where: { $0.role == .assistant })?.id
-                    ForEach(messages) { msg in
+                    ForEach(Array(messages.enumerated()), id: \.element.id) { index, msg in
+                        let outOfContext = state.outOfContextMessageIDs.contains(msg.id)
+                        // Divider BETWEEN the last out-of-context message and the first in-context one.
+                        if !outOfContext, index > 0,
+                           state.outOfContextMessageIDs.contains(messages[index - 1].id) {
+                            contextCutoffDivider
+                        }
                         MessageBubble(
                             message: msg,
                             isLastAssistant: msg.id == lastAssistantID,
+                            isOutOfContext: outOfContext,
                             onRegenerate: msg.id == lastAssistantID ? { Task { await controller.regenerateLastAssistant() } } : nil,
                             onDelete: { controller.deleteMessage(msg.id) },
                             onQuote: { quoted in
@@ -127,6 +134,18 @@ struct ChatView: View {
     }
 
     private func stop() { controller.stop() }
+
+    private var contextCutoffDivider: some View {
+        HStack(spacing: 8) {
+            Rectangle().frame(height: 1).foregroundStyle(.orange.opacity(0.4))
+            Text("Older messages are outside the context window")
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(.orange)
+                .fixedSize()
+            Rectangle().frame(height: 1).foregroundStyle(.orange.opacity(0.4))
+        }
+        .padding(.horizontal, 16)
+    }
 }
 
 struct InputBar: View {

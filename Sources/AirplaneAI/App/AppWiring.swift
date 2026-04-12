@@ -35,8 +35,10 @@ public final class AppWiring {
         )
 
         let profile = RuntimeProfileProvider().current()
-        let contextManager = ContextManager(maxContextTokens: min(profile.defaultContext, manifest.appDefaultContext))
+        let contextWindow = ContextWindow.resolve(manifest: manifest, profile: profile)
+        let contextManager = ContextManager(maxContextTokens: contextWindow.effective)
         let sysPrompt = ModelLocator.bundledSystemPrompt()
+        state.contextWindow = contextWindow
 
         self.state = state
         self.modelController = ModelController(

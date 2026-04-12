@@ -39,6 +39,8 @@ public final class AppState {
     public var boot: BootProgress = BootProgress()
     public var modelInfo: ModelInfo?
     public var awaitingFirstToken: Bool = false
+    public var contextWindow: ContextWindow?
+    public var outOfContextMessageIDs: Set<UUID> = []
 
     public init() {}
 

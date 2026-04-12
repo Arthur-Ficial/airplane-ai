@@ -242,5 +242,26 @@ public final class ChatController {
     private func persist(_ c: Conversation) {
         let store = self.store
         Task.detached(priority: .utility) { try? await store.save(c) }
+        recomputeContextCutoff()
+    }
+
+    // Mirror of apfel-chat's recomputeContextCutoff. Cheap — walks messages
+    // once per state change. Uses character/4 as a token estimate when the
+    // message has no measured tokenCount yet (streaming assistant).
+    public func recomputeContextCutoff() {
+        guard let window = state.contextWindow,
+              let msgs = state.activeConversation?.messages, !msgs.isEmpty
+        else {
+            state.outOfContextMessageIDs = []
+            return
+        }
+        let cutoff = window.cutoffIndex(messages: msgs) { msg in
+            msg.tokenCount ?? max(1, msg.content.count / 4)
+        }
+        if let idx = cutoff {
+            state.outOfContextMessageIDs = Set(msgs[0..<idx].map(\.id))
+        } else {
+            state.outOfContextMessageIDs = []
+        }
     }
 }
