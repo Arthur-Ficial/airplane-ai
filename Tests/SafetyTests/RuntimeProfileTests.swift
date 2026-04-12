@@ -17,8 +17,8 @@ struct RuntimeProfileTests {
 
     @Test func sixteenGBHitsSupportedMinimum() {
         let p = RuntimeProfileProvider().profile(for: .supported16to23)
-        #expect(p.defaultContext == 8192)
-        #expect(p.maxSupportedContext == 8192)
+        #expect(p.defaultContext == 16384)
+        #expect(p.maxSupportedContext == 16384)
         #expect(p.warmupEnabled)
     }
 

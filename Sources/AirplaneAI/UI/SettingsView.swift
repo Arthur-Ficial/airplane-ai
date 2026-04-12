@@ -16,6 +16,7 @@ struct SettingsView: View {
         TabView {
             appearanceTab.tabItem { Label("Appearance", systemImage: "paintbrush") }
             keyboardTab.tabItem { Label("Keyboard", systemImage: "keyboard") }
+            contextTab.tabItem { Label("Context", systemImage: "text.alignleft") }
             aboutTab.tabItem { Label("About", systemImage: "info.circle") }
             privacyTab.tabItem { Label("Privacy", systemImage: "lock.shield") }
             dangerTab.tabItem { Label("Danger Zone", systemImage: "exclamationmark.triangle") }
@@ -23,7 +24,55 @@ struct SettingsView: View {
             debugTab.tabItem { Label("Debug", systemImage: "ant") }
             #endif
         }
-        .frame(width: 560, height: 400)
+        .frame(width: 580, height: 460)
+    }
+
+    // Detailed context-window breakdown: where the effective number comes from.
+    private var contextTab: some View {
+        let window = state?.contextWindow
+        let profile = RuntimeProfileProvider().current()
+        let memoryGB = Int((Double(ProcessInfo.processInfo.physicalMemory) / 1_073_741_824.0).rounded())
+        return VStack(alignment: .leading, spacing: Metrics.Padding.regular) {
+            Text("Context Window").font(.headline)
+            Text("The amount of text the model can see at once. Longer conversations trim oldest messages first; the newest user message is never silently truncated.")
+                .font(.callout).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            GroupBox {
+                LabeledContent("Effective (used)", value: format(window?.effective))
+                Divider()
+                LabeledContent("Model capability", value: format(window?.modelCapability))
+                LabeledContent("App default (manifest)", value: format(window?.appDefault))
+                LabeledContent("Runtime profile default", value: format(profile.defaultContext))
+                LabeledContent("Runtime profile max", value: format(profile.maxSupportedContext))
+            }
+
+            GroupBox {
+                LabeledContent("Your Mac memory", value: "\(memoryGB) GB")
+                LabeledContent("Memory class", value: String(describing: profile.memoryClass))
+                LabeledContent("GPU layers", value: gpuDesc(profile.gpuLayerPolicy))
+                LabeledContent("Batch / μ-batch", value: "\(profile.batchSize) / \(profile.ubatchSize)")
+            }
+
+            Text("Effective = min(app default, runtime profile default). Bigger numbers need more memory for the KV cache.")
+                .font(.caption).foregroundStyle(.tertiary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer()
+        }
+        .padding(Metrics.Padding.large)
+    }
+
+    private func format(_ n: Int?) -> String {
+        guard let n else { return "—" }
+        return n.formatted(.number.grouping(.automatic)) + " tok"
+    }
+
+    private func gpuDesc(_ policy: GPULayerPolicy) -> String {
+        switch policy {
+        case .none: "none"
+        case .fixed(let n): "\(n) layers"
+        case .all: "all"
+        }
     }
 
     #if AIRPLANE_DEBUG

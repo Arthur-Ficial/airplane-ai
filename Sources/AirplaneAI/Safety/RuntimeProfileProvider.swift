@@ -1,6 +1,10 @@
 import Foundation
 
 // Versioned profile table. Spec §3: tuning is data, not formula.
+// Values chosen to max out Gemma-3n-E4B's 32K native context where memory allows.
+// KV cache size at 32K ≈ 2-4 GB (Q4_K_M); fits comfortably alongside the 5 GB model
+// on 16 GB unified memory with headroom. Context never exceeds the model's
+// trained ceiling (32768) — higher would require RoPE scaling and hurts quality.
 public struct RuntimeProfileProvider: Sendable {
     public init() {}
 
@@ -13,14 +17,16 @@ public struct RuntimeProfileProvider: Sendable {
                 flashAttention: .off, warmupEnabled: false
             )
         case .supported16to23:
+            // 16 GB: conservative but still generous. ~1.5 GB KV at 16K.
             return RuntimeProfile(
-                memoryClass: mc, defaultContext: 8192, maxSupportedContext: 8192,
+                memoryClass: mc, defaultContext: 16384, maxSupportedContext: 16384,
                 gpuLayerPolicy: .fixed(24), batchSize: 512, ubatchSize: 512,
                 flashAttention: .auto, warmupEnabled: true
             )
         case .supported24to31:
+            // 24-31 GB: full native 32K capability. ~3 GB KV.
             return RuntimeProfile(
-                memoryClass: mc, defaultContext: 16384, maxSupportedContext: 16384,
+                memoryClass: mc, defaultContext: 32768, maxSupportedContext: 32768,
                 gpuLayerPolicy: .fixed(36), batchSize: 512, ubatchSize: 512,
                 flashAttention: .on, warmupEnabled: true
             )
@@ -31,8 +37,9 @@ public struct RuntimeProfileProvider: Sendable {
                 flashAttention: .on, warmupEnabled: true
             )
         case .supported64plus:
+            // Model ceiling — not going higher without RoPE extension.
             return RuntimeProfile(
-                memoryClass: mc, defaultContext: 65536, maxSupportedContext: 65536,
+                memoryClass: mc, defaultContext: 32768, maxSupportedContext: 32768,
                 gpuLayerPolicy: .all, batchSize: 1024, ubatchSize: 1024,
                 flashAttention: .on, warmupEnabled: true
             )

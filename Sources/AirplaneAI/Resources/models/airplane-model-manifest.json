@@ -7,6 +7,6 @@
   "quantization": "Q4_K_M",
   "gguf_sha256": "43b489bb77a81bda85180e7c490d40ad7f1d5c2ce654c9b05e15e104bd3c777e",
   "model_capability_context": 32768,
-  "app_default_context": 8192,
+  "app_default_context": 32768,
   "license": "Gemma Terms of Use (Apache-2.0-compatible code; weights under Gemma License)"
 }
