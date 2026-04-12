@@ -41,8 +41,10 @@ struct RootWindow: View {
     }
 
     private func mainLayout(wiring: AppWiring) -> some View {
-        let hasTitle = wiring.state.activeConversation?.title.isEmpty == false
-        let title = hasTitle ? wiring.state.activeConversation!.title : "Airplane AI"
+        let rawTitle = wiring.state.activeConversation?.title ?? ""
+        let stripped = OutputSanitizer.stripLeakingMarkers(rawTitle).0
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let title = stripped.isEmpty ? "Airplane AI" : stripped
         let dot = dotColor(for: wiring.state.modelState)
         // Inline SF Symbol tinted at the symbol level — Text concatenation in
         // navigationTitle preserves the tint when the Image has renderingMode(.template).

@@ -171,10 +171,11 @@ public final class ChatController {
         } catch {
             collected = seed.split(separator: " ").prefix(6).joined(separator: " ")
         }
-        let clean = collected
+        let (stripped, _) = OutputSanitizer.stripLeakingMarkers(collected)
+        let clean = stripped
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "\"", with: "")
-            .split(separator: "\n").first.map(String.init) ?? collected
+            .split(separator: "\n").first.map(String.init) ?? stripped
         guard !clean.isEmpty, clean.count <= 60 else { return }
         if let idx = state.conversations.firstIndex(where: { $0.id == convoID }) {
             state.conversations[idx].title = clean

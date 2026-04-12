@@ -50,8 +50,10 @@ struct ConversationListView: View {
                 .onExitCommand { editingId = nil }
                 .tag(conv.id as UUID?)
         } else {
+            let cleanTitle = OutputSanitizer.stripLeakingMarkers(conv.title).0
+                .trimmingCharacters(in: .whitespacesAndNewlines)
             VStack(alignment: .leading, spacing: 2) {
-                Text(conv.title.isEmpty ? "New Chat" : conv.title)
+                Text(cleanTitle.isEmpty ? "New Chat" : cleanTitle)
                     .font(.body).lineLimit(1)
                 HStack(spacing: 4) {
                     Text("\(conv.messages.count) msg\(conv.messages.count == 1 ? "" : "s")")
