@@ -26,11 +26,14 @@ struct MessageBubble: View, Equatable {
 
     @ViewBuilder
     private var content: some View {
+        // Retroactively clean any template leaks from messages persisted before
+        // the engine-side filter was wired in. No migration needed.
+        let (cleanContent, _) = OutputSanitizer.stripLeakingMarkers(message.content)
         if message.status == .streaming {
-            Text(message.content.isEmpty ? " " : message.content)
+            Text(cleanContent.isEmpty ? " " : cleanContent)
                 .font(.body).textSelection(.enabled)
         } else {
-            let cached = MarkdownRenderer.cached(message.content)
+            let cached = MarkdownRenderer.cached(cleanContent)
             if cached.isJSON {
                 ScrollView(.horizontal, showsIndicators: false) {
                     Text(cached.prettyJSON)
