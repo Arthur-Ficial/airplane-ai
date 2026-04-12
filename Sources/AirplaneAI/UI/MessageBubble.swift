@@ -108,6 +108,10 @@ struct MessageBubble: View, Equatable {
             .background(Palette.codeBackground(colorScheme))
         }
         .clipShape(RoundedRectangle(cornerRadius: Metrics.Radius.small))
+        .overlay(
+            RoundedRectangle(cornerRadius: Metrics.Radius.small)
+                .strokeBorder(Palette.codeBlockBorder(colorScheme), lineWidth: 1)
+        )
     }
 
     private func copyText(_ text: String) {

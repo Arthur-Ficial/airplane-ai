@@ -19,6 +19,11 @@ enum Palette {
     static func codeHeader(_ scheme: ColorScheme) -> Color {
         scheme == .dark ? Color(white: 0.12) : Color(white: 0.88)
     }
+    // High-transparency border outlining every fenced code block.
+    // Dark: white @ ~18%; Light: black @ ~18%.
+    static func codeBlockBorder(_ scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color.white.opacity(0.18) : Color.black.opacity(0.18)
+    }
 
     // Status dot.
     static let statusReady = Color.green
