@@ -34,6 +34,7 @@ struct ConversationListView: View {
                     Image(systemName: "square.and.pencil")
                 }
                 .help(L.actionNewChat)
+                .accessibilityLabel(L.actionNewChat)
                 .keyboardShortcut("n", modifiers: .command)
             }
         }

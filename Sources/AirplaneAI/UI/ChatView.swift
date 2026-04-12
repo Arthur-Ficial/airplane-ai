@@ -64,6 +64,7 @@ struct ChatView: View {
                     .padding(.trailing, 18)
                     .padding(.bottom, 12)
                     .help("Scroll to latest")
+                    .accessibilityLabel("Scroll to latest message")
                     .transition(.opacity)
                 }
             }

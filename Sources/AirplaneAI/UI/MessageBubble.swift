@@ -92,6 +92,7 @@ struct MessageBubble: View, Equatable {
                 }
                 .buttonStyle(.borderless)
                 .help("Copy code")
+                .accessibilityLabel("Copy code block")
             }
             .padding(.horizontal, 10).padding(.vertical, 4)
             .background(Palette.codeHeader(colorScheme))
