@@ -17,8 +17,8 @@ struct RuntimeProfileTests {
 
     @Test func sixteenGBHitsSupportedMinimum() {
         let p = RuntimeProfileProvider().profile(for: .supported16to23)
-        #expect(p.defaultContext == 16384)
-        #expect(p.maxSupportedContext == 16384)
+        #expect(p.defaultContext == 8192, "Conservative auto default for 16 GB Mac")
+        #expect(p.maxSupportedContext == 32768, "User can override up to model capability")
         #expect(p.warmupEnabled)
     }
 

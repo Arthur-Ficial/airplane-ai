@@ -35,7 +35,12 @@ public final class AppWiring {
         )
 
         let profile = RuntimeProfileProvider().current()
-        let contextWindow = ContextWindow.resolve(manifest: manifest, profile: profile)
+        // User override from @AppStorage — 0 means "Auto".
+        let userOverride = UserDefaults.standard.integer(forKey: "airplane.contextOverride")
+        let contextWindow = ContextWindow.resolve(
+            manifest: manifest, profile: profile,
+            override: userOverride > 0 ? userOverride : nil
+        )
         let contextManager = ContextManager(maxContextTokens: contextWindow.effective)
         let sysPrompt = ModelLocator.bundledSystemPrompt()
         state.contextWindow = contextWindow

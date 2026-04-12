@@ -15,11 +15,23 @@ public struct ContextWindow: Sendable, Equatable {
         self.effective = effective
     }
 
-    public static func resolve(manifest: ModelManifest, profile: RuntimeProfile) -> ContextWindow {
-        ContextWindow(
-            modelCapability: manifest.modelCapabilityContext,
+    // `override` (if > 0) is the user's explicit choice from Settings.
+    // Always clamped to the model's real capability — we can't honestly exceed it.
+    public static func resolve(
+        manifest: ModelManifest,
+        profile: RuntimeProfile,
+        override: Int? = nil
+    ) -> ContextWindow {
+        let capability = manifest.modelCapabilityContext
+        let baseline = min(manifest.appDefaultContext, profile.defaultContext)
+        let chosen: Int = {
+            if let o = override, o > 0 { return min(capability, max(1024, o)) }
+            return baseline
+        }()
+        return ContextWindow(
+            modelCapability: capability,
             appDefault: manifest.appDefaultContext,
-            effective: min(manifest.appDefaultContext, profile.defaultContext)
+            effective: chosen
         )
     }
 

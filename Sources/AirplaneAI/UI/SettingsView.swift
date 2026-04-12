@@ -27,36 +27,48 @@ struct SettingsView: View {
         .frame(width: 580, height: 460)
     }
 
-    // Detailed context-window breakdown: where the effective number comes from.
+    // Detailed context-window breakdown + user override picker.
+    @AppStorage("airplane.contextOverride") private var contextOverride: Int = 0
+
     private var contextTab: some View {
         let window = state?.contextWindow
         let profile = RuntimeProfileProvider().current()
         let memoryGB = Int((Double(ProcessInfo.processInfo.physicalMemory) / 1_073_741_824.0).rounded())
         return VStack(alignment: .leading, spacing: Metrics.Padding.regular) {
             Text("Context Window").font(.headline)
-            Text("The amount of text the model can see at once. Longer conversations trim oldest messages first; the newest user message is never silently truncated.")
+            Text("How much text the model can see at once. Longer conversations trim oldest messages first; the newest user message is never silently truncated.")
                 .font(.callout).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+
+            GroupBox {
+                Picker("Context size", selection: $contextOverride) {
+                    Text("Auto (\(format(profile.defaultContext)))").tag(0)
+                    Text("4 K  · ~0.5 GB KV").tag(4096)
+                    Text("8 K  · ~1.1 GB KV").tag(8192)
+                    Text("16 K · ~2.3 GB KV").tag(16384)
+                    Text("24 K · ~3.4 GB KV").tag(24576)
+                    Text("32 K · ~4.6 GB KV (model max)").tag(32768)
+                }
+                .pickerStyle(.inline)
+                Text("Changes apply after the app is restarted.")
+                    .font(.caption).foregroundStyle(.tertiary)
+            } label: { Text("User override").font(.subheadline.weight(.semibold)) }
 
             GroupBox {
                 LabeledContent("Effective (used)", value: format(window?.effective))
                 Divider()
                 LabeledContent("Model capability", value: format(window?.modelCapability))
-                LabeledContent("App default (manifest)", value: format(window?.appDefault))
-                LabeledContent("Runtime profile default", value: format(profile.defaultContext))
-                LabeledContent("Runtime profile max", value: format(profile.maxSupportedContext))
-            }
+                LabeledContent("Manifest default", value: format(window?.appDefault))
+                LabeledContent("Profile auto default", value: format(profile.defaultContext))
+                LabeledContent("Profile max", value: format(profile.maxSupportedContext))
+                LabeledContent("User override", value: contextOverride == 0 ? "Auto" : format(contextOverride))
+            } label: { Text("Values").font(.subheadline.weight(.semibold)) }
 
             GroupBox {
                 LabeledContent("Your Mac memory", value: "\(memoryGB) GB")
                 LabeledContent("Memory class", value: String(describing: profile.memoryClass))
                 LabeledContent("GPU layers", value: gpuDesc(profile.gpuLayerPolicy))
-                LabeledContent("Batch / μ-batch", value: "\(profile.batchSize) / \(profile.ubatchSize)")
-            }
-
-            Text("Effective = min(app default, runtime profile default). Bigger numbers need more memory for the KV cache.")
-                .font(.caption).foregroundStyle(.tertiary)
-                .fixedSize(horizontal: false, vertical: true)
+            } label: { Text("Hardware").font(.subheadline.weight(.semibold)) }
             Spacer()
         }
         .padding(Metrics.Padding.large)

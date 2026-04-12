@@ -17,16 +17,17 @@ public struct RuntimeProfileProvider: Sendable {
                 flashAttention: .off, warmupEnabled: false
             )
         case .supported16to23:
-            // 16 GB: conservative but still generous. ~1.5 GB KV at 16K.
+            // 16 GB Mac: model 5 GB + KV 1.1 GB (8K @ F16) + macOS ~4 GB = ~10 GB.
+            // Safe headroom for user apps. User can override up to 32K if they dare.
             return RuntimeProfile(
-                memoryClass: mc, defaultContext: 16384, maxSupportedContext: 16384,
+                memoryClass: mc, defaultContext: 8192, maxSupportedContext: 32768,
                 gpuLayerPolicy: .fixed(24), batchSize: 512, ubatchSize: 512,
                 flashAttention: .auto, warmupEnabled: true
             )
         case .supported24to31:
-            // 24-31 GB: full native 32K capability. ~3 GB KV.
+            // 24 GB: model + KV 2.3 GB (16K) + macOS fits comfortably.
             return RuntimeProfile(
-                memoryClass: mc, defaultContext: 32768, maxSupportedContext: 32768,
+                memoryClass: mc, defaultContext: 16384, maxSupportedContext: 32768,
                 gpuLayerPolicy: .fixed(36), batchSize: 512, ubatchSize: 512,
                 flashAttention: .on, warmupEnabled: true
             )
