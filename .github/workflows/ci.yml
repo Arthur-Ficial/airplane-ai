@@ -17,9 +17,34 @@ jobs:
           swift --version
       - name: Build
         run: swift build -c debug
-      - name: Test (skip integration without bundled model)
-        env:
-          AIRPLANE_CI: "1"
+      - name: Stage vendor dylibs next to test binary
+        run: |
+          BIN="$(swift build --show-bin-path)"
+          for src in Vendor/llama.cpp/llama-b8763/libllama.dylib \
+                     Vendor/llama.cpp/llama-b8763/libllama.0.dylib \
+                     Vendor/llama.cpp/llama-b8763/libllama.0.0.8763.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml.0.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml.0.9.11.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-base.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-base.0.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-base.0.9.11.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-cpu.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-cpu.0.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-cpu.0.9.11.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-metal.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-metal.0.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-metal.0.9.11.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-blas.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-blas.0.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-blas.0.9.11.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-rpc.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-rpc.0.dylib \
+                     Vendor/llama.cpp/llama-b8763/libggml-rpc.0.9.11.dylib; do
+            [ -f "$src" ] && cp "$src" "$BIN/"
+          done
+          ls -lh "$BIN"/libllama* | head -5
+      - name: Test (skip integration)
         run: swift test --parallel --skip "LlamaSwiftEngine integration"
       - name: Verify entitlements
         run: ./Tools/ci/verify-entitlements.sh
