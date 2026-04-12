@@ -8,6 +8,20 @@
 2. **This file (`CLAUDE.md`)** — how to execute that spec.
 3. **Reference implementation:** **`~/dev/apfel-chat/`** — a working, shipped macOS SwiftPM chat app. **Study it before writing code.** Mirror its layout, Makefile targets, release scripts, test patterns, and Info.plist/entitlements injection via linker flags. It is the canonical example of "how we build Mac apps here."
 
+## Multimodal belongs to Apple (v2 rule — do not violate)
+
+- **Never downgrade the text model to gain multimodal.** Gemma-3n-E4B-it Q4_K_M stays the one and only inference model.
+- **Image input** goes through **Apple Vision + VisionKit** on-device:
+  - `VNRecognizeTextRequest` for OCR + handwriting
+  - `VNClassifyImageRequest` for labels
+  - `VNDetectDocumentSegmentationRequest` for doc flag
+  - optional `VisionKit.ImageAnalyzer` for natural-language captions
+- **Speech input** goes through **`SFSpeechRecognizer`** with `requiresOnDeviceRecognition = true`. Fail hard if the OS says on-device is unavailable; never fall back to the server path.
+- **Everything the model sees is plain text.** The Vision / Speech pipelines produce a structured text block that we append to the draft before generation.
+- No MLX backend. No llama.cpp mtmd with a second model. No cloud fallback. One inference engine, one model, text-in / text-out. That is the entire contract.
+- Entitlements: sandbox + `device.audio-input` only. Nothing else — ever. `Tools/ci/verify-entitlements.sh` enforces this allow-list.
+- UI rule: show the user the exact extracted text that will be sent to the model. Honest about what the model actually sees.
+
 ## Non-Negotiables (from spec — re-read if you forget)
 
 - One bundled model (Gemma 4 E4B Q4_K_M GGUF), memory-mapped, SHA-256 verified.
