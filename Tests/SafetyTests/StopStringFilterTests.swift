@@ -33,8 +33,26 @@ struct StopStringFilterTests {
 
     @Test func preservesLoneLessThanPipe() {
         // A bare "<|" mid-sentence is not a marker leak — keep it.
-        let (clean, hit) = OutputSanitizer.stripLeakingMarkers("x <| y") // ambiguous but no known-opener match
+        let (clean, hit) = OutputSanitizer.stripLeakingMarkers("x <| y")
         #expect(clean == "x <| y")
         #expect(!hit)
+    }
+
+    @Test func stripsBareImPrefix() {
+        let (clean, hit) = OutputSanitizer.stripLeakingMarkers("Love letter prompt response<|im_")
+        #expect(clean == "Love letter prompt response")
+        #expect(hit)
+    }
+
+    @Test func stripsUserPrefix() {
+        let (clean, hit) = OutputSanitizer.stripLeakingMarkers("done<|user>")
+        #expect(clean == "done")
+        #expect(hit)
+    }
+
+    @Test func stripsSystemPrefix() {
+        let (clean, hit) = OutputSanitizer.stripLeakingMarkers("end<|system")
+        #expect(clean == "end")
+        #expect(hit)
     }
 }

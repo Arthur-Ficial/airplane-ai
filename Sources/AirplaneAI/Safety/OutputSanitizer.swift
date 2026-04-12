@@ -20,12 +20,15 @@ public final class OutputSanitizer: @unchecked Sendable {
     ]
 
     // Prefixes — caught even when the model truncates the closing "|>".
+    // Broad: any ChatML/Gemma-flavored opener starts with one of these.
     public static let stopPrefixes: [String] = [
-        "<|file_sep",
-        "<|im_start",
-        "<|im_end",
-        "<|start_of_turn",
-        "<|end_of_turn",
+        "<|file_",
+        "<|im_",
+        "<|start_",
+        "<|end_",
+        "<|system",
+        "<|user",
+        "<|assistant",
     ]
 
     // Returns (cleanTail, true) when a marker appears; otherwise (input, false).
