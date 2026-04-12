@@ -1,0 +1,8 @@
+Gemma Terms of Use — https://ai.google.dev/gemma/terms
+
+This application bundles Gemma model weights licensed under the Gemma Terms of Use.
+You may not use Gemma, its derivatives, or outputs to develop models that compete
+with Gemma or its variants. See the URL above for full terms.
+
+Model: gemma-3n-E4B-it (Q4_K_M)
+Source: https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF

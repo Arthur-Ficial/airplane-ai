@@ -1,0 +1,12 @@
+{
+  "source_model_id": "unsloth/gemma-3n-E4B-it-GGUF",
+  "source_channel": "Hugging Face",
+  "source_revision": "main",
+  "source_file": "gemma-3n-E4B-it-Q4_K_M.gguf",
+  "conversion_runtime_revision": "ff5ef8278615a2462b79b50abdf3cc95cfb31c6f",
+  "quantization": "Q4_K_M",
+  "gguf_sha256": "43b489bb77a81bda85180e7c490d40ad7f1d5c2ce654c9b05e15e104bd3c777e",
+  "model_capability_context": 32768,
+  "app_default_context": 8192,
+  "license": "Gemma Terms of Use (Apache-2.0-compatible code; weights under Gemma License)"
+}
