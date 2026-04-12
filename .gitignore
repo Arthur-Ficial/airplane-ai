@@ -1,0 +1,13 @@
+.DS_Store
+.build/
+build/
+dist/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+Package.resolved.local
+*.swp
+.vscode/
+.idea/
+Sources/AirplaneAI/Resources/models/*.gguf
+Sources/AirplaneAI/Resources/models/*.gguf.partial

@@ -1,0 +1,25 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: macos-14
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Swift version
+        run: swift --version
+      - name: Build
+        run: swift build -c debug
+      - name: Test
+        run: swift test --parallel
+      - name: Verify entitlements
+        run: ./Tools/ci/verify-entitlements.sh
+      - name: Verify no network symbols in sources
+        run: ./Tools/ci/verify-no-network-symbols.sh
+      - name: Verify no forbidden deps
+        run: ./Tools/ci/verify-no-forbidden-deps.sh

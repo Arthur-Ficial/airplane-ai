@@ -1,0 +1,9 @@
+Airplane AI — Proprietary License
+Copyright (c) 2026 Franz Enzenhofer. All rights reserved.
+
+The source code in this repository is proprietary. Redistribution, modification,
+or commercial use without prior written permission from the copyright holder is
+prohibited.
+
+Third-party licenses (model weights, llama.cpp, etc.) are bundled with their
+respective notices under Sources/AirplaneAI/Resources/licenses/.
