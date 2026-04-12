@@ -26,11 +26,29 @@ enum MenuBarSanitizer {
     }
 }
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
+    private var observers: [NSObjectProtocol] = []
+
     func applicationDidFinishLaunching(_ notification: Notification) {
-        if let main = NSApp.mainMenu {
-            MenuBarSanitizer.removeIrrelevantMenus(from: main)
-        }
+        strip()
+        // NSTextView re-injects the Format menu when the composer becomes first
+        // responder. Re-strip on every activation and every menu-bar open.
+        let nc = NotificationCenter.default
+        observers.append(nc.addObserver(forName: NSWindow.didBecomeMainNotification,
+                                        object: nil, queue: .main) { [weak self] _ in self?.strip() })
+        observers.append(nc.addObserver(forName: NSWindow.didBecomeKeyNotification,
+                                        object: nil, queue: .main) { [weak self] _ in self?.strip() })
+        observers.append(nc.addObserver(forName: NSApplication.didBecomeActiveNotification,
+                                        object: nil, queue: .main) { [weak self] _ in self?.strip() })
+        NSApp.mainMenu?.delegate = self
+    }
+
+    // Called just before the top menu bar is about to open — final strip.
+    func menuNeedsUpdate(_ menu: NSMenu) { strip() }
+
+    private func strip() {
+        guard let main = NSApp.mainMenu else { return }
+        MenuBarSanitizer.removeIrrelevantMenus(from: main)
     }
 }
 
