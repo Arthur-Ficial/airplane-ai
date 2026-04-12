@@ -1,12 +1,31 @@
 import SwiftUI
+import AppKit
 
 extension Notification.Name {
     static let airplaneFocusSearch = Notification.Name("airplane.focusSearch")
     static let airplaneOpenSettings = Notification.Name("airplane.openSettings")
 }
 
+// Removes menus that NSTextView's responder chain adds automatically
+// (Format/Font/Styles) — irrelevant for a plain-text composer.
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    private static let menusToRemove: [String] = ["Format", "View"]
+    private static let itemsToRemoveFromView: [String] = ["Show Tab Bar", "Show All Tabs"]
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        guard let mainMenu = NSApp.mainMenu else { return }
+        // Whole-menu removal (Format).
+        for title in ["Format"] {
+            if let item = mainMenu.items.first(where: { $0.title == title }) {
+                mainMenu.removeItem(item)
+            }
+        }
+    }
+}
+
 @main
 struct AirplaneAIApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var wiring: AppWiring?
     @State private var bootError: String?
 
