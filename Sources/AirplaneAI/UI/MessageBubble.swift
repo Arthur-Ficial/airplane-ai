@@ -85,13 +85,14 @@ struct MessageBubble: View, Equatable {
                 }
                 Spacer()
                 Button(action: { copyText(block.content) }) {
-                    Label(showCopied ? "Copied" : "Copy", systemImage: showCopied ? "checkmark" : "doc.on.doc")
-                        .labelStyle(.titleAndIcon)
+                    Image(systemName: showCopied ? "checkmark" : "doc.on.doc")
                         .font(.caption)
                         .foregroundStyle(showCopied ? .green : .secondary)
+                        .frame(width: 18, height: 18)
+                        .contentShape(Rectangle())
                 }
-                .buttonStyle(.borderless)
-                .help("Copy code")
+                .buttonStyle(.plain)
+                .help(showCopied ? "Copied" : "Copy code")
                 .accessibilityLabel("Copy code block")
             }
             .padding(.horizontal, 10).padding(.vertical, 4)

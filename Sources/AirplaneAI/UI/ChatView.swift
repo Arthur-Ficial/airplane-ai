@@ -168,49 +168,26 @@ struct InputBar: View {
         .onAppear { focused.wrappedValue = true }
     }
 
-    // TextEditor honors explicit frames, unlike multi-line TextField. Placeholder
-    // overlay on empty text.
+    // Custom NSTextView — textContainerInset + lineFragmentPadding both zero.
+    // Placeholder is drawn INSIDE the same text container at the same origin
+    // as the cursor, so by construction they can never disagree.
     private var editor: some View {
-        ZStack(alignment: .topLeading) {
-            TextEditor(text: $draft)
-                .font(.body)
-                .focused(focused)
-                .scrollContentBackground(.hidden)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 8)
-                .frame(height: composerHeight)
-                .onKeyPress(phases: .down) { press in
-                    guard press.key == .return else { return .ignored }
-                    // Setting: Enter vs Cmd+Enter as the send shortcut.
-                    let cmdMode = sendWith == "cmd-enter"
-                    let mods = press.modifiers
-                    if cmdMode {
-                        // Cmd+Enter sends, plain Enter = newline.
-                        if !mods.contains(.command) { return .ignored }
-                    } else {
-                        // Enter sends, Shift+Enter = newline.
-                        if mods.contains(.shift) { return .ignored }
-                    }
-                    if state.chatState == .generating { onStop(); return .handled }
-                    onSubmit()
-                    return .handled
-                }
-                .onKeyPress(.escape) {
-                    if state.chatState == .generating { onStop(); return .handled }
-                    if !draft.isEmpty { draft = ""; return .handled }
-                    return .ignored
-                }
-            if draft.isEmpty {
-                // Match TextEditor's outer padding (8) + its intrinsic
-                // textContainerInset (~5) so placeholder baseline = cursor baseline.
-                Text(placeholder)
-                    .font(.body)
-                    .foregroundStyle(.tertiary)
-                    .padding(.leading, 8 + 5)
-                    .padding(.top, 8 + 5)
-                    .allowsHitTesting(false)
+        ComposerTextView(
+            text: $draft,
+            placeholder: placeholder,
+            isFocused: focused.wrappedValue,
+            sendOnEnter: sendWith != "cmd-enter",
+            onSend: {
+                if state.chatState == .generating { onStop() } else { onSubmit() }
+            },
+            onCancel: {
+                if state.chatState == .generating { onStop() }
+                else if !draft.isEmpty { draft = "" }
             }
-        }
+        )
+        .padding(.horizontal, 8)
+        .padding(.vertical, 8)
+        .frame(height: composerHeight)
         .background(Color(nsColor: .textBackgroundColor))
         .overlay(
             RoundedRectangle(cornerRadius: Metrics.Radius.regular)
