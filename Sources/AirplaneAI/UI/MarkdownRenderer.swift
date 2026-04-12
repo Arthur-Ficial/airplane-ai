@@ -87,6 +87,18 @@ enum MarkdownRenderer {
         (try? AttributedString(markdown: md, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))) ?? AttributedString(md)
     }
 
+    // Scheme-aware variant used by views: bolts palette colors onto inline code
+    // runs so `foo` renders as a bordered pill that contrasts properly in
+    // light + dark. Never cached by scheme — the styling is cheap.
+    static func render(_ md: String, scheme: ColorScheme) -> AttributedString {
+        var attr = render(md)
+        for run in attr.runs where run.inlinePresentationIntent == .code {
+            attr[run.range].backgroundColor = Palette.inlineCodeBackground(scheme)
+            attr[run.range].foregroundColor = Palette.inlineCodeForeground(scheme)
+        }
+        return attr
+    }
+
     static func isJSON(_ text: String) -> Bool {
         let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard t.hasPrefix("{") || t.hasPrefix("[") else { return false }

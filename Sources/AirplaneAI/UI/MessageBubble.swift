@@ -69,7 +69,7 @@ struct MessageBubble: View, Equatable {
                     ForEach(cached.blocks) { block in
                         switch block.kind {
                         case .text:
-                            Text(block.rendered ?? AttributedString(block.content))
+                            Text(MarkdownRenderer.render(block.content, scheme: colorScheme))
                                 .font(.body).textSelection(.enabled)
                         case .code:
                             codeBlock(block)

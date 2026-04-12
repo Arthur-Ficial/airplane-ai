@@ -24,4 +24,13 @@ enum Palette {
     static let statusReady = Color.green
     static let statusLoading = Color.blue
     static let statusError = Color.red
+
+    // Inline `code` pill.
+    static func inlineCodeBackground(_ scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color(white: 0.28) : Color(white: 0.88)
+    }
+    static func inlineCodeForeground(_ scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color(red: 0.60, green: 0.82, blue: 1.0)
+                        : Color(red: 0.02, green: 0.30, blue: 0.70)
+    }
 }
