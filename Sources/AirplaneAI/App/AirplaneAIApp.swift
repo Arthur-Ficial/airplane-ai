@@ -1,5 +1,9 @@
 import SwiftUI
 
+extension Notification.Name {
+    static let airplaneFocusSearch = Notification.Name("airplane.focusSearch")
+}
+
 @main
 struct AirplaneAIApp: App {
     @State private var wiring: AppWiring?
@@ -11,6 +15,16 @@ struct AirplaneAIApp: App {
                 .task { await boot() }
         }
         .windowResizability(.contentSize)
+        .commands {
+            CommandGroup(after: .newItem) {
+                Button("New Chat") { wiring?.conversationController.newConversation() }
+                    .keyboardShortcut("n", modifiers: .command)
+                Button("Focus Search") {
+                    NotificationCenter.default.post(name: .airplaneFocusSearch, object: nil)
+                }
+                .keyboardShortcut("k", modifiers: .command)
+            }
+        }
 
         Settings {
             SettingsView(state: wiring?.state, store: wiring?.store)

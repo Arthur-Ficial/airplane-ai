@@ -10,6 +10,8 @@ struct ConversationListView: View {
     @State private var editingId: UUID?
     @State private var editTitle: String = ""
 
+    @FocusState private var searchFocused: Bool
+
     var body: some View {
         List(selection: Binding(
             get: { state.activeConversationID },
@@ -21,6 +23,10 @@ struct ConversationListView: View {
         }
         .listStyle(.sidebar)
         .searchable(text: $search, placement: .sidebar, prompt: "Search")
+        .searchFocused($searchFocused)
+        .onReceive(NotificationCenter.default.publisher(for: .airplaneFocusSearch)) { _ in
+            searchFocused = true
+        }
         .navigationTitle(L.sidebarTitle)
         .toolbar {
             ToolbarItem {
