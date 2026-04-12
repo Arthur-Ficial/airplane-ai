@@ -114,11 +114,17 @@ public final class ChatController {
             var buffer = ""
             var lastFlush = ContinuousClock.now
             let flushBudget = Duration.milliseconds(16)
+            var tokenCount = 0
+            var firstTokenAt: ContinuousClock.Instant?
             do {
                 for try await ev in engine.generate(messages: messages, parameters: params) {
                     switch ev {
                     case .token(let t):
-                        if self.state.awaitingFirstToken { self.state.awaitingFirstToken = false }
+                        if self.state.awaitingFirstToken {
+                            self.state.awaitingFirstToken = false
+                            firstTokenAt = ContinuousClock.now
+                        }
+                        tokenCount += 1
                         buffer += t.text
                         if ContinuousClock.now - lastFlush > flushBudget {
                             assistant.content += buffer; buffer = ""
@@ -129,6 +135,12 @@ public final class ChatController {
                         if !buffer.isEmpty { assistant.content += buffer; buffer = "" }
                         assistant.status = reason == .cancelledByUser || reason == .interruptedByLifecycle ? .interrupted : .complete
                         assistant.stopReason = reason
+                        assistant.tokenCount = tokenCount
+                        if let start = firstTokenAt {
+                            let d = ContinuousClock.now - start
+                            assistant.durationMs = Int(d.components.seconds * 1000) +
+                                Int(d.components.attoseconds / 1_000_000_000_000_000)
+                        }
                         self.finalize(message: assistant)
                     }
                 }

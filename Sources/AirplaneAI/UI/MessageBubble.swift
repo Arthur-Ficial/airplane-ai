@@ -114,6 +114,14 @@ struct MessageBubble: View, Equatable {
 
     private var footer: some View {
         HStack(spacing: 6) {
+            #if AIRPLANE_DEBUG
+            if let tok = message.tokenCount {
+                Text("\(tok) tok").font(.caption2.monospacedDigit()).foregroundStyle(.quaternary)
+            }
+            if let ms = message.durationMs {
+                Text("\(ms) ms").font(.caption2.monospacedDigit()).foregroundStyle(.quaternary)
+            }
+            #endif
             if message.status == .interrupted {
                 Label(L.chatInterrupted, systemImage: "exclamationmark.triangle")
                     .font(.caption2).foregroundStyle(.orange)
