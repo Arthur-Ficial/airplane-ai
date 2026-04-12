@@ -62,6 +62,11 @@ public final class ChatController {
 
         let engine = self.engine
         let params = GenerationParameters().clamped()
+        // Snapshot whether this conversation still needs an AI-generated title.
+        // Trigger = first assistant response in a chat whose title is still the derived
+        // short form of the user message (not yet AI-titled or user-renamed).
+        let shouldGenerateTitle = (state.activeConversation?.messages.filter { $0.role == .assistant }.isEmpty ?? false)
+        let activeConvoID = state.activeConversationID
         generationTask = Task { [weak self] in
             guard let self else { return }
             // Batch token UI updates: coalesce every ~16ms so we don't thrash SwiftUI
@@ -94,6 +99,50 @@ public final class ChatController {
                 self.state.lastError = .generationFailed(summary: error.localizedDescription)
             }
             self.state.chatState = .idle
+            if shouldGenerateTitle, let cid = activeConvoID {
+                await self.generateTitle(for: cid)
+            }
+        }
+    }
+
+    // Ask the model to produce a 3-6 word title for the conversation so far.
+    // Non-blocking — runs after streaming completes.
+    private func generateTitle(for convoID: UUID) async {
+        guard let convo = state.conversations.first(where: { $0.id == convoID }),
+              let firstUser = convo.messages.first(where: { $0.role == .user })?.content,
+              let firstAssistant = convo.messages.first(where: { $0.role == .assistant })?.content
+        else { return }
+        let titlePrompt = """
+        Give a short 3-6 word title summarizing this conversation. Output ONLY the title, no quotes, no punctuation at the end.
+        User asked: \(firstUser.prefix(400))
+        Assistant replied: \(firstAssistant.prefix(400))
+        Title:
+        """
+        var params = GenerationParameters()
+        params.maxTokens = 16
+        params.temperature = 0.2
+        let stream = engine.generate(
+            messages: [ChatMessage(role: .user, content: titlePrompt)],
+            parameters: params.clamped()
+        )
+        var collected = ""
+        do {
+            for try await ev in stream {
+                if case .token(let t) = ev { collected += t.text }
+                if case .finished = ev { break }
+            }
+        } catch { return }
+        let clean = collected
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\"", with: "")
+            .replacingOccurrences(of: "Title:", with: "", options: .caseInsensitive)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .split(separator: "\n").first.map(String.init) ?? collected
+        guard !clean.isEmpty, clean.count < 80 else { return }
+        if let idx = state.conversations.firstIndex(where: { $0.id == convoID }) {
+            state.conversations[idx].title = clean
+            state.conversations[idx].updatedAt = .now
+            persist(state.conversations[idx])
         }
     }
 

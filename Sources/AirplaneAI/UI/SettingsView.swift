@@ -1,30 +1,37 @@
 import SwiftUI
 
-// Apfel-chat inspired settings. v1 is read-mostly — no sampling sliders in
-// release per spec §11.
 struct SettingsView: View {
     let state: AppState?
+    @AppStorage("airplane.appearance") private var appearance: String = "system"
 
     init(state: AppState? = nil) { self.state = state }
 
     var body: some View {
         TabView {
-            about.tabItem { Label("About", systemImage: "info.circle") }
-            privacy.tabItem { Label("Privacy", systemImage: "lock.shield") }
+            appearanceTab.tabItem { Label("Appearance", systemImage: "paintbrush") }
+            aboutTab.tabItem { Label("About", systemImage: "info.circle") }
+            privacyTab.tabItem { Label("Privacy", systemImage: "lock.shield") }
         }
-        .frame(width: 520, height: 320)
+        .frame(width: 520, height: 360)
     }
 
-    private var about: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 14) {
-                ZStack {
-                    Circle().fill(Color.accentColor.opacity(0.12)).frame(width: 56, height: 56)
-                    Image(systemName: "airplane")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundStyle(Color.accentColor)
-                        .rotationEffect(.degrees(-20))
-                }
+    private var appearanceTab: some View {
+        Form {
+            Picker("Appearance", selection: $appearance) {
+                Text("Follow System").tag("system")
+                Text("Always Light").tag("light")
+                Text("Always Dark").tag("dark")
+            }
+            .pickerStyle(.inline)
+        }
+        .formStyle(.grouped)
+        .padding(Metrics.Padding.large)
+    }
+
+    private var aboutTab: some View {
+        VStack(alignment: .leading, spacing: Metrics.Padding.regular) {
+            HStack(spacing: Metrics.Padding.regular) {
+                AirplaneGlyph(size: Metrics.Size.airplaneGlyphSmall)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Airplane AI").font(.title2.weight(.semibold))
                     Text("Version \(version)").font(.caption).foregroundStyle(.secondary)
@@ -42,11 +49,11 @@ struct SettingsView: View {
             LabeledContent("Runtime", value: "llama.cpp b8763")
             Spacer()
         }
-        .padding(24)
+        .padding(Metrics.Padding.large * 1.5)
     }
 
-    private var privacy: some View {
-        VStack(alignment: .leading, spacing: 12) {
+    private var privacyTab: some View {
+        VStack(alignment: .leading, spacing: Metrics.Padding.regular) {
             bullet("airplane", "Runs entirely on your Mac. No cloud calls.")
             bullet("wifi.slash", "Zero network entitlements. Verified by build CI.")
             bullet("lock.shield", "App Sandbox enabled. Kernel-enforced isolation.")
@@ -54,11 +61,11 @@ struct SettingsView: View {
             bullet("person.slash.fill", "No accounts. Nothing to sign up for.")
             Spacer()
         }
-        .padding(24)
+        .padding(Metrics.Padding.large * 1.5)
     }
 
     private func bullet(_ icon: String, _ text: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: Metrics.Padding.small) {
             Image(systemName: icon).foregroundStyle(.secondary).frame(width: 20)
             Text(text).fixedSize(horizontal: false, vertical: true)
             Spacer()

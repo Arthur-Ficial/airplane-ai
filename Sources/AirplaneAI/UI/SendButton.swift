@@ -1,7 +1,7 @@
 import SwiftUI
 
-// Apfel-chat-style circular send button.
-// Uses dynamic system colors so light/dark are both correct.
+// Circular send button.
+// Enabled = accent-filled + white arrow; disabled = subtle bordered outline.
 struct SendButton: View {
     let generating: Bool
     let canSend: Bool
@@ -11,13 +11,17 @@ struct SendButton: View {
         let active = canSend || generating
         Button(action: onTap) {
             Image(systemName: generating ? "stop.fill" : "arrow.up")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(active ? Color.white : Color.gray)
-                .frame(width: 36, height: 36)
-                .background(active ? Color.accentColor : Color(nsColor: .controlBackgroundColor))
-                .clipShape(Circle())
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(active ? Color.white : Color.secondary)
+                .frame(width: Metrics.Size.sendButton, height: Metrics.Size.sendButton)
+                .background(
+                    Circle().fill(active ? Palette.accent : Color(nsColor: .controlBackgroundColor))
+                )
+                .overlay(
+                    Circle().strokeBorder(active ? Color.clear : Color(nsColor: .separatorColor), lineWidth: 1)
+                )
         }
-        .buttonStyle(.borderless)
+        .buttonStyle(.plain)
         .disabled(!active)
         .help(generating ? L.actionStop : L.actionSend)
         .keyboardShortcut(.return, modifiers: .command)

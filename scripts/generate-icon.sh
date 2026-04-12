@@ -12,33 +12,35 @@ mkdir -p "$ICONSET" "$OUT_DIR"
 
 cat > "$SVG" <<'SVG'
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#0B1F3A"/>
-      <stop offset="1" stop-color="#17375C"/>
-    </linearGradient>
-    <linearGradient id="wing" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#BFD4EE"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0" stop-color="#FFD47A" stop-opacity="0.75"/>
-      <stop offset="1" stop-color="#FFD47A" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <!-- rounded square background -->
-  <rect x="64" y="64" width="896" height="896" rx="200" ry="200" fill="url(#sky)"/>
-  <!-- subtle glow behind the plane -->
-  <circle cx="512" cy="560" r="380" fill="url(#glow)"/>
-  <!-- paper plane -->
-  <g transform="translate(200,220) rotate(-6 312 296)">
-    <polygon points="0,280 624,0 480,320 280,240 420,420 0,280" fill="url(#wing)"/>
-    <polygon points="0,280 280,240 420,420 0,280" fill="#8FB0D7" opacity="0.55"/>
-    <polygon points="624,0 480,320 420,420 624,0" fill="#DDE8F5" opacity="0.35"/>
+  <!-- Matches the AirplaneGlyph used in BootScreen / Welcome / About.
+       White rounded-rect background, accent-blue tinted circle, SF-Symbol-style airplane. -->
+  <rect x="64" y="64" width="896" height="896" rx="200" ry="200" fill="#FFFFFF"/>
+  <circle cx="512" cy="512" r="300" fill="#007AFF" fill-opacity="0.12"/>
+  <!-- Stylized airplane silhouette, rotated -20deg, centered at (512,512). -->
+  <g transform="translate(512 512) rotate(-20)">
+    <path d="M -240 -20
+             L -30 -50
+             L 50 -220
+             L 120 -220
+             L 85 -55
+             L 210 -45
+             L 250 -100
+             L 290 -100
+             L 255 -25
+             L 300 -5
+             L 300 5
+             L 255 25
+             L 290 100
+             L 250 100
+             L 210 45
+             L 85 55
+             L 120 220
+             L 50 220
+             L -30 50
+             L -240 20
+             Z"
+          fill="#007AFF"/>
   </g>
-  <!-- tiny airstream dot -->
-  <circle cx="820" cy="200" r="16" fill="#FFD47A" opacity="0.9"/>
-  <circle cx="720" cy="260" r="10" fill="#FFD47A" opacity="0.6"/>
 </svg>
 SVG
 

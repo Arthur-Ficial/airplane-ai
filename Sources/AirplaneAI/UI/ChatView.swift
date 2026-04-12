@@ -1,9 +1,6 @@
 import SwiftUI
 import AppKit
 
-// Ported from apfel-chat's ChatView (proven design). Key differences:
-// - No speech/image input in v1 (spec §1: text-only)
-// - Uses our AppState + ChatController instead of ChatViewModel
 struct ChatView: View {
     let state: AppState
     let controller: ChatController
@@ -14,7 +11,7 @@ struct ChatView: View {
     var body: some View {
         VStack(spacing: 0) {
             if (state.activeConversation?.messages ?? []).isEmpty {
-                emptyState
+                WelcomeView()
             } else {
                 messageList
             }
@@ -27,36 +24,22 @@ struct ChatView: View {
             )
         }
         .background(Color(nsColor: .windowBackgroundColor))
-    }
-
-    private var emptyState: some View {
-        VStack(spacing: 16) {
-            Spacer()
-            Image(systemName: "bubble.left.and.bubble.right")
-                .font(.system(size: 52, weight: .ultraLight))
-                .foregroundStyle(.quaternary)
-            Text("Start a conversation")
-                .font(.title2).fontWeight(.medium)
-                .foregroundStyle(.secondary)
-            Text("Private AI on your Mac")
-                .font(.subheadline).foregroundStyle(.tertiary)
-            Text("Press ⌘N for new chat")
-                .font(.caption).foregroundStyle(.quaternary)
-            Spacer()
+        .onChange(of: state.activeConversationID) { _, _ in
+            isFollowingTail = true
+            composerFocused = true
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var messageList: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(spacing: 16) {
+                LazyVStack(spacing: Metrics.Padding.large) {
                     ForEach(state.activeConversation?.messages ?? []) { msg in
                         MessageBubble(message: msg).equatable().id(msg.id)
                     }
                 }
                 .padding(.vertical, 20)
-
+                // Sentinel outside the VStack so scrollTo("bottom") reaches the true last pixel.
                 Color.clear
                     .frame(height: 1).id("bottom")
                     .onAppear { isFollowingTail = true }
@@ -66,7 +49,7 @@ struct ChatView: View {
                 guard new > old else { return }
                 let userJustSent = state.activeConversation?.messages.last?.role == .user
                 guard isFollowingTail || new <= 2 || userJustSent else { return }
-                withAnimation(.easeOut(duration: 0.18)) {
+                withAnimation(.easeOut(duration: Metrics.Duration.quickAnimation)) {
                     proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
@@ -81,7 +64,10 @@ struct ChatView: View {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
         draft = ""
-        Task { await controller.send(text) }
+        Task {
+            await controller.send(text)
+            composerFocused = true
+        }
     }
 
     private func stop() { controller.stop() }
@@ -97,13 +83,12 @@ struct InputBar: View {
     var body: some View {
         VStack(spacing: 0) {
             Divider()
-            HStack(alignment: .bottom, spacing: 10) {
+            HStack(alignment: .bottom, spacing: Metrics.Padding.small) {
                 TextField(placeholder, text: $draft, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
                     .font(.body)
                     .focused(focused)
-                    .lineLimit(3...10)
-                    .frame(minHeight: 72)
+                    .lineLimit(1...6)
                     .onSubmit {
                         state.chatState == .generating ? onStop() : onSubmit()
                     }
@@ -112,14 +97,29 @@ struct InputBar: View {
                     canSend: !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                     onTap: state.chatState == .generating ? onStop : onSubmit
                 )
+                .padding(.bottom, 2) // align with rounded-border TextField baseline
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
+            .padding(.horizontal, Metrics.Padding.regular)
+            .padding(.vertical, Metrics.Padding.small)
         }
         .onAppear { focused.wrappedValue = true }
     }
 
     private var placeholder: String {
         state.chatState == .generating ? L.chatGenerating : "Type a message, press Enter to send…"
+    }
+}
+
+struct WelcomeView: View {
+    var body: some View {
+        VStack(spacing: Metrics.Padding.large) {
+            Spacer()
+            AirplaneGlyph(size: Metrics.Size.airplaneGlyphLarge)
+            Text("Airplane AI").font(.title.weight(.semibold))
+            Text(L.tagline).font(.title3).foregroundStyle(.secondary)
+            Text("Press ⌘N for a new chat").font(.caption).foregroundStyle(.tertiary)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

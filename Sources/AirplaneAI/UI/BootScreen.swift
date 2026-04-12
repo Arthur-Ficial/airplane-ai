@@ -19,13 +19,7 @@ struct BootScreen: View {
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
-            ZStack {
-                Circle().fill(Color.accentColor.opacity(0.12)).frame(width: 120, height: 120)
-                Image(systemName: "airplane")
-                    .font(.system(size: 44, weight: .bold))
-                    .foregroundStyle(Color.accentColor)
-                    .rotationEffect(.degrees(-20))
-            }
+            AirplaneGlyph(size: Metrics.Size.airplaneGlyphLarge)
             Text("Airplane AI").font(.largeTitle.weight(.semibold))
             Text(L.tagline).font(.callout).foregroundStyle(.secondary)
 

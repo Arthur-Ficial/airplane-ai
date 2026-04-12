@@ -3,6 +3,7 @@ import SwiftUI
 struct RootWindow: View {
     let wiring: AppWiring?
     let bootError: String?
+    @AppStorage("airplane.appearance") private var appearance: String = "system"
 
     var body: some View {
         Group {
@@ -11,6 +12,15 @@ struct RootWindow: View {
             else { BootScreen(state: AppState()) }
         }
         .frame(minWidth: 960, minHeight: 640)
+        .preferredColorScheme(preferredScheme)
+    }
+
+    private var preferredScheme: ColorScheme? {
+        switch appearance {
+        case "light": .light
+        case "dark": .dark
+        default: nil
+        }
     }
 
     @ViewBuilder
