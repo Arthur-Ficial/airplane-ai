@@ -19,9 +19,44 @@ struct SettingsView: View {
             aboutTab.tabItem { Label("About", systemImage: "info.circle") }
             privacyTab.tabItem { Label("Privacy", systemImage: "lock.shield") }
             dangerTab.tabItem { Label("Danger Zone", systemImage: "exclamationmark.triangle") }
+            #if AIRPLANE_DEBUG
+            debugTab.tabItem { Label("Debug", systemImage: "ant") }
+            #endif
         }
         .frame(width: 560, height: 400)
     }
+
+    #if AIRPLANE_DEBUG
+    @AppStorage("airplane.debug.temperature") private var debugTemperature: Double = 0.6
+    @AppStorage("airplane.debug.topP") private var debugTopP: Double = 0.95
+    @AppStorage("airplane.debug.topK") private var debugTopK: Int = 40
+    @AppStorage("airplane.debug.maxTokens") private var debugMaxTokens: Int = 1024
+
+    private var debugTab: some View {
+        Form {
+            Section("Sampling (DEBUG only — never in release builds)") {
+                VStack(alignment: .leading) {
+                    Text("Temperature: \(debugTemperature, format: .number.precision(.fractionLength(2)))")
+                    Slider(value: $debugTemperature, in: 0...1.5)
+                }
+                VStack(alignment: .leading) {
+                    Text("top-p: \(debugTopP, format: .number.precision(.fractionLength(2)))")
+                    Slider(value: $debugTopP, in: 0.01...1.0)
+                }
+                Stepper("top-k: \(debugTopK)", value: $debugTopK, in: 1...200)
+                Stepper("max tokens: \(debugMaxTokens)", value: $debugMaxTokens, in: 1...4096, step: 64)
+            }
+            Section {
+                Button("Reset to defaults") {
+                    debugTemperature = 0.6; debugTopP = 0.95
+                    debugTopK = 40; debugMaxTokens = 1024
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .padding(Metrics.Padding.large)
+    }
+    #endif
 
     private var appearanceTab: some View {
         Form {
