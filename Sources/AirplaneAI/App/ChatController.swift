@@ -90,6 +90,16 @@ public final class ChatController {
     }
 
     private func beginGeneration(messages: [ChatMessage]) {
+        // Decide title-gen BEFORE appending the streaming assistant stub —
+        // otherwise the stub counts as an assistant message and masks the
+        // 'no assistant yet' signal.
+        let priorAssistantCount = state.activeConversation?.messages
+            .filter({ $0.role == .assistant && !$0.content.isEmpty })
+            .count ?? 0
+        let shouldGenerateTitle = priorAssistantCount == 0
+            || Self.isDefaultTitle(state.activeConversation?.title)
+        let activeConvoID = state.activeConversationID
+
         state.chatState = .generating
         state.awaitingFirstToken = true
         var assistant = ChatMessage(role: .assistant, content: "", status: .streaming)
@@ -97,11 +107,6 @@ public final class ChatController {
 
         let engine = self.engine
         let params = GenerationParameters().clamped()
-        // Retrigger whenever the current title is still a default — covers both
-        // brand-new chats and pre-existing "New Chat" rows that were saved before
-        // the title feature existed. User-renamed / AI-titled chats are never touched.
-        let shouldGenerateTitle = Self.isDefaultTitle(state.activeConversation?.title)
-        let activeConvoID = state.activeConversationID
         generationTask = Task { [weak self] in
             guard let self else { return }
             // Batch token UI updates: coalesce every ~16ms so we don't thrash SwiftUI
@@ -134,11 +139,13 @@ public final class ChatController {
                 self.finalize(message: assistant)
                 self.state.lastError = .generationFailed(summary: error.localizedDescription)
             }
-            self.state.chatState = .idle
             self.state.awaitingFirstToken = false
+            // Hold chatState = .generating while title-gen runs so user sends
+            // can't race the llama.cpp context. Spec §11: one active gen at a time.
             if shouldGenerateTitle, let cid = activeConvoID {
                 await self.generateTitle(for: cid)
             }
+            self.state.chatState = .idle
         }
     }
 

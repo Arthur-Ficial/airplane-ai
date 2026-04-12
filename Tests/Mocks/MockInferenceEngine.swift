@@ -12,6 +12,8 @@ final class MockInferenceEngine: InferenceEngine, @unchecked Sendable {
     var perTokenDelayNanos: UInt64 = 0
     var injectedFailure: Error?
     var finalStopReason: StopReason = .completed
+    // How many times generate() was invoked. Useful for proving title-gen ran.
+    private(set) var generateCallCount: Int = 0
 
     var isModelLoaded: Bool { get async { lock.withLock { _loaded } } }
     var loadedModelInfo: ModelInfo? { get async { lock.withLock { _info } } }
@@ -27,7 +29,7 @@ final class MockInferenceEngine: InferenceEngine, @unchecked Sendable {
     func unloadModel() async { lock.withLock { _loaded = false; _info = nil } }
 
     func generate(messages: [ChatMessage], parameters: GenerationParameters) -> AsyncThrowingStream<StreamEvent, Error> {
-        lock.withLock { _cancelled = false }
+        lock.withLock { _cancelled = false; generateCallCount += 1 }
         let tokens = scriptedTokens
         let delay = perTokenDelayNanos
         let failure = injectedFailure
