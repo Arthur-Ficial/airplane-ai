@@ -89,15 +89,18 @@ struct InputBar: View {
     let onSubmit: () -> Void
     let onStop: () -> Void
 
+    @State private var composerHeight: CGFloat = Metrics.Composer.minHeight
+
     var body: some View {
         VStack(spacing: 0) {
             Divider()
-            HStack(alignment: .bottom, spacing: Metrics.Padding.small) {
+            HStack(alignment: .bottom, spacing: Metrics.Composer.gap) {
                 TextField(placeholder, text: $draft, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
                     .font(.body)
                     .focused(focused)
-                    .lineLimit(1...6)
+                    .lineLimit(Metrics.Composer.minLines...Metrics.Composer.maxLines)
+                    .frame(minHeight: composerHeight, maxHeight: composerHeight)
                     .onSubmit {
                         state.chatState == .generating ? onStop() : onSubmit()
                     }
@@ -112,12 +115,31 @@ struct InputBar: View {
                     awaitingFirstToken: state.awaitingFirstToken,
                     onTap: state.chatState == .generating ? onStop : onSubmit
                 )
-                .padding(.bottom, 2) // align with rounded-border TextField baseline
+                .padding(.bottom, 2)
             }
-            .padding(.horizontal, Metrics.Padding.regular)
-            .padding(.vertical, Metrics.Padding.small)
+            .padding(.horizontal, Metrics.Composer.horizontalPadding)
+            .padding(.vertical, Metrics.Composer.verticalPadding)
+            .overlay(resizeHandle, alignment: .topTrailing)
         }
         .onAppear { focused.wrappedValue = true }
+    }
+
+    // Small grab handle on top-right of the composer strip. Drag up to grow, down to shrink.
+    private var resizeHandle: some View {
+        Image(systemName: "line.3.horizontal")
+            .font(.caption2).foregroundStyle(.tertiary)
+            .padding(.top, 2).padding(.trailing, 6)
+            .frame(width: 24, height: 14)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture()
+                    .onChanged { drag in
+                        let proposed = composerHeight - drag.translation.height
+                        composerHeight = min(Metrics.Composer.maxHeight, max(Metrics.Composer.minHeight, proposed))
+                    }
+            )
+            .help("Drag to resize")
+            .accessibilityLabel("Resize composer")
     }
 
     private var placeholder: String {

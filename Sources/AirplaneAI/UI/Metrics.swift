@@ -30,4 +30,14 @@ enum Metrics {
         static let userInset: CGFloat = 60
         static let innerPadding: CGFloat = 10
     }
+    // SSOT for the composer/input bar.
+    enum Composer {
+        static let minLines: Int = 3
+        static let maxLines: Int = 12
+        static let minHeight: CGFloat = 78        // ~3 lines of .body + rounded border
+        static let maxHeight: CGFloat = 300       // user-resize ceiling
+        static let horizontalPadding: CGFloat = 12
+        static let verticalPadding: CGFloat = 10
+        static let gap: CGFloat = 8               // TextField <-> SendButton spacing
+    }
 }
