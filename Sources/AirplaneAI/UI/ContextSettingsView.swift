@@ -27,7 +27,7 @@ struct ContextSettingsView: View {
     // MARK: - Hero
 
     private var hero: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        SettingsHero {
             HStack(alignment: .firstTextBaseline) {
                 Text("Context window").font(.headline).foregroundStyle(.secondary)
                 Spacer()
@@ -43,15 +43,6 @@ struct ContextSettingsView: View {
             }
             gauge(effective: window?.effective ?? 0, max: window?.modelCapability ?? 32768)
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Palette.accent.opacity(0.08))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .strokeBorder(Palette.accent.opacity(0.22), lineWidth: 1)
-        )
     }
 
     private func gauge(effective: Int, max: Int) -> some View {
@@ -75,7 +66,7 @@ struct ContextSettingsView: View {
     // MARK: - Size picker
 
     private var sizeCard: some View {
-        card(title: "Size", subtitle: "Changes take effect on next launch.") {
+        SettingsCard(title: "Size", subtitle: "Changes take effect on next launch.") {
             Picker("", selection: $override) {
                 ForEach(sizeOptions, id: \.self) { opt in
                     Text(label(for: opt)).tag(opt)
@@ -96,7 +87,7 @@ struct ContextSettingsView: View {
 
     private var kvCostCard: some View {
         let effective = window?.effective ?? 0
-        return card(title: "Memory cost", subtitle: "KV cache grows linearly with context length.") {
+        return SettingsCard(title: "Memory cost", subtitle: "KV cache grows linearly with context length.") {
             HStack(alignment: .firstTextBaseline, spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(KVCostEstimator.humanReadable(context: effective))
@@ -124,28 +115,14 @@ struct ContextSettingsView: View {
 
     private var hardwareCard: some View {
         let memoryGB = Int((Double(ProcessInfo.processInfo.physicalMemory) / 1_073_741_824.0).rounded())
-        return card(title: "Your Mac", subtitle: nil) {
+        return SettingsCard(title: "Your Mac") {
             HStack(spacing: 10) {
-                badge(icon: "memorychip", label: "\(memoryGB) GB RAM")
-                badge(icon: "cpu", label: memoryClassLabel(profile.memoryClass))
-                badge(icon: "bolt.fill", label: gpuLabel(profile.gpuLayerPolicy))
+                SettingsBadge(icon: "memorychip", label: "\(memoryGB) GB RAM")
+                SettingsBadge(icon: "cpu", label: memoryClassLabel(profile.memoryClass))
+                SettingsBadge(icon: "bolt.fill", label: gpuLabel(profile.gpuLayerPolicy))
                 Spacer()
             }
         }
-    }
-
-    private func badge(icon: String, label: String) -> some View {
-        Label(label, systemImage: icon)
-            .font(.caption.weight(.medium))
-            .labelStyle(.titleAndIcon)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(
-                Capsule().fill(Color(nsColor: .controlBackgroundColor))
-            )
-            .overlay(
-                Capsule().strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1)
-            )
     }
 
     private var footer: some View {
@@ -153,29 +130,6 @@ struct ContextSettingsView: View {
             .font(.caption).foregroundStyle(.tertiary)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, 4)
-    }
-
-    private func card<Content: View>(
-        title: String, subtitle: String?,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text(title).font(.subheadline.weight(.semibold))
-                Spacer()
-                if let subtitle { Text(subtitle).font(.caption).foregroundStyle(.tertiary) }
-            }
-            content()
-        }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(nsColor: .controlBackgroundColor))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1)
-        )
     }
 
     private func format(_ n: Int) -> String {

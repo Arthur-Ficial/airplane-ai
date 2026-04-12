@@ -6,6 +6,7 @@ struct SettingsView: View {
     @AppStorage("airplane.appearance") private var appearance: String = "system"
     @AppStorage("airplane.timeFormat") private var timeFormat: String = "relative"
     @AppStorage("airplane.sendWith") private var sendWith: String = "enter"
+    @AppStorage("airplane.contextOverride") private var contextOverride: Int = 0
 
     init(state: AppState? = nil, store: (any ConversationStore)? = nil) {
         self.state = state
@@ -24,155 +25,204 @@ struct SettingsView: View {
             debugTab.tabItem { Label("Debug", systemImage: "ant") }
             #endif
         }
-        .frame(width: 580, height: 460)
+        .frame(width: 680, height: 580)
     }
 
-    @AppStorage("airplane.contextOverride") private var contextOverride: Int = 0
-
-    private var contextTab: some View {
-        ContextSettingsView(
-            window: state?.contextWindow,
-            override: $contextOverride
-        )
-    }
-
-    private func format(_ n: Int?) -> String {
-        guard let n else { return "—" }
-        return n.formatted(.number.grouping(.automatic)) + " tok"
-    }
-
-    private func gpuDesc(_ policy: GPULayerPolicy) -> String {
-        switch policy {
-        case .none: "none"
-        case .fixed(let n): "\(n) layers"
-        case .all: "all"
-        }
-    }
-
-    #if AIRPLANE_DEBUG
-    @AppStorage("airplane.debug.temperature") private var debugTemperature: Double = 0.6
-    @AppStorage("airplane.debug.topP") private var debugTopP: Double = 0.95
-    @AppStorage("airplane.debug.topK") private var debugTopK: Int = 40
-    @AppStorage("airplane.debug.maxTokens") private var debugMaxTokens: Int = 1024
-
-    private var debugTab: some View {
-        Form {
-            Section("Sampling (DEBUG only — never in release builds)") {
-                VStack(alignment: .leading) {
-                    Text("Temperature: \(debugTemperature, format: .number.precision(.fractionLength(2)))")
-                    Slider(value: $debugTemperature, in: 0...1.5)
-                }
-                VStack(alignment: .leading) {
-                    Text("top-p: \(debugTopP, format: .number.precision(.fractionLength(2)))")
-                    Slider(value: $debugTopP, in: 0.01...1.0)
-                }
-                Stepper("top-k: \(debugTopK)", value: $debugTopK, in: 1...200)
-                Stepper("max tokens: \(debugMaxTokens)", value: $debugMaxTokens, in: 1...4096, step: 64)
-            }
-            Section {
-                Button("Reset to defaults") {
-                    debugTemperature = 0.6; debugTopP = 0.95
-                    debugTopK = 40; debugMaxTokens = 1024
-                }
-            }
-        }
-        .formStyle(.grouped)
-        .padding(Metrics.Padding.large)
-    }
-    #endif
+    // MARK: - Appearance
 
     private var appearanceTab: some View {
-        Form {
-            Picker("Appearance", selection: $appearance) {
-                Text("Follow System").tag("system")
-                Text("Always Light").tag("light")
-                Text("Always Dark").tag("dark")
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SettingsCard(title: "Theme") {
+                    Picker("", selection: $appearance) {
+                        Text("System").tag("system")
+                        Text("Light").tag("light")
+                        Text("Dark").tag("dark")
+                    }
+                    .pickerStyle(.segmented).labelsHidden()
+                }
+                SettingsCard(title: "Sidebar timestamps") {
+                    Picker("", selection: $timeFormat) {
+                        Text("Relative").tag("relative")
+                        Text("Absolute").tag("absolute")
+                    }
+                    .pickerStyle(.segmented).labelsHidden()
+                    Text(timeFormat == "relative"
+                         ? "e.g. “2 hours ago”"
+                         : "e.g. “Apr 12 15:04”")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
-            .pickerStyle(.inline)
-            Picker("Sidebar timestamps", selection: $timeFormat) {
-                Text("Relative (2h ago)").tag("relative")
-                Text("Absolute (Apr 12 15:04)").tag("absolute")
-            }
-            .pickerStyle(.inline)
+            .padding(20)
         }
-        .formStyle(.grouped)
-        .padding(Metrics.Padding.large)
     }
+
+    // MARK: - Keyboard
 
     private var keyboardTab: some View {
-        Form {
-            Section("Composer") {
-                Picker("Send with", selection: $sendWith) {
-                    Text("Enter (Shift+Enter = newline)").tag("enter")
-                    Text("Cmd+Enter (Enter = newline)").tag("cmd-enter")
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SettingsCard(title: "Composer", subtitle: "How Enter behaves in the message box.") {
+                    Picker("", selection: $sendWith) {
+                        Text("Enter = send").tag("enter")
+                        Text("⌘+Enter = send").tag("cmd-enter")
+                    }
+                    .pickerStyle(.segmented).labelsHidden()
+                    Text(sendWith == "cmd-enter"
+                         ? "Plain Enter inserts a newline."
+                         : "Shift+Enter inserts a newline.")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
-                .pickerStyle(.inline)
+                SettingsCard(title: "Shortcuts") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        shortcutRow("New chat", "⌘N")
+                        shortcutRow("Focus search", "⌘K")
+                        shortcutRow("Open Settings", "⌘,")
+                        shortcutRow("Cancel / clear draft", "⎋")
+                        shortcutRow("Send (always works)", "⌘↩")
+                    }
+                }
             }
-            Section("Shortcuts") {
-                shortcutRow("New chat", "⌘N")
-                shortcutRow("Focus search", "⌘K")
-                shortcutRow("Open Settings", "⌘,")
-                shortcutRow("Cancel / clear draft", "⎋")
-                shortcutRow("Send", "⌘↩")
-            }
+            .padding(20)
         }
-        .formStyle(.grouped)
-        .padding(Metrics.Padding.large)
     }
+
+    private func shortcutRow(_ label: String, _ shortcut: String) -> some View {
+        HStack {
+            Text(label).font(.callout)
+            Spacer()
+            Text(shortcut)
+                .font(.system(.callout, design: .monospaced).weight(.medium))
+                .padding(.horizontal, 8).padding(.vertical, 3)
+                .background(
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(Color(nsColor: .controlBackgroundColor))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5)
+                        .strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1)
+                )
+        }
+    }
+
+    // MARK: - Context
+
+    private var contextTab: some View {
+        ContextSettingsView(window: state?.contextWindow, override: $contextOverride)
+    }
+
+    // MARK: - About
 
     private var aboutTab: some View {
-        VStack(alignment: .leading, spacing: Metrics.Padding.regular) {
-            HStack(spacing: Metrics.Padding.regular) {
-                AirplaneGlyph(size: Metrics.Size.airplaneGlyphSmall)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Airplane AI").font(.title2.weight(.semibold))
-                    Text("Version \(version) (build \(build))").font(.caption).foregroundStyle(.secondary)
-                    Text(L.tagline).font(.callout).foregroundStyle(.secondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SettingsHero {
+                    HStack(spacing: 14) {
+                        AirplaneGlyph(size: Metrics.Size.airplaneGlyphSmall)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Airplane AI").font(.title2.weight(.semibold))
+                            Text("Version \(version) (build \(build))")
+                                .font(.callout).foregroundStyle(.secondary)
+                            Text(L.tagline).font(.callout).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                    }
                 }
-                Spacer()
+                SettingsCard(title: "Bundled model") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        LabeledContent("Model", value: state?.modelInfo?.name ?? "gemma-3n-E4B-it (Q4_K_M)")
+                        if let info = state?.modelInfo {
+                            LabeledContent("Size", value: "\(info.sizeBytes / 1_048_576) MB")
+                            LabeledContent("Context window", value: "\(info.contextWindow) tok")
+                        }
+                        LabeledContent("Runtime", value: "llama.cpp b8763")
+                    }
+                }
+                SettingsCard(title: "Links") {
+                    Link(destination: URL(string: "https://github.com/franzenzenhofer/airplane-ai")!) {
+                        Label("Source on GitHub", systemImage: "arrow.up.right.square")
+                    }
+                }
             }
-            Divider()
-            if let info = state?.modelInfo {
-                LabeledContent("Model", value: info.name)
-                LabeledContent("Context window", value: "\(info.contextWindow)")
-                LabeledContent("Size", value: "\(info.sizeBytes / 1_048_576) MB")
-            } else {
-                LabeledContent("Model", value: "Gemma-3n-E4B-it (Q4_K_M)")
-            }
-            LabeledContent("Runtime", value: "llama.cpp b8763")
-            Link("Source on GitHub", destination: URL(string: "https://github.com/franzenzenhofer/airplane-ai")!)
-            Spacer()
+            .padding(20)
         }
-        .padding(Metrics.Padding.large * 1.5)
     }
+
+    // MARK: - Privacy
 
     private var privacyTab: some View {
-        VStack(alignment: .leading, spacing: Metrics.Padding.regular) {
-            bullet("airplane", "Runs entirely on your Mac. No cloud calls.")
-            bullet("wifi.slash", "Zero network entitlements. Verified by build CI.")
-            bullet("lock.shield", "App Sandbox enabled. Kernel-enforced isolation.")
-            bullet("chart.bar.xaxis", "No telemetry. No analytics. No crash reports.")
-            bullet("person.slash.fill", "No accounts. Nothing to sign up for.")
-            Spacer()
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SettingsHero {
+                    HStack(spacing: 14) {
+                        Image(systemName: "lock.shield.fill")
+                            .font(.system(size: 32, weight: .semibold))
+                            .foregroundStyle(Palette.accent)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Private by design").font(.title3.weight(.semibold))
+                            Text("Nothing leaves your Mac. Kernel-enforced sandbox. Zero network entitlements.")
+                                .font(.callout).foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+                SettingsCard(title: "Guarantees") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        privacyBullet("airplane", "Runs entirely on your Mac.")
+                        privacyBullet("wifi.slash", "Zero network entitlements. Verified at build.")
+                        privacyBullet("lock.shield", "App Sandbox enabled.")
+                        privacyBullet("chart.bar.xaxis", "No telemetry. No analytics. No crash reports.")
+                        privacyBullet("person.slash.fill", "No accounts. Nothing to sign up for.")
+                    }
+                }
+            }
+            .padding(20)
         }
-        .padding(Metrics.Padding.large * 1.5)
     }
 
-    private var dangerTab: some View {
-        VStack(alignment: .leading, spacing: Metrics.Padding.regular) {
-            Text("Danger Zone").font(.headline).foregroundStyle(.red)
-            Text("These actions cannot be undone.").foregroundStyle(.secondary).font(.callout)
-            Divider()
-            Button(role: .destructive) {
-                Task { await deleteAllConversations() }
-            } label: {
-                Label("Delete all conversations", systemImage: "trash")
-            }
-            .buttonStyle(.bordered)
-            .tint(.red)
+    private func privacyBullet(_ icon: String, _ text: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: icon)
+                .font(.callout)
+                .foregroundStyle(Palette.accent)
+                .frame(width: 22)
+            Text(text).fixedSize(horizontal: false, vertical: true)
             Spacer()
         }
-        .padding(Metrics.Padding.large * 1.5)
+    }
+
+    // MARK: - Danger Zone
+
+    private var dangerTab: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SettingsHero {
+                    HStack(spacing: 14) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 32, weight: .semibold))
+                            .foregroundStyle(.red)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Danger Zone").font(.title3.weight(.semibold)).foregroundStyle(.red)
+                            Text("These actions cannot be undone.")
+                                .font(.callout).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                SettingsCard(title: "Delete all conversations",
+                             subtitle: "Wipes every chat plus rolling backup snapshots.") {
+                    Button(role: .destructive) {
+                        Task { await deleteAllConversations() }
+                    } label: {
+                        Label("Delete everything", systemImage: "trash")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.red)
+                    .controlSize(.large)
+                }
+            }
+            .padding(20)
+        }
     }
 
     private func deleteAllConversations() async {
@@ -184,22 +234,57 @@ struct SettingsView: View {
         } catch {}
     }
 
-    private func shortcutRow(_ label: String, _ shortcut: String) -> some View {
-        LabeledContent(label) {
-            Text(shortcut).font(.system(.callout, design: .monospaced))
-                .padding(.horizontal, 6).padding(.vertical, 2)
-                .background(Color(nsColor: .controlBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 4))
-        }
-    }
+    // MARK: - Debug
 
-    private func bullet(_ icon: String, _ text: String) -> some View {
-        HStack(alignment: .top, spacing: Metrics.Padding.small) {
-            Image(systemName: icon).foregroundStyle(.secondary).frame(width: 20)
-            Text(text).fixedSize(horizontal: false, vertical: true)
-            Spacer()
+    #if AIRPLANE_DEBUG
+    @AppStorage("airplane.debug.temperature") private var debugTemperature: Double = 0.6
+    @AppStorage("airplane.debug.topP") private var debugTopP: Double = 0.95
+    @AppStorage("airplane.debug.topK") private var debugTopK: Int = 40
+    @AppStorage("airplane.debug.maxTokens") private var debugMaxTokens: Int = 1024
+
+    private var debugTab: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SettingsHero {
+                    HStack(spacing: 14) {
+                        Image(systemName: "ant.fill")
+                            .font(.system(size: 28, weight: .semibold))
+                            .foregroundStyle(.orange)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Debug sampling").font(.title3.weight(.semibold))
+                            Text("Stripped from release builds per spec §11.")
+                                .font(.callout).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                SettingsCard(title: "Sampling parameters") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading) {
+                            Text("Temperature: \(debugTemperature, format: .number.precision(.fractionLength(2)))")
+                            Slider(value: $debugTemperature, in: 0...1.5)
+                        }
+                        VStack(alignment: .leading) {
+                            Text("top-p: \(debugTopP, format: .number.precision(.fractionLength(2)))")
+                            Slider(value: $debugTopP, in: 0.01...1.0)
+                        }
+                        Stepper("top-k: \(debugTopK)", value: $debugTopK, in: 1...200)
+                        Stepper("max tokens: \(debugMaxTokens)", value: $debugMaxTokens, in: 1...4096, step: 64)
+                    }
+                }
+                SettingsCard(title: "Reset") {
+                    Button("Reset to defaults") {
+                        debugTemperature = 0.6; debugTopP = 0.95
+                        debugTopK = 40; debugMaxTokens = 1024
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+            .padding(20)
         }
     }
+    #endif
+
+    // MARK: - Helpers
 
     private var version: String {
         (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "dev"
