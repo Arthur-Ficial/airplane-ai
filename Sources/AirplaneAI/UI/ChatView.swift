@@ -145,7 +145,7 @@ struct InputBar: View {
                 .focused(focused)
                 .scrollContentBackground(.hidden)
                 .padding(.horizontal, 8)
-                .padding(.vertical, 6)
+                .padding(.vertical, 8)
                 .frame(height: composerHeight)
                 .onKeyPress(phases: .down) { press in
                     guard press.key == .return else { return .ignored }
@@ -160,11 +160,13 @@ struct InputBar: View {
                     return .ignored
                 }
             if draft.isEmpty {
+                // Match TextEditor's outer padding (8) + its intrinsic
+                // textContainerInset (~5) so placeholder baseline = cursor baseline.
                 Text(placeholder)
                     .font(.body)
                     .foregroundStyle(.tertiary)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 12)
+                    .padding(.leading, 8 + 5)
+                    .padding(.top, 8 + 5)
                     .allowsHitTesting(false)
             }
         }
