@@ -109,21 +109,17 @@ struct MessageBubble: View, Equatable {
                     .font(.caption2).foregroundStyle(.orange)
             }
             if isLastAssistant, let onRegenerate, message.status == .complete {
-                Button(action: onRegenerate) {
-                    Label("Regenerate", systemImage: "arrow.clockwise")
-                        .labelStyle(.titleAndIcon)
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.borderless)
-                .help("Regenerate this response")
-                .opacity(hover ? 1.0 : 0.7)
+                IconActionButton(
+                    systemName: "arrow.clockwise",
+                    help: "Regenerate this response",
+                    action: onRegenerate
+                )
             }
             if !message.content.isEmpty, message.status != .streaming {
                 Button(action: copy) {
                     Text(showCopied ? "Copied" : "Copy")
                         .font(.caption2.weight(.medium))
-                        .foregroundStyle(showCopied ? .green : copyHover ? .blue : .secondary)
+                        .foregroundStyle(showCopied ? .green : copyHover ? Palette.accent : .secondary)
                 }
                 .buttonStyle(.borderless).onHover { copyHover = $0 }
             }

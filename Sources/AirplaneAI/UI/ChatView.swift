@@ -32,6 +32,32 @@ struct ChatView: View {
 
     private var messageList: some View {
         ScrollViewReader { proxy in
+            ZStack(alignment: .bottomTrailing) {
+                messageScroll(proxy: proxy)
+                if !isFollowingTail {
+                    Button {
+                        withAnimation(.easeOut(duration: Metrics.Duration.quickAnimation)) {
+                            proxy.scrollTo("bottom", anchor: .bottom)
+                        }
+                    } label: {
+                        Image(systemName: "chevron.down")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 30, height: 30)
+                            .background(Circle().fill(Palette.accent))
+                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, 18)
+                    .padding(.bottom, 12)
+                    .help("Scroll to latest")
+                    .transition(.opacity)
+                }
+            }
+        }
+    }
+
+    private func messageScroll(proxy: ScrollViewProxy) -> some View {
             ScrollView {
                 LazyVStack(spacing: Metrics.Padding.large) {
                     let messages = state.activeConversation?.messages ?? []
@@ -66,7 +92,6 @@ struct ChatView: View {
                 guard isFollowingTail else { return }
                 proxy.scrollTo("bottom", anchor: .bottom)
             }
-        }
     }
 
     private func submit() {
