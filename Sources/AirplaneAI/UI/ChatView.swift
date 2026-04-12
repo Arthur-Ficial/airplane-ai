@@ -24,6 +24,18 @@ struct ChatView: View {
             )
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .overlay(alignment: .top) {
+            if let err = state.lastError {
+                Toast(message: err.errorDescription ?? "An error occurred.",
+                      onDismiss: { state.lastError = nil })
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .task(id: err) {
+                        try? await Task.sleep(nanoseconds: 5_000_000_000)
+                        if state.lastError == err { state.lastError = nil }
+                    }
+            }
+        }
+        .animation(.easeInOut(duration: Metrics.Duration.standardAnimation), value: state.lastError)
         .onChange(of: state.activeConversationID) { _, _ in
             isFollowingTail = true
             composerFocused = true

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum AppError: LocalizedError, Sendable, Equatable {
+public enum AppError: LocalizedError, Sendable, Equatable, Hashable {
     case insufficientMemory(requiredGB: Double, availableGB: Double)
     case insufficientDisk(requiredGB: Double, availableGB: Double)
     case modelMissing
