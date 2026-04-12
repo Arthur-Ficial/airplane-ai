@@ -41,7 +41,8 @@ public final class ModelController {
             state.modelInfo = await engine.loadedModelInfo
 
             state.modelState = .warmingModel
-            report(step: "Warming up", detail: "initializing KV cache", fraction: 0.85)
+            report(step: "Warming up", detail: "priming Metal pipelines", fraction: 0.85)
+            await engine.warmup()
 
             state.modelState = .ready
             report(step: "Ready", detail: "\(manifest.sourceModelId) · ctx \(manifest.appDefaultContext)", fraction: 1.0)

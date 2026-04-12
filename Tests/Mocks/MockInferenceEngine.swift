@@ -26,6 +26,8 @@ final class MockInferenceEngine: InferenceEngine, @unchecked Sendable {
         }
     }
 
+    func warmup() async { /* no-op in mock */ }
+
     func unloadModel() async { lock.withLock { _loaded = false; _info = nil } }
 
     func generate(messages: [ChatMessage], parameters: GenerationParameters) -> AsyncThrowingStream<StreamEvent, Error> {

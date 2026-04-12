@@ -21,6 +21,7 @@ public enum StreamEvent: Sendable, Equatable {
 
 public protocol InferenceEngine: Sendable {
     func loadModel(at path: URL, contextWindow: Int) async throws
+    func warmup() async
     func unloadModel() async
     var isModelLoaded: Bool { get async }
     var loadedModelInfo: ModelInfo? { get async }

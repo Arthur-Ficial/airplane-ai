@@ -46,6 +46,23 @@ public actor LlamaSwiftEngine: InferenceEngine, TokenCounter {
         self.info = ModelInfo(name: path.lastPathComponent, sizeBytes: sizeBytes, sha256: "", contextWindow: contextWindow)
     }
 
+    // Prime Metal pipelines + KV cache with a tiny decode so the first real
+    // user prompt sees minimal TTFT.
+    public func warmup() async {
+        guard let ctx, let vocab else { return }
+        let bos = llama_vocab_bos(vocab)
+        var batch = llama_batch_init(1, 0, 1)
+        defer { llama_batch_free(batch) }
+        batch.token[0] = bos
+        batch.pos[0] = 0
+        batch.n_seq_id[0] = 1
+        batch.seq_id[0]![0] = 0
+        batch.logits[0] = 1
+        batch.n_tokens = 1
+        _ = llama_decode(ctx, batch)
+        llama_memory_clear(llama_get_memory(ctx), true)
+    }
+
     public func unloadModel() async {
         if let c = ctx { llama_free(c); ctx = nil }
         if let m = model { llama_model_free(m); model = nil }
