@@ -36,4 +36,26 @@ struct ConversationControllerTests {
         #expect(state.conversations.count == 1)
         #expect(state.activeConversationID == state.conversations.first?.id)
     }
+
+    @Test func renameUpdatesTitleAndPersists() async throws {
+        let state = AppState()
+        let store = MockConversationStore()
+        let c = ConversationController(state: state, store: store)
+        c.newConversation()
+        let id = state.conversations[0].id
+        await c.rename(id: id, to: "  My Cool Chat  ")
+        #expect(state.conversations[0].title == "My Cool Chat")
+        let saved = try await store.conversation(id: id)
+        #expect(saved?.title == "My Cool Chat")
+    }
+
+    @Test func renameEmptyTitleFallsBackToNewChat() async throws {
+        let state = AppState()
+        let store = MockConversationStore()
+        let c = ConversationController(state: state, store: store)
+        c.newConversation()
+        let id = state.conversations[0].id
+        await c.rename(id: id, to: "   ")
+        #expect(state.conversations[0].title == "New Chat")
+    }
 }

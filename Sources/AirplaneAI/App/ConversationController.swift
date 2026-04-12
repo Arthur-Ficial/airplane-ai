@@ -36,4 +36,13 @@ public final class ConversationController {
         if state.activeConversationID == id { state.activeConversationID = state.conversations.first?.id }
         try? await store.delete(id: id)
     }
+
+    public func rename(id: UUID, to title: String) async {
+        let clean = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let idx = state.conversations.firstIndex(where: { $0.id == id }) else { return }
+        state.conversations[idx].title = clean.isEmpty ? "New Chat" : clean
+        state.conversations[idx].updatedAt = .now
+        let snapshot = state.conversations[idx]
+        try? await store.save(snapshot)
+    }
 }

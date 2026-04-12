@@ -47,6 +47,7 @@ struct ConversationListView: View {
             TextField("Title", text: $editTitle)
                 .textFieldStyle(.plain)
                 .onSubmit { commitEdit(for: conv) }
+                .onExitCommand { editingId = nil }
                 .tag(conv.id as UUID?)
         } else {
             VStack(alignment: .leading, spacing: 2) {
@@ -60,6 +61,10 @@ struct ConversationListView: View {
                 .font(.caption2).foregroundStyle(.secondary).lineLimit(1)
             }
             .tag(conv.id as UUID?)
+            .onTapGesture(count: 2) {
+                editTitle = conv.title
+                editingId = conv.id
+            }
             .contextMenu {
                 Button("Rename") {
                     editTitle = conv.title
@@ -74,14 +79,8 @@ struct ConversationListView: View {
     }
 
     private func commitEdit(for conv: Conversation) {
-        if let idx = state.conversations.firstIndex(where: { $0.id == conv.id }) {
-            state.conversations[idx].title = editTitle.isEmpty ? "New Chat" : editTitle
-            state.conversations[idx].updatedAt = .now
-            let updated = state.conversations[idx]
-            Task.detached { /* best-effort persist — ChatController handles the store */
-                _ = updated
-            }
-        }
+        let newTitle = editTitle
         editingId = nil
+        Task { await controller.rename(id: conv.id, to: newTitle) }
     }
 }
