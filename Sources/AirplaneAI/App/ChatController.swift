@@ -80,6 +80,7 @@ public final class ChatController {
 
     private func beginGeneration(messages: [ChatMessage]) {
         state.chatState = .generating
+        state.awaitingFirstToken = true
         var assistant = ChatMessage(role: .assistant, content: "", status: .streaming)
         append(assistant, to: state.activeConversationID!)
 
@@ -101,6 +102,7 @@ public final class ChatController {
                 for try await ev in engine.generate(messages: messages, parameters: params) {
                     switch ev {
                     case .token(let t):
+                        if self.state.awaitingFirstToken { self.state.awaitingFirstToken = false }
                         buffer += t.text
                         if ContinuousClock.now - lastFlush > flushBudget {
                             assistant.content += buffer; buffer = ""
@@ -122,6 +124,7 @@ public final class ChatController {
                 self.state.lastError = .generationFailed(summary: error.localizedDescription)
             }
             self.state.chatState = .idle
+            self.state.awaitingFirstToken = false
             if shouldGenerateTitle, let cid = activeConvoID {
                 await self.generateTitle(for: cid)
             }

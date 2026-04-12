@@ -38,6 +38,7 @@ public final class AppState {
     public var lastError: AppError?
     public var boot: BootProgress = BootProgress()
     public var modelInfo: ModelInfo?
+    public var awaitingFirstToken: Bool = false
 
     public init() {}
 

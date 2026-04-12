@@ -100,6 +100,7 @@ struct InputBar: View {
                 SendButton(
                     generating: state.chatState == .generating,
                     canSend: !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                    awaitingFirstToken: state.awaitingFirstToken,
                     onTap: state.chatState == .generating ? onStop : onSubmit
                 )
                 .padding(.bottom, 2) // align with rounded-border TextField baseline
