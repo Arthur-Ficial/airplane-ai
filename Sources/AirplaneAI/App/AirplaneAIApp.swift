@@ -8,17 +8,28 @@ extension Notification.Name {
 
 // Removes menus that NSTextView's responder chain adds automatically
 // (Format/Font/Styles) — irrelevant for a plain-text composer.
-final class AppDelegate: NSObject, NSApplicationDelegate {
-    private static let menusToRemove: [String] = ["Format", "View"]
-    private static let itemsToRemoveFromView: [String] = ["Show Tab Bar", "Show All Tabs"]
+enum MenuBarSanitizer {
+    // Menus to strip wholesale.
+    static let menusToRemove: [String] = ["Format"]
 
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        guard let mainMenu = NSApp.mainMenu else { return }
-        // Whole-menu removal (Format).
-        for title in ["Format"] {
-            if let item = mainMenu.items.first(where: { $0.title == title }) {
-                mainMenu.removeItem(item)
+    // Pure function — mutates the passed NSMenu, returns the count of removed items.
+    @discardableResult
+    static func removeIrrelevantMenus(from menu: NSMenu) -> Int {
+        var removed = 0
+        for title in menusToRemove {
+            if let item = menu.items.first(where: { $0.title == title }) {
+                menu.removeItem(item)
+                removed += 1
             }
+        }
+        return removed
+    }
+}
+
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        if let main = NSApp.mainMenu {
+            MenuBarSanitizer.removeIrrelevantMenus(from: main)
         }
     }
 }
