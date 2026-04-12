@@ -64,19 +64,30 @@ public final class ChatController {
         let params = GenerationParameters().clamped()
         generationTask = Task { [weak self] in
             guard let self else { return }
+            // Batch token UI updates: coalesce every ~16ms so we don't thrash SwiftUI
+            // at 200+ tok/s. Buffer in the Task, flush on a clock tick.
+            var buffer = ""
+            var lastFlush = ContinuousClock.now
+            let flushBudget = Duration.milliseconds(16)
             do {
                 for try await ev in engine.generate(messages: messages, parameters: params) {
                     switch ev {
                     case .token(let t):
-                        assistant.content += t.text
-                        self.updateStreaming(message: assistant)
+                        buffer += t.text
+                        if ContinuousClock.now - lastFlush > flushBudget {
+                            assistant.content += buffer; buffer = ""
+                            self.updateStreaming(message: assistant)
+                            lastFlush = ContinuousClock.now
+                        }
                     case .finished(let reason):
+                        if !buffer.isEmpty { assistant.content += buffer; buffer = "" }
                         assistant.status = reason == .cancelledByUser || reason == .interruptedByLifecycle ? .interrupted : .complete
                         assistant.stopReason = reason
                         self.finalize(message: assistant)
                     }
                 }
             } catch {
+                if !buffer.isEmpty { assistant.content += buffer }
                 assistant.status = .failed
                 assistant.stopReason = .engineError
                 self.finalize(message: assistant)

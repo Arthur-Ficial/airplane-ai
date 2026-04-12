@@ -26,13 +26,13 @@ struct StatusBarView: View {
     private var label: String {
         switch state.modelState {
         case .cold: "—"
-        case .verifyingModel: String(localized: "model.verifying")
-        case .loadingModel: String(localized: "model.loading")
-        case .warmingModel: String(localized: "model.warming")
-        case .ready: String(localized: "model.ready")
+        case .verifyingModel: L.modelVerifying
+        case .loadingModel: L.modelLoading
+        case .warmingModel: L.modelWarming
+        case .ready: L.modelReady
         case .unloading: "…"
         case .modelMissing: "Model missing"
-        case .modelCorrupt: String(localized: "model.corrupt.title")
+        case .modelCorrupt: L.modelCorruptTitle
         case .blockedInsufficientResources(let e): e.errorDescription ?? "Insufficient resources"
         case .loadFailed(let s): "Load failed: \(s)"
         case .migrationFailed: "Migration failed"

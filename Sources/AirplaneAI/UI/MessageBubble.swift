@@ -1,35 +1,72 @@
 import SwiftUI
+import AppKit
 
-struct MessageBubble: View {
+struct MessageBubble: View, Equatable {
     let message: ChatMessage
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var showCopied = false
+    @State private var copyHover = false
 
     var body: some View {
-        HStack {
-            if message.role == .user { Spacer(minLength: 40) }
-            VStack(alignment: .leading, spacing: 6) {
-                if message.status == .interrupted {
-                    Label(String(localized: "chat.interrupted"), systemImage: "exclamationmark.triangle")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
-                }
-                MarkdownText(text: message.content.isEmpty ? " " : message.content)
+        HStack(alignment: .bottom, spacing: 6) {
+            if message.role == .user { Spacer(minLength: 60) }
+            VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 2) {
+                content
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .foregroundStyle(message.role == .user ? .white : .primary)
+                    .background(background)
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .shadow(color: .black.opacity(0.04), radius: 2, x: 0, y: 1)
+                footer
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(background)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            if message.role == .assistant { Spacer(minLength: 40) }
+            if message.role == .assistant { Spacer(minLength: 60) }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(accessibilityLabel)
+        .padding(.horizontal, 16)
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if message.status == .streaming {
+            Text(message.content.isEmpty ? " " : message.content)
+                .font(.system(size: 14)).lineSpacing(3).textSelection(.enabled)
+        } else {
+            MarkdownText(text: message.content.isEmpty ? " " : message.content)
+        }
+    }
+
+    private var footer: some View {
+        HStack(spacing: 6) {
+            if message.status == .interrupted {
+                Label(L.chatInterrupted, systemImage: "exclamationmark.triangle")
+                    .font(.system(size: 10)).foregroundStyle(.orange)
+            }
+            if !message.content.isEmpty, message.status != .streaming {
+                Button(action: copy) {
+                    Text(showCopied ? "Copied" : "Copy")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(showCopied ? .green : copyHover ? .blue : .secondary)
+                }
+                .buttonStyle(.borderless)
+                .onHover { copyHover = $0 }
+            }
+        }
+        .padding(.horizontal, 4)
+    }
+
+    private func copy() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(message.content, forType: .string)
+        showCopied = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { showCopied = false }
     }
 
     private var background: Color {
-        message.role == .user ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.08)
+        switch message.role {
+        case .user: Color.accentColor
+        case .assistant: colorScheme == .dark ? Color(white: 0.18) : Color(white: 0.93)
+        case .system: Color.orange.opacity(0.12)
+        }
     }
 
-    private var accessibilityLabel: String {
-        let role = message.role == .user ? "You" : "Assistant"
-        return "\(role): \(message.content)"
-    }
+    nonisolated static func == (l: Self, r: Self) -> Bool { l.message == r.message }
 }

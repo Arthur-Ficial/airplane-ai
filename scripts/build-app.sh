@@ -55,9 +55,22 @@ unsetopt NULL_GLOB
 [[ -f "$ICON_SOURCE" ]] && cp "$ICON_SOURCE" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
 [[ -f "$ROOT_DIR/PrivacyInfo.xcprivacy" ]] && cp "$ROOT_DIR/PrivacyInfo.xcprivacy" "$APP_BUNDLE/Contents/Resources/"
 
-# SwiftPM places the .bundle with processed resources next to the binary — move it in.
+# Copy bundled resources flat into Contents/Resources so Bundle.main lookups
+# work via ModelLocator. We deliberately avoid depending on SwiftPM's
+# Bundle.module (its generated accessor is CLI-only and crashes inside a .app).
 RES_BUNDLE="${BIN_DIR}/AirplaneAI_AirplaneAI.bundle"
-[[ -d "$RES_BUNDLE" ]] && cp -R "$RES_BUNDLE" "$APP_BUNDLE/Contents/Resources/"
+if [[ -d "$RES_BUNDLE" ]]; then
+    cp -R "$RES_BUNDLE" "$APP_BUNDLE/Contents/Resources/"
+    # Flatten the model, manifest, and prompt to the top of Resources/ so
+    # Bundle.main.bundleURL/Contents/Resources/<file> works without subdir guessing.
+    setopt NULL_GLOB
+    for pattern in "airplane-model.gguf" "airplane-model-manifest.json" "SystemPrompt.txt" "Localizable.xcstrings" "AppIcon.icns"; do
+        for f in "$RES_BUNDLE"/**/"$pattern" "$RES_BUNDLE"/"$pattern"; do
+            [[ -f "$f" ]] && cp "$f" "$APP_BUNDLE/Contents/Resources/"
+        done
+    done
+    unsetopt NULL_GLOB
+fi
 
 xattr -cr "$APP_BUNDLE" 2>/dev/null || true
 print "==> Signing bundle (${SIGN_IDENTITY})"

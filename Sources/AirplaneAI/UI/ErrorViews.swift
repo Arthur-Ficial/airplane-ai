@@ -2,12 +2,12 @@ import SwiftUI
 
 struct InsufficientResourcesView: View {
     let error: AppError
-    var body: some View { errorLayout(title: String(localized: "memory.title"), body: error.errorDescription ?? "") }
+    var body: some View { errorLayout(title: L.memoryTitle, body: error.errorDescription ?? "") }
 }
 
 struct ModelCorruptView: View {
     var body: some View {
-        errorLayout(title: String(localized: "model.corrupt.title"), body: String(localized: "model.corrupt.body"))
+        errorLayout(title: L.modelCorruptTitle, body: L.modelCorruptBody)
     }
 }
 

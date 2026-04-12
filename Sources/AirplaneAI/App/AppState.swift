@@ -19,6 +19,15 @@ public enum ChatLifecycle: Equatable, Sendable {
     case idle, generating, cancelling
 }
 
+public struct BootProgress: Sendable, Equatable {
+    public var step: String
+    public var detail: String
+    public var fraction: Double
+    public init(step: String = "Starting…", detail: String = "", fraction: Double = 0) {
+        self.step = step; self.detail = detail; self.fraction = fraction
+    }
+}
+
 @MainActor
 @Observable
 public final class AppState {
@@ -27,6 +36,8 @@ public final class AppState {
     public var conversations: [Conversation] = []
     public var activeConversationID: UUID?
     public var lastError: AppError?
+    public var boot: BootProgress = BootProgress()
+    public var modelInfo: ModelInfo?
 
     public init() {}
 
