@@ -24,6 +24,17 @@ struct AirplaneAIApp: App {
                 }
                 .keyboardShortcut("k", modifiers: .command)
             }
+            // Route the App > About Airplane AI menu item to the Settings About tab
+            // instead of showing AppKit's default (empty) about panel.
+            CommandGroup(replacing: .appInfo) {
+                Button("About Airplane AI") {
+                    if #available(macOS 14, *) {
+                        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                    } else {
+                        NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+                    }
+                }
+            }
         }
 
         Settings {
