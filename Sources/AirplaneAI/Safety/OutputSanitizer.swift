@@ -19,6 +19,29 @@ public final class OutputSanitizer: @unchecked Sendable {
         "<start_of_turn>",
     ]
 
+    // Prefixes — caught even when the model truncates the closing "|>".
+    public static let stopPrefixes: [String] = [
+        "<|file_sep",
+        "<|im_start",
+        "<|im_end",
+        "<|start_of_turn",
+        "<|end_of_turn",
+    ]
+
+    // Returns (cleanTail, true) when a marker appears; otherwise (input, false).
+    public static func stripLeakingMarkers(_ text: String) -> (String, Bool) {
+        var earliest: String.Index?
+        for candidate in stopStrings + stopPrefixes {
+            if let r = text.range(of: candidate), earliest == nil || r.lowerBound < earliest! {
+                earliest = r.lowerBound
+            }
+        }
+        if let idx = earliest {
+            return (String(text[..<idx]), true)
+        }
+        return (text, false)
+    }
+
     private var lastTokenID: Int32?
     private var repeatCount = 0
     private var lines: [String] = []

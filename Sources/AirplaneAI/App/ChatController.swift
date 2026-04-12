@@ -55,6 +55,29 @@ public final class ChatController {
         Task { await engine.cancelGeneration() }
     }
 
+    public func regenerateLastAssistant() async {
+        guard state.chatState == .idle,
+              let convoIdx = state.conversations.firstIndex(where: { $0.id == state.activeConversationID }),
+              let lastAssistantIdx = state.conversations[convoIdx].messages.lastIndex(where: { $0.role == .assistant })
+        else { return }
+        state.conversations[convoIdx].messages.remove(at: lastAssistantIdx)
+        do {
+            let fit = try await contextManager.fitToContext(
+                systemPrompt: systemPrompt,
+                messages: activeMessages(),
+                tokenCounter: tokenCounter
+            )
+            beginGeneration(messages: fit)
+        } catch let e as AppError { state.lastError = e } catch {}
+    }
+
+    public func deleteMessage(_ id: UUID) {
+        guard let convoIdx = state.conversations.firstIndex(where: { $0.id == state.activeConversationID }) else { return }
+        state.conversations[convoIdx].messages.removeAll { $0.id == id }
+        state.conversations[convoIdx].updatedAt = .now
+        persist(state.conversations[convoIdx])
+    }
+
     private func beginGeneration(messages: [ChatMessage]) {
         state.chatState = .generating
         var assistant = ChatMessage(role: .assistant, content: "", status: .streaming)
@@ -105,40 +128,34 @@ public final class ChatController {
         }
     }
 
-    // Ask the model to produce a 3-6 word title for the conversation so far.
-    // Non-blocking — runs after streaming completes.
+    // Apfel-chat-aligned title generation. Separate system + user messages;
+    // first user message only as seed; fall back to first 6 words on error.
     private func generateTitle(for convoID: UUID) async {
         guard let convo = state.conversations.first(where: { $0.id == convoID }),
-              let firstUser = convo.messages.first(where: { $0.role == .user })?.content,
-              let firstAssistant = convo.messages.first(where: { $0.role == .assistant })?.content
+              let firstUser = convo.messages.first(where: { $0.role == .user })?.content
         else { return }
-        let titlePrompt = """
-        Give a short 3-6 word title summarizing this conversation. Output ONLY the title, no quotes, no punctuation at the end.
-        User asked: \(firstUser.prefix(400))
-        Assistant replied: \(firstAssistant.prefix(400))
-        Title:
-        """
+        let seed = String(firstUser.prefix(400))
+        let messages: [ChatMessage] = [
+            ChatMessage(role: .system, content: "You are a title generator. Respond with ONLY the title, nothing else. 3-5 words maximum. No quotes, no punctuation at the end."),
+            ChatMessage(role: .user, content: "Generate a very short title (3-5 words max, no quotes) for a conversation that starts with: \(seed)"),
+        ]
         var params = GenerationParameters()
         params.maxTokens = 16
         params.temperature = 0.2
-        let stream = engine.generate(
-            messages: [ChatMessage(role: .user, content: titlePrompt)],
-            parameters: params.clamped()
-        )
         var collected = ""
         do {
-            for try await ev in stream {
+            for try await ev in engine.generate(messages: messages, parameters: params.clamped()) {
                 if case .token(let t) = ev { collected += t.text }
                 if case .finished = ev { break }
             }
-        } catch { return }
+        } catch {
+            collected = seed.split(separator: " ").prefix(6).joined(separator: " ")
+        }
         let clean = collected
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "\"", with: "")
-            .replacingOccurrences(of: "Title:", with: "", options: .caseInsensitive)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
             .split(separator: "\n").first.map(String.init) ?? collected
-        guard !clean.isEmpty, clean.count < 80 else { return }
+        guard !clean.isEmpty, clean.count <= 60 else { return }
         if let idx = state.conversations.firstIndex(where: { $0.id == convoID }) {
             state.conversations[idx].title = clean
             state.conversations[idx].updatedAt = .now

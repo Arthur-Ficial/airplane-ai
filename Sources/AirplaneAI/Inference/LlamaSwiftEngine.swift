@@ -129,22 +129,18 @@ public actor LlamaSwiftEngine: InferenceEngine, TokenCounter {
             }
             let piece = detokenize(id)
 
-            // Detect control-token leaks. If the tail (previous text + this piece)
-            // contains a stop string, yield anything before it and finish cleanly.
+            // Detect control-token leaks (full markers + partial prefixes).
             tail += piece
             if tail.count > maxTail { tail.removeFirst(tail.count - maxTail) }
-            if let matchRange = OutputSanitizer.stopStrings
-                .compactMap({ tail.range(of: $0) })
-                .min(by: { $0.lowerBound < $1.lowerBound }) {
-                let cleanTail = String(tail[..<matchRange.lowerBound])
-                if !cleanTail.isEmpty, piece != "" {
-                    // Yield the clean remainder before the marker (if any).
-                    let overlap = cleanTail.count - (tail.count - piece.count)
-                    if overlap > 0 {
-                        let cleanPiece = String(piece.prefix(overlap))
-                        if !cleanPiece.isEmpty {
-                            continuation.yield(.token(TokenChunk(text: cleanPiece, tokenID: id, index: produced)))
-                        }
+            let (_, hit) = OutputSanitizer.stripLeakingMarkers(tail)
+            if hit {
+                // Yield any portion of `piece` that ends before the marker begins.
+                let (cleanFullTail, _) = OutputSanitizer.stripLeakingMarkers(tail)
+                let kept = max(0, cleanFullTail.count - (tail.count - piece.count))
+                if kept > 0 {
+                    let cleanPiece = String(piece.prefix(kept))
+                    if !cleanPiece.isEmpty {
+                        continuation.yield(.token(TokenChunk(text: cleanPiece, tokenID: id, index: produced)))
                     }
                 }
                 continuation.yield(.finished(.completed)); continuation.finish(); return
