@@ -17,7 +17,13 @@ struct MessageBubble: View, Equatable {
         HStack(alignment: .bottom, spacing: 6) {
             if message.role == .user { Spacer(minLength: 60) }
             VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 2) {
-                VStack(alignment: .leading, spacing: 0) { content }
+                VStack(alignment: .leading, spacing: 0) {
+                    if !message.attachments.isEmpty {
+                        AttachmentPreviewRow(attachments: message.attachments)
+                            .padding(.bottom, 6)
+                    }
+                    content
+                }
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .foregroundStyle(message.role == .user ? .white : .primary)
                     .background(bubbleBackground)

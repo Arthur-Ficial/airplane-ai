@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 struct ChatView: View {
     let state: AppState
@@ -18,12 +19,14 @@ struct ChatView: View {
             }
             InputBar(
                 state: state,
+                controller: controller,
                 draft: $draft,
                 focused: $composerFocused,
                 onSubmit: submit,
                 onStop: stop
             )
         }
+        .onDrop(of: [.fileURL, .image], isTargeted: nil, perform: handleDrop)
         .background(Color(nsColor: .windowBackgroundColor))
         .overlay(alignment: .top) {
             if let err = state.lastError {
@@ -125,7 +128,8 @@ struct ChatView: View {
 
     private func submit() {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
+        let hasAttachments = !controller.draftAttachments.isEmpty
+        guard !text.isEmpty || hasAttachments else { return }
         draft = ""
         Task {
             await controller.send(text)
@@ -134,6 +138,26 @@ struct ChatView: View {
     }
 
     private func stop() { controller.stop() }
+
+    private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
+        for provider in providers {
+            if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
+                provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier) { item, _ in
+                    guard let data = item as? Data,
+                          let url = URL(dataRepresentation: data, relativeTo: nil)
+                    else { return }
+                    Task { @MainActor in controller.addFileDraft(url: url) }
+                }
+            } else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+                provider.loadItem(forTypeIdentifier: UTType.image.identifier) { item, _ in
+                    guard let data = item as? Data,
+                          let image = NSImage(data: data) else { return }
+                    Task { @MainActor in controller.addImageDraft(image) }
+                }
+            }
+        }
+        return true
+    }
 
     private var contextCutoffDivider: some View {
         HStack(spacing: 8) {
@@ -150,6 +174,7 @@ struct ChatView: View {
 
 struct InputBar: View {
     let state: AppState
+    let controller: ChatController
     @Binding var draft: String
     var focused: FocusState<Bool>.Binding
     let onSubmit: () -> Void
@@ -161,11 +186,16 @@ struct InputBar: View {
     var body: some View {
         VStack(spacing: 0) {
             Divider()
+            AttachmentStrip(
+                drafts: controller.draftAttachments,
+                onRemove: { controller.removeDraft($0) }
+            )
             HStack(alignment: .bottom, spacing: Metrics.Composer.gap) {
                 editor
                 SendButton(
                     generating: state.chatState == .generating,
-                    canSend: !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                    canSend: !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        || !controller.draftAttachments.isEmpty,
                     awaitingFirstToken: state.awaitingFirstToken,
                     onTap: state.chatState == .generating ? onStop : onSubmit
                 )
@@ -202,7 +232,8 @@ struct InputBar: View {
             onCancel: {
                 if state.chatState == .generating { onStop() }
                 else if !draft.isEmpty { draft = "" }
-            }
+            },
+            onPasteImage: { image in controller.addImageDraft(image) }
         )
         .padding(.horizontal, 8)
         .padding(.vertical, 8)

@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 
 @MainActor
 public final class ChatController {
@@ -10,13 +11,21 @@ public final class ChatController {
     private let systemPrompt: String
     private var generationTask: Task<Void, Never>?
 
+    /// Pending attachments the user has pasted/dropped into the composer.
+    public var draftAttachments: [DraftAttachment] = []
+
+    public let imageAnalyzer: any ImageAnalyzing
+    public let documentExtractor: any DocumentExtracting
+
     public init(
         state: AppState,
         engine: any InferenceEngine,
         store: any ConversationStore,
         contextManager: ContextManager,
         tokenCounter: any TokenCounter,
-        systemPrompt: String
+        systemPrompt: String,
+        imageAnalyzer: any ImageAnalyzing = ImageAnalyzer(),
+        documentExtractor: any DocumentExtracting = DocumentExtractor()
     ) {
         self.state = state
         self.engine = engine
@@ -24,14 +33,21 @@ public final class ChatController {
         self.contextManager = contextManager
         self.tokenCounter = tokenCounter
         self.systemPrompt = systemPrompt
+        self.imageAnalyzer = imageAnalyzer
+        self.documentExtractor = documentExtractor
     }
 
     public func send(_ text: String) async {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, state.chatState == .idle else { return }
+        let readyAttachments = draftAttachments.compactMap { $0.attachment }
+        guard !trimmed.isEmpty || !readyAttachments.isEmpty,
+              state.chatState == .idle else { return }
 
+        draftAttachments.removeAll()
         let convo = ensureActiveConversation(firstUserContent: trimmed)
-        let userMessage = ChatMessage(role: .user, content: trimmed)
+        let userMessage = ChatMessage(
+            role: .user, content: trimmed, attachments: readyAttachments
+        )
         append(userMessage, to: convo.id)
 
         do {
@@ -203,6 +219,68 @@ public final class ChatController {
         }
     }
 
+    // MARK: - Draft attachment helpers
+
+    public func addImageDraft(_ image: NSImage) {
+        let draft = DraftAttachment(
+            filename: "image.png",
+            fileType: "image",
+            thumbnail: image
+        )
+        draftAttachments.append(draft)
+        let analyzer = imageAnalyzer
+        Task {
+            do {
+                let text = try await analyzer.analyze(image)
+                let data = image.tiffRepresentation ?? Data()
+                draft.attachment = .image(data: data, extractedText: text)
+                draft.state = .ready
+            } catch {
+                draft.state = .error(error.localizedDescription)
+            }
+        }
+    }
+
+    public func addFileDraft(url: URL) {
+        let ext = url.pathExtension.lowercased()
+        let filename = url.lastPathComponent
+
+        if SupportedFormats.isImage(ext) {
+            guard let image = NSImage(contentsOf: url) else { return }
+            let draft = DraftAttachment(
+                filename: filename, fileType: "image", thumbnail: image
+            )
+            draftAttachments.append(draft)
+            let analyzer = imageAnalyzer
+            Task {
+                do {
+                    let text = try await analyzer.analyze(image)
+                    let data = image.tiffRepresentation ?? Data()
+                    draft.attachment = .image(data: data, extractedText: text)
+                    draft.state = .ready
+                } catch { draft.state = .error(error.localizedDescription) }
+            }
+        } else if SupportedFormats.isDocument(ext) {
+            let draft = DraftAttachment(filename: filename, fileType: ext)
+            draftAttachments.append(draft)
+            let extractor = documentExtractor
+            Task {
+                do {
+                    let result = try await extractor.extract(from: url)
+                    draft.attachment = .document(
+                        text: result.text, filename: result.filename,
+                        fileType: result.fileType
+                    )
+                    draft.state = .ready
+                } catch { draft.state = .error(error.localizedDescription) }
+            }
+        }
+    }
+
+    public func removeDraft(_ draft: DraftAttachment) {
+        draftAttachments.removeAll { $0.id == draft.id }
+    }
+
     // MARK: - conversation mutation helpers
 
     private func ensureActiveConversation(firstUserContent: String) -> Conversation {
@@ -256,7 +334,7 @@ public final class ChatController {
             return
         }
         let cutoff = window.cutoffIndex(messages: msgs) { msg in
-            msg.tokenCount ?? max(1, msg.content.count / 4)
+            msg.tokenCount ?? msg.estimatedTotalTokens
         }
         if let idx = cutoff {
             state.outOfContextMessageIDs = Set(msgs[0..<idx].map(\.id))

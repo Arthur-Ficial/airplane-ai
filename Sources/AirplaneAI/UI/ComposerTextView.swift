@@ -8,6 +8,7 @@ final class PlaceholderTextView: NSTextView {
     var placeholder: String = "" {
         didSet { needsDisplay = true }
     }
+    var onPasteImage: ((NSImage) -> Void)?
 
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
@@ -29,6 +30,19 @@ final class PlaceholderTextView: NSTextView {
         super.didChangeText()
         needsDisplay = true
     }
+
+    // Intercept paste to detect images before the default text handling runs.
+    override func paste(_ sender: Any?) {
+        let pb = NSPasteboard.general
+        let imageTypes: [NSPasteboard.PasteboardType] = [.tiff, .png]
+        if let type = imageTypes.first(where: { pb.data(forType: $0) != nil }),
+           let data = pb.data(forType: type),
+           let image = NSImage(data: data) {
+            onPasteImage?(image)
+            return
+        }
+        super.paste(sender)
+    }
 }
 
 // Minimal representable. textContainerInset + lineFragmentPadding both zero,
@@ -40,6 +54,7 @@ struct ComposerTextView: NSViewRepresentable {
     var sendOnEnter: Bool
     var onSend: () -> Void
     var onCancel: () -> Void
+    var onPasteImage: ((NSImage) -> Void)?
 
     func makeNSView(context: Context) -> NSScrollView {
         let scroll = NSScrollView()
@@ -66,6 +81,7 @@ struct ComposerTextView: NSViewRepresentable {
         tv.isHorizontallyResizable = false
         tv.textContainer?.widthTracksTextView = true
         tv.textContainer?.containerSize = NSSize(width: 0, height: CGFloat.greatestFiniteMagnitude)
+        tv.onPasteImage = onPasteImage
 
         scroll.documentView = tv
         context.coordinator.textView = tv
@@ -78,6 +94,7 @@ struct ComposerTextView: NSViewRepresentable {
         context.coordinator.parent = self
         if tv.string != text { tv.string = text }
         if tv.placeholder != placeholder { tv.placeholder = placeholder }
+        tv.onPasteImage = onPasteImage
         if isFocused, tv.window?.firstResponder !== tv {
             DispatchQueue.main.async { tv.window?.makeFirstResponder(tv) }
         }

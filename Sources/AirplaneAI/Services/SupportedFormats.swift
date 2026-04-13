@@ -2,6 +2,11 @@ import Foundation
 
 /// Defines which file extensions DocumentExtractor can handle.
 enum SupportedFormats {
+    // Images handled via ImageAnalyzer (Apple Vision)
+    private static let imageExtensions: Set<String> = [
+        "png", "jpg", "jpeg", "tiff", "heic", "bmp",
+    ]
+
     // PDF handled via PDFKit
     private static let pdfExtensions: Set<String> = ["pdf"]
 
@@ -30,9 +35,17 @@ enum SupportedFormats {
         plainTextExtensions.contains(ext)
     }
 
-    static func isSupported(_ ext: String) -> Bool {
+    static func isImage(_ ext: String) -> Bool {
+        imageExtensions.contains(ext)
+    }
+
+    static func isDocument(_ ext: String) -> Bool {
         pdfExtensions.contains(ext)
             || textutilExtensions.contains(ext)
             || plainTextExtensions.contains(ext)
+    }
+
+    static func isSupported(_ ext: String) -> Bool {
+        isImage(ext) || isDocument(ext)
     }
 }
