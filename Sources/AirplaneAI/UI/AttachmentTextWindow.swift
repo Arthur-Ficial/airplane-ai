@@ -46,7 +46,7 @@ private struct AttachmentTextView: View {
                 .foregroundStyle(.secondary)
             Text(title).font(.headline).lineLimit(1)
             Spacer()
-            Text("READ ONLY")
+            Text(L.readOnly)
                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
                 .foregroundStyle(scheme == .dark ? .white.opacity(0.5) : .black.opacity(0.4))
                 .padding(.horizontal, 6)
@@ -56,11 +56,11 @@ private struct AttachmentTextView: View {
                         .fill(scheme == .dark ? Color.white.opacity(0.08) : Color.black.opacity(0.06))
                 )
             if let tok = tokenCount {
-                Text("\(tok) tok")
+                Text(L.tokCount(tok))
                     .font(.caption.monospacedDigit().bold())
                     .foregroundStyle(.secondary)
             }
-            Text("\(lines.count) lines")
+            Text(L.linesCount(lines.count))
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.tertiary)
         }

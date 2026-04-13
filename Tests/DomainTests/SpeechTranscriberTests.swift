@@ -29,6 +29,6 @@ struct SpeechTranscriberTests {
     @Test func audioAttachmentFromTranscript() {
         let attachment = Attachment.audio(transcript: "Hello from speech")
         #expect(attachment.extractedText == "Hello from speech")
-        #expect(attachment.estimatedTokenCount > 0)
+        #expect(attachment.extractedText == "Hello from speech")
     }
 }

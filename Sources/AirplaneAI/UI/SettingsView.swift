@@ -54,7 +54,7 @@ struct SettingsView: View {
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 SettingsCard(title: "Token counts") {
-                    Toggle("Show token counts on messages and in composer", isOn: $showTokenCounts)
+                    Toggle(L.showTokenCounts, isOn: $showTokenCounts)
                         .toggleStyle(.switch)
                 }
             }

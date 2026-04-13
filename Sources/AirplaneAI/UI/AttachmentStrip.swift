@@ -19,7 +19,7 @@ struct AttachmentStrip: View {
                 }
                 let total = drafts.compactMap(\.tokenCount).reduce(0, +)
                 if total > 0 {
-                    Text("\(total) tokens in attachments")
+                    Text(L.tokensInAttachments(total))
                         .font(.caption2.monospacedDigit())
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, Metrics.Composer.horizontalPadding)

@@ -39,9 +39,9 @@ struct MessageBubble: View, Equatable {
         .opacity(isOutOfContext ? 0.5 : 1.0)
         .onHover { hover = $0 }
         .contextMenu {
-            Button("Copy message") { copy() }
+            Button(L.copyMessage) { copy() }
             if let onQuote {
-                Button("Quote in reply") {
+                Button(L.quoteInReply) {
                     let quoted = OutputSanitizer.stripLeakingMarkers(message.content).0
                         .split(separator: "\n", omittingEmptySubsequences: false)
                         .map { "> \($0)" }
@@ -50,7 +50,7 @@ struct MessageBubble: View, Equatable {
                 }
             }
             if let onDelete {
-                Button("Delete message", role: .destructive, action: onDelete)
+                Button(L.deleteMessage, role: .destructive, action: onDelete)
             }
         }
     }
@@ -106,8 +106,8 @@ struct MessageBubble: View, Equatable {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .help(showCopied ? "Copied" : "Copy code")
-                .accessibilityLabel("Copy code block")
+                .help(showCopied ? L.copied : L.copyCode)
+                .accessibilityLabel(L.copyCodeBlock)
             }
             .padding(.horizontal, 10).padding(.vertical, 4)
             .background(Palette.codeHeader(colorScheme))
@@ -136,10 +136,10 @@ struct MessageBubble: View, Equatable {
         HStack(spacing: 6) {
             if showTokenCounts {
                 if let tok = message.tokenCount {
-                    Text("\(tok) tok").font(.caption2.monospacedDigit()).foregroundStyle(.quaternary)
+                    Text(L.tokCount(tok)).font(.caption2.monospacedDigit()).foregroundStyle(.quaternary)
                 }
                 if let ms = message.durationMs {
-                    Text("\(ms) ms").font(.caption2.monospacedDigit()).foregroundStyle(.quaternary)
+                    Text(L.msCount(ms)).font(.caption2.monospacedDigit()).foregroundStyle(.quaternary)
                 }
             }
             if message.status == .interrupted {
@@ -149,13 +149,13 @@ struct MessageBubble: View, Equatable {
             if isLastAssistant, let onRegenerate, message.status == .complete {
                 IconActionButton(
                     systemName: "arrow.clockwise",
-                    help: "Regenerate this response",
+                    help: L.regenerateResponse,
                     action: onRegenerate
                 )
             }
             if !message.content.isEmpty, message.status != .streaming {
                 Button(action: copy) {
-                    Text(showCopied ? "Copied" : "Copy")
+                    Text(showCopied ? L.copied : L.copy)
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(showCopied ? .green : copyHover ? Palette.accent : .secondary)
                 }

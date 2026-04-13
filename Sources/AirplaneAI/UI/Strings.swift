@@ -21,5 +21,32 @@ enum L {
     static let actionRetry = "Retry"
     static let actionNewChat = "New Chat"
     static let actionDelete = "Delete"
+    static let actionRename = "Rename"
     static let sidebarTitle = "Conversations"
+
+    // MARK: - Message actions
+    static let copyMessage = "Copy message"
+    static let quoteInReply = "Quote in reply"
+    static let deleteMessage = "Delete message"
+    static let copyCode = "Copy code"
+    static let copyCodeBlock = "Copy code block"
+    static let copied = "Copied"
+    static let copy = "Copy"
+    static let regenerateResponse = "Regenerate this response"
+
+    // MARK: - Attachments
+    static let removeAttachment = "Remove attachment"
+    static let readOnly = "READ ONLY"
+    static let scrollToLatest = "Scroll to latest"
+    static let scrollToLatestMessage = "Scroll to latest message"
+    static let contextCutoffNotice = "Older messages are outside the context window"
+
+    // MARK: - Token counts
+    static let showTokenCounts = "Show token counts on messages and in composer"
+
+    // MARK: - Formats (use with String interpolation)
+    static func tokCount(_ n: Int) -> String { "\(n) tok" }
+    static func msCount(_ n: Int) -> String { "\(n) ms" }
+    static func linesCount(_ n: Int) -> String { "\(n) lines" }
+    static func tokensInAttachments(_ n: Int) -> String { "\(n) tokens in attachments" }
 }

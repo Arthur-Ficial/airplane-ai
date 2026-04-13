@@ -28,7 +28,7 @@ struct ConversationListView: View {
             searchFocused = true
         }
         .onChange(of: search) { _, _ in refilter() }
-        .onChange(of: state.conversations.count) { _, _ in refilter() }
+        .onChange(of: state.conversations) { _, _ in refilter() }
         .onAppear { refilter() }
         .navigationTitle(L.sidebarTitle)
         .toolbar {
@@ -60,7 +60,7 @@ struct ConversationListView: View {
         } else {
             let cleanTitle = OutputSanitizer.stripTrailingFragments(conv.title)
             VStack(alignment: .leading, spacing: 2) {
-                Text(cleanTitle.isEmpty ? "New Chat" : cleanTitle)
+                Text(cleanTitle.isEmpty ? L.actionNewChat : cleanTitle)
                     .font(.body).lineLimit(1)
                 HStack(spacing: 4) {
                     Text("\(conv.messages.count) msg\(conv.messages.count == 1 ? "" : "s")")
@@ -70,7 +70,7 @@ struct ConversationListView: View {
                 .font(.caption2).foregroundStyle(.secondary).lineLimit(1)
             }
             .contextMenu {
-                Button("Rename") {
+                Button(L.actionRename) {
                     editTitle = conv.title
                     editingId = conv.id
                 }

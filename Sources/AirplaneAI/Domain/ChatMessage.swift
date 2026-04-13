@@ -61,7 +61,6 @@ public struct ChatMessage: Identifiable, Codable, Sendable, Equatable {
 
     /// Rough token estimate including attachment text (~4 chars/token).
     public var estimatedTotalTokens: Int {
-        let attachTokens = attachments.reduce(0) { $0 + $1.estimatedTokenCount }
-        return attachTokens + max(1, content.count / 4)
+        max(1, materializedContent.count / 4)
     }
 }

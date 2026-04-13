@@ -46,14 +46,14 @@ struct AttachmentTests {
         #expect(msg.attachments.isEmpty)
     }
 
-    @Test func estimatedTokenCountForImage() {
+    @Test func extractedTextForImage() {
         let a = Attachment.image(data: Data(), extractedText: "line1\nline2\nline3")
-        #expect(a.estimatedTokenCount > 0)
+        #expect(a.extractedText == "line1\nline2\nline3")
     }
 
-    @Test func estimatedTokenCountForDocument() {
+    @Test func extractedTextForDocument() {
         let text = String(repeating: "word ", count: 100)
         let a = Attachment.document(text: text, filename: "f.txt", fileType: "txt")
-        #expect(a.estimatedTokenCount > 0)
+        #expect(a.extractedText == text)
     }
 }

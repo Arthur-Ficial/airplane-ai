@@ -56,7 +56,7 @@ struct AttachmentChip: View {
                 .font(.caption2).lineLimit(1)
                 .foregroundStyle(.primary)
             if let tok = draft.tokenCount {
-                Text("\(tok) tok")
+                Text(L.tokCount(tok))
                     .font(.caption2.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
@@ -94,7 +94,7 @@ struct AttachmentChip: View {
         }
         .buttonStyle(.plain)
         .offset(x: 4, y: -4)
-        .help("Remove attachment")
+        .help(L.removeAttachment)
     }
 
 }

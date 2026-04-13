@@ -67,8 +67,8 @@ struct ChatView: View {
                     .buttonStyle(.plain)
                     .padding(.trailing, 18)
                     .padding(.bottom, 12)
-                    .help("Scroll to latest")
-                    .accessibilityLabel("Scroll to latest message")
+                    .help(L.scrollToLatest)
+                    .accessibilityLabel(L.scrollToLatestMessage)
                     .transition(.opacity)
                 }
             }
@@ -163,7 +163,7 @@ struct ChatView: View {
     private var contextCutoffDivider: some View {
         HStack(spacing: 8) {
             Rectangle().frame(height: 1).foregroundStyle(.orange.opacity(0.4))
-            Text("Older messages are outside the context window")
+            Text(L.contextCutoffNotice)
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(.orange)
                 .fixedSize()
