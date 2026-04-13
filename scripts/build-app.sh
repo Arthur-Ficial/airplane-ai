@@ -72,6 +72,19 @@ if [[ -d "$RES_BUNDLE" ]]; then
     unsetopt NULL_GLOB
 fi
 
+# Hard-fail if model or manifest missing from bundle. Never sign an incomplete app.
+if [[ ! -f "$APP_BUNDLE/Contents/Resources/airplane-model.gguf" ]]; then
+    print -u2 "✗ FATAL: airplane-model.gguf missing from app bundle"
+    print -u2 "  Run: ./scripts/fetch-model.sh"
+    rm -rf "$APP_BUNDLE"
+    exit 1
+fi
+if [[ ! -f "$APP_BUNDLE/Contents/Resources/airplane-model-manifest.json" ]]; then
+    print -u2 "✗ FATAL: manifest missing from app bundle"
+    rm -rf "$APP_BUNDLE"
+    exit 1
+fi
+
 xattr -cr "$APP_BUNDLE" 2>/dev/null || true
 print "==> Signing bundle (${SIGN_IDENTITY})"
 if [[ -f "$ENTITLEMENTS" ]]; then

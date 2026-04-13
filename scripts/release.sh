@@ -20,9 +20,10 @@ swift test --parallel
 ./Tools/ci/verify-no-forbidden-deps.sh
 ./Tools/ci/verify-model-manifest.sh
 
-# 3. Build + distribute + notarize.
+# 3. Build + distribute + notarize + verify bundle.
 ./scripts/build-dist.sh
 ./scripts/notarize.sh
+./Tools/ci/verify-app-bundle.sh
 
 # 4. Commit + tag + push + release.
 git add .version

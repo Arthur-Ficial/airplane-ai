@@ -2,7 +2,7 @@ APP_NAME    = AirplaneAI
 APP_BUNDLE  = build/$(APP_NAME).app
 APP_DIR    ?= /Applications
 
-.PHONY: build test app run dist install release clean verify bench
+.PHONY: build test model app run dist install release clean verify verify-bundle bench
 
 build:
 	swift build -c release
@@ -10,7 +10,10 @@ build:
 test:
 	swift test --parallel
 
-app:
+model:
+	./scripts/fetch-model.sh
+
+app: model
 	./scripts/build-app.sh
 
 run: app
@@ -37,6 +40,9 @@ verify:
 	./Tools/ci/verify-no-network-symbols.sh
 	./Tools/ci/verify-no-forbidden-deps.sh
 	./Tools/ci/verify-model-manifest.sh
+
+verify-bundle: app
+	./Tools/ci/verify-app-bundle.sh
 
 bench:
 	swift run -c release AirplaneBenchmarks

@@ -7,8 +7,13 @@ MODEL="$ROOT_DIR/Sources/AirplaneAI/Resources/models/airplane-model.gguf"
 MANIFEST="$ROOT_DIR/Sources/AirplaneAI/Resources/models/airplane-model-manifest.json"
 
 if [[ ! -f "$MODEL" ]]; then
-    print "→ no bundled model yet — skipping manifest check (M2 will populate it)"
-    exit 0
+    if [[ "${1:-}" == "--dev" ]]; then
+        print "→ [dev] model not present — skipping (run scripts/fetch-model.sh)"
+        exit 0
+    fi
+    print -u2 "✗ model missing: $MODEL"
+    print -u2 "  Run: ./scripts/fetch-model.sh"
+    exit 1
 fi
 
 if [[ ! -f "$MANIFEST" ]]; then

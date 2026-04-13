@@ -14,7 +14,7 @@ print "    Machine: $(whoami)@$(hostname)"
 print "    Date:    $(date +%Y-%m-%d)"
 
 # ── 1. Check prerequisites ──────────────────────────────────────────────
-print "\n==> [1/6] Checking prerequisites..."
+print "\n==> [1/7] Checking prerequisites..."
 
 # Xcode (full, not just CommandLineTools — SwiftData macros need the plugin).
 XCODE_PATH=$(xcode-select -p 2>/dev/null || echo "")
@@ -59,7 +59,7 @@ DYLIB_COUNT=$(ls "$VENDOR_DYLIB_DIR"/*.dylib 2>/dev/null | wc -l | tr -d ' ')
 print "    Vendor dylibs: $DYLIB_COUNT found in $VENDOR_DYLIB_DIR ✓"
 
 # ── 2. Patch dev rpath in Package.swift ──────────────────────────────────
-print "\n==> [2/6] Patching Package.swift dev rpath for this machine..."
+print "\n==> [2/7] Patching Package.swift dev rpath for this machine..."
 
 CURRENT_RPATH=$(grep -oE '/Users/[^"]+/Vendor/llama.cpp/llama-b8763' Package.swift | head -1 || echo "")
 EXPECTED_RPATH="$VENDOR_DYLIB_DIR"
@@ -76,23 +76,27 @@ else
 fi
 
 # ── 3. Accept Xcode license (if needed) ─────────────────────────────────
-print "\n==> [3/6] Checking Xcode license..."
+print "\n==> [3/7] Checking Xcode license..."
 if ! xcodebuild -license check 2>/dev/null; then
     print "    Accepting Xcode license..."
     sudo xcodebuild -license accept
 fi
 print "    Xcode license accepted ✓"
 
-# ── 4. Build ─────────────────────────────────────────────────────────────
-print "\n==> [4/6] Building (release)..."
+# ── 4. Fetch AI model ───────────────────────────────────────────────────
+print "\n==> [4/7] Fetching AI model..."
+"$ROOT_DIR/scripts/fetch-model.sh"
+
+# ── 5. Build ─────────────────────────────────────────────────────────────
+print "\n==> [5/7] Building (release)..."
 swift build -c release
 
 # ── 5. Test ──────────────────────────────────────────────────────────────
-print "\n==> [5/6] Running tests..."
+print "\n==> [6/7] Running tests..."
 swift test --parallel
 
 # ── 6. Verify (CI scripts) ──────────────────────────────────────────────
-print "\n==> [6/6] Running verification scripts..."
+print "\n==> [7/7] Running verification scripts..."
 ./Tools/ci/verify-entitlements.sh
 ./Tools/ci/verify-no-network-symbols.sh
 ./Tools/ci/verify-no-forbidden-deps.sh

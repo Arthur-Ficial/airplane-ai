@@ -15,4 +15,10 @@ RES="$APP/Contents/Resources"
 [[ -d "$APP/Contents/Frameworks" ]]                  || { print -u2 "✗ missing: Frameworks/"; exit 1; }
 [[ -f "$APP/Contents/Frameworks/libllama.dylib" ]]   || { print -u2 "✗ missing: libllama.dylib in Frameworks/"; exit 1; }
 
-print "→ app bundle layout OK"
+# SHA-256 cross-check: bundled model must match manifest.
+MANIFEST="$RES/airplane-model-manifest.json"
+EXPECTED=$(grep -oE '"gguf_sha256"[[:space:]]*:[[:space:]]*"[0-9a-fA-F]{64}"' "$MANIFEST" | grep -oE '[0-9a-fA-F]{64}')
+ACTUAL=$(shasum -a 256 "$RES/airplane-model.gguf" | awk '{print $1}')
+[[ "$EXPECTED" == "$ACTUAL" ]] || { print -u2 "✗ model SHA-256 mismatch in bundle"; exit 1; }
+
+print "→ app bundle layout OK (model sha256: $ACTUAL)"

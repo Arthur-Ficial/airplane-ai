@@ -35,10 +35,40 @@ public enum ModelLocator {
         bases.append(Bundle.main.bundleURL.deletingLastPathComponent())
         bases.append(appResources.appendingPathComponent("AirplaneAI_AirplaneAI.bundle"))
         bases.append(Bundle.main.bundleURL.appendingPathComponent("AirplaneAI_AirplaneAI.bundle"))
-        // Dev fallback so tests and `swift run` work without the .app.
-        bases.append(URL(fileURLWithPath: "/Users/franzenzenhofer/dev/airplane-ai/Sources/AirplaneAI/Resources"))
-        bases.append(URL(fileURLWithPath: "/Users/franzenzenhofer/dev/airplane-ai/Sources/AirplaneAI/Resources/models"))
-        bases.append(URL(fileURLWithPath: "/Users/franzenzenhofer/dev/airplane-ai/Sources/AirplaneAI/Resources/prompts"))
+        // swift test: resource bundle is next to the xctest bundle in .build/<arch>/<config>/.
+        bases.append(Bundle.main.bundleURL.deletingLastPathComponent()
+            .appendingPathComponent("AirplaneAI_AirplaneAI.bundle"))
+        // Dev fallback: walk up from cwd (SwiftPM sets it to project root during build/test).
+        // Also try from the binary if it lives inside the project tree.
+        let candidates = [
+            URL(fileURLWithPath: FileManager.default.currentDirectoryPath),
+            URL(fileURLWithPath: ProcessInfo.processInfo.arguments[0])
+                .resolvingSymlinksInPath().deletingLastPathComponent(),
+        ]
+        for start in candidates {
+            var dir = start
+            for _ in 0..<10 {
+                if FileManager.default.fileExists(atPath: dir.appendingPathComponent("Package.swift").path) {
+                    let devRes = dir.appendingPathComponent("Sources/AirplaneAI/Resources")
+                    bases.append(devRes)
+                    bases.append(devRes.appendingPathComponent("models"))
+                    bases.append(devRes.appendingPathComponent("prompts"))
+                    // Also check the SwiftPM build output resource bundle.
+                    let buildRes = dir.appendingPathComponent(".build")
+                    for arch in ["arm64-apple-macosx", "x86_64-apple-macosx"] {
+                        for config in ["debug", "release"] {
+                            bases.append(buildRes.appendingPathComponent(arch)
+                                .appendingPathComponent(config)
+                                .appendingPathComponent("AirplaneAI_AirplaneAI.bundle"))
+                        }
+                    }
+                    break
+                }
+                let parent = dir.deletingLastPathComponent()
+                if parent.path == dir.path { break }
+                dir = parent
+            }
+        }
         return bases
     }
 }
