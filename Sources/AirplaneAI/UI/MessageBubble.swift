@@ -61,8 +61,12 @@ struct MessageBubble: View, Equatable {
         // the engine-side filter was wired in. No migration needed.
         let cleanContent = OutputSanitizer.stripTrailingFragments(message.content)
         if message.status == .streaming {
-            Text(cleanContent.isEmpty ? " " : cleanContent)
-                .font(.body).textSelection(.enabled)
+            if cleanContent.isEmpty {
+                TypingIndicator()
+            } else {
+                Text(cleanContent)
+                    .font(.body).textSelection(.enabled)
+            }
         } else {
             let cached = MarkdownRenderer.cached(cleanContent)
             if cached.isJSON {
