@@ -103,20 +103,26 @@ public actor LlamaSwiftEngine: InferenceEngine, TokenCounter {
         let tokenized = tokenize(prompt)
         if tokenized.isEmpty { continuation.finish(throwing: AppError.generationFailed(summary: "tokenize returned 0 tokens")); return }
 
-        // Clear KV cache and submit prompt batch.
+        // Clear KV cache and submit prompt in n_batch-sized chunks.
         llama_memory_clear(llama_get_memory(ctx), true)
-        var batch = llama_batch_init(Int32(tokenized.count), 0, 1)
+        let batchSize = 512
+        var batch = llama_batch_init(Int32(batchSize), 0, 1)
         defer { llama_batch_free(batch) }
-        for (i, t) in tokenized.enumerated() {
-            batch.token[i] = t
-            batch.pos[i] = Int32(i)
-            batch.n_seq_id[i] = 1
-            batch.seq_id[i]![0] = 0
-            batch.logits[i] = (i == tokenized.count - 1) ? 1 : 0
-        }
-        batch.n_tokens = Int32(tokenized.count)
-        if llama_decode(ctx, batch) != 0 {
-            continuation.finish(throwing: AppError.generationFailed(summary: "prompt decode failed")); return
+        var offset = 0
+        while offset < tokenized.count {
+            let chunkEnd = min(offset + batchSize, tokenized.count)
+            batch.n_tokens = Int32(chunkEnd - offset)
+            for j in 0..<Int(batch.n_tokens) {
+                batch.token[j] = tokenized[offset + j]
+                batch.pos[j] = Int32(offset + j)
+                batch.n_seq_id[j] = 1
+                batch.seq_id[j]![0] = 0
+                batch.logits[j] = (offset + j == tokenized.count - 1) ? 1 : 0
+            }
+            if llama_decode(ctx, batch) != 0 {
+                continuation.finish(throwing: AppError.generationFailed(summary: "prompt decode failed at offset \(offset)")); return
+            }
+            offset = chunkEnd
         }
 
         // Sampler chain: top-k → top-p → temperature → dist.
