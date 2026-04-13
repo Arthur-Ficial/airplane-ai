@@ -61,15 +61,15 @@ struct ChatView: View {
                         }
                     } label: {
                         Image(systemName: "chevron.down")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 30, height: 30)
-                            .background(Circle().fill(Palette.accent))
-                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 26, height: 26)
+                            .background(Circle().fill(Color(nsColor: .controlBackgroundColor)))
+                            .overlay(Circle().strokeBorder(Color(nsColor: .separatorColor), lineWidth: 0.5))
                     }
                     .buttonStyle(.plain)
-                    .padding(.trailing, 18)
-                    .padding(.bottom, 12)
+                    .padding(.trailing, 14)
+                    .padding(.bottom, 8)
                     .help(L.scrollToLatest)
                     .accessibilityLabel(L.scrollToLatestMessage)
                     .transition(.opacity)
