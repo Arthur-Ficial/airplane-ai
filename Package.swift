@@ -31,7 +31,7 @@ let package = Package(
                     "-Xlinker", "@loader_path/../Frameworks",
                     // Dev rpath so `swift test` and `swift run` find the dylibs without bundling.
                     "-Xlinker", "-rpath",
-                    "-Xlinker", "/Users/franzenzenhofer/dev/airplane-ai/Vendor/llama.cpp/llama-b8763",
+                    "-Xlinker", "/Users/arthurficial/dev/airplane-ai/Vendor/llama.cpp/llama-b8763",
                 ]),
                 .linkedLibrary("llama"),
                 .linkedLibrary("ggml"),
