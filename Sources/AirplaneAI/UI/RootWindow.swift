@@ -13,6 +13,7 @@ struct RootWindow: View {
             else { BootScreen(state: AppState()) }
         }
         .frame(minWidth: 960, minHeight: 640)
+        .animation(.easeInOut(duration: 0.4), value: wiring != nil)
         .preferredColorScheme(preferredScheme)
         .onReceive(NotificationCenter.default.publisher(for: .airplaneOpenSettings)) { _ in
             openSettings()
@@ -46,8 +47,7 @@ struct RootWindow: View {
 
     private func mainLayout(wiring: AppWiring) -> some View {
         let rawTitle = wiring.state.activeConversation?.title ?? ""
-        let stripped = OutputSanitizer.stripLeakingMarkers(rawTitle).0
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let stripped = OutputSanitizer.stripTrailingFragments(rawTitle)
         let title = stripped.isEmpty ? "Airplane AI" : stripped
         let dot = dotColor(for: wiring.state.modelState)
         // Inline SF Symbol tinted at the symbol level — Text concatenation in

@@ -141,17 +141,16 @@ struct ChatView: View {
 
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
         for provider in providers {
-            if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
-                provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier) { item, _ in
-                    guard let data = item as? Data,
-                          let url = URL(dataRepresentation: data, relativeTo: nil)
+            if provider.canLoadObject(ofClass: NSURL.self) {
+                provider.loadObject(ofClass: NSURL.self) { item, _ in
+                    guard let nsURL = item as? NSURL,
+                          let url = nsURL as URL?
                     else { return }
                     Task { @MainActor in controller.addFileDraft(url: url) }
                 }
-            } else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
-                provider.loadItem(forTypeIdentifier: UTType.image.identifier) { item, _ in
-                    guard let data = item as? Data,
-                          let image = NSImage(data: data) else { return }
+            } else if provider.canLoadObject(ofClass: NSImage.self) {
+                provider.loadObject(ofClass: NSImage.self) { item, _ in
+                    guard let image = item as? NSImage else { return }
                     Task { @MainActor in controller.addImageDraft(image) }
                 }
             }
@@ -182,6 +181,7 @@ struct InputBar: View {
     @AppStorage("airplane.sendWith") private var sendWith: String = "enter"
 
     @State private var composerHeight: CGFloat = Metrics.Composer.minHeight
+    @State private var showFilePicker = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -192,18 +192,20 @@ struct InputBar: View {
             )
             HStack(alignment: .bottom, spacing: Metrics.Composer.gap) {
                 editor
-                SendButton(
-                    generating: state.chatState == .generating,
-                    canSend: !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                        || !controller.draftAttachments.isEmpty,
-                    awaitingFirstToken: state.awaitingFirstToken,
-                    onTap: state.chatState == .generating ? onStop : onSubmit
-                )
+                VStack(spacing: 4) {
+                    SendButton(
+                        generating: state.chatState == .generating,
+                        canSend: !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                            || !controller.draftAttachments.isEmpty,
+                        awaitingFirstToken: state.awaitingFirstToken,
+                        onTap: state.chatState == .generating ? onStop : onSubmit
+                    )
+                    attachButton
+                }
                 .padding(.bottom, 4)
             }
             .padding(.horizontal, Metrics.Composer.horizontalPadding)
             .padding(.vertical, Metrics.Composer.verticalPadding)
-            .overlay(resizeHandle, alignment: .topTrailing)
             .overlay(alignment: .bottomTrailing) {
                 if draft.count > 500 {
                     Text("\(draft.count)")
@@ -214,7 +216,25 @@ struct InputBar: View {
                 }
             }
         }
+        .overlay(resizeHandle, alignment: .topTrailing)
         .onAppear { focused.wrappedValue = true }
+        .fileImporter(
+            isPresented: $showFilePicker,
+            allowedContentTypes: SupportedFormats.allowedContentTypes,
+            allowsMultipleSelection: true
+        ) { result in
+            guard case .success(let urls) = result else { return }
+            for url in urls {
+                guard url.startAccessingSecurityScopedResource() else { continue }
+                // Copy to temp while sandbox access is valid — addFileDraft reads async.
+                let tmp = FileManager.default.temporaryDirectory
+                    .appendingPathComponent(url.lastPathComponent)
+                try? FileManager.default.removeItem(at: tmp)
+                try? FileManager.default.copyItem(at: url, to: tmp)
+                url.stopAccessingSecurityScopedResource()
+                controller.addFileDraft(url: tmp)
+            }
+        }
     }
 
     // Custom NSTextView — textContainerInset + lineFragmentPadding both zero.
@@ -262,6 +282,19 @@ struct InputBar: View {
             )
             .help("Drag to resize")
             .accessibilityLabel("Resize composer")
+    }
+
+    private var attachButton: some View {
+        Button { showFilePicker = true } label: {
+            Image(systemName: "paperclip")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.secondary)
+                .frame(width: Metrics.Size.sendButton, height: Metrics.Size.sendButton)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .help("Attach file")
+        .accessibilityLabel("Attach file")
     }
 
     private var placeholder: String {

@@ -58,7 +58,7 @@ struct MessageBubble: View, Equatable {
     private var content: some View {
         // Retroactively clean any template leaks from messages persisted before
         // the engine-side filter was wired in. No migration needed.
-        let (cleanContent, _) = OutputSanitizer.stripLeakingMarkers(message.content)
+        let cleanContent = OutputSanitizer.stripTrailingFragments(message.content)
         if message.status == .streaming {
             Text(cleanContent.isEmpty ? " " : cleanContent)
                 .font(.body).textSelection(.enabled)

@@ -4,17 +4,13 @@ import AppKit
 /// Horizontal row of attachment previews shown inside a message bubble.
 struct AttachmentPreviewRow: View {
     let attachments: [Attachment]
-    @State private var selectedAttachment: Attachment?
 
     var body: some View {
         HStack(spacing: Metrics.Padding.small) {
             ForEach(Array(attachments.enumerated()), id: \.offset) { _, att in
                 attachmentView(att)
-                    .onTapGesture { selectedAttachment = att }
+                    .onTapGesture { openPreview(att) }
             }
-        }
-        .sheet(item: $selectedAttachment) { att in
-            attachmentDetail(att)
         }
     }
 
@@ -32,58 +28,34 @@ struct AttachmentPreviewRow: View {
             HStack(spacing: 4) {
                 Image(nsImage: NSWorkspace.shared.icon(for: .data))
                     .resizable().frame(width: 16, height: 16)
-                Text(name).font(.caption2).lineLimit(1)
+                Text(name)
+                    .font(.caption2).lineLimit(1)
+                    .foregroundColor(Color(nsColor: .labelColor))
             }
-            .padding(.horizontal, 6).padding(.vertical, 4)
+            .padding(.horizontal, 8).padding(.vertical, 5)
             .background(Color(nsColor: .controlBackgroundColor))
             .clipShape(RoundedRectangle(cornerRadius: Metrics.Radius.small))
         case .audio:
             Label("Audio", systemImage: "waveform")
                 .font(.caption2)
-                .padding(.horizontal, 6).padding(.vertical, 4)
+                .foregroundColor(Color(nsColor: .labelColor))
+                .padding(.horizontal, 8).padding(.vertical, 5)
                 .background(Color(nsColor: .controlBackgroundColor))
                 .clipShape(RoundedRectangle(cornerRadius: Metrics.Radius.small))
         }
     }
 
-    @ViewBuilder
-    private func attachmentDetail(_ att: Attachment) -> some View {
+    private func openPreview(_ att: Attachment) {
+        let title: String
         switch att {
-        case .image(let data, let text):
-            imageDetail(data: data, text: text)
-        case .document(let text, let name, _):
-            textDetail(title: name, text: text)
-        case .audio(let transcript):
-            textDetail(title: "Audio Transcript", text: transcript)
+        case .image(_, _): title = "Image — Extracted Text"
+        case .document(_, let name, _): title = name
+        case .audio(_): title = "Audio Transcript"
         }
-    }
-
-    private func imageDetail(data: Data, text: String) -> some View {
-        VStack(spacing: 0) {
-            if let img = NSImage(data: data) {
-                Image(nsImage: img).resizable().scaledToFit()
-                    .frame(maxWidth: 500, maxHeight: 400)
-            }
-            if !text.isEmpty {
-                ScrollView { Text(text).font(.caption).padding() }
-                    .frame(maxHeight: 150)
-            }
-        }
-        .frame(minWidth: 300, minHeight: 200)
-    }
-
-    private func textDetail(title: String, text: String) -> some View {
-        VStack(alignment: .leading, spacing: Metrics.Padding.small) {
-            Text(title).font(.headline).padding(.horizontal)
-            ScrollView {
-                Text(text).font(.body).textSelection(.enabled).padding()
-            }
-        }
-        .frame(minWidth: 400, minHeight: 300, maxHeight: 500)
+        AttachmentTextWindow.open(title: title, text: att.extractedText)
     }
 }
 
-// Attachment needs Identifiable for the sheet binding.
 extension Attachment: Identifiable {
     public var id: String {
         switch self {

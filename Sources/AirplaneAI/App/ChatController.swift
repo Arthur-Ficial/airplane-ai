@@ -56,7 +56,7 @@ public final class ChatController {
                 messages: activeMessages(),
                 tokenCounter: tokenCounter
             )
-            beginGeneration(messages: fit)
+            beginGeneration(messages: withSystemPrompt(fit))
         } catch let e as AppError {
             state.lastError = e
         } catch {
@@ -94,7 +94,7 @@ public final class ChatController {
                 messages: activeMessages(),
                 tokenCounter: tokenCounter
             )
-            beginGeneration(messages: fit)
+            beginGeneration(messages: withSystemPrompt(fit))
         } catch let e as AppError { state.lastError = e } catch {}
     }
 
@@ -219,6 +219,15 @@ public final class ChatController {
         }
     }
 
+    // Prepend system prompt so the formatter includes it in the template.
+    // fitToContext already reserved tokens for it; this adds the actual message.
+    private func withSystemPrompt(_ messages: [ChatMessage]) -> [ChatMessage] {
+        guard !systemPrompt.isEmpty else { return messages }
+        var result = [ChatMessage(role: .system, content: systemPrompt)]
+        result.append(contentsOf: messages)
+        return result
+    }
+
     // MARK: - Draft attachment helpers
 
     public func addImageDraft(_ image: NSImage) {
@@ -273,6 +282,28 @@ public final class ChatController {
                     )
                     draft.state = .ready
                 } catch { draft.state = .error(error.localizedDescription) }
+            }
+        } else {
+            // Unknown extension — try reading as plain text.
+            let draft = DraftAttachment(filename: filename, fileType: ext.isEmpty ? "file" : ext)
+            draftAttachments.append(draft)
+            Task {
+                do {
+                    let text = try String(contentsOf: url, encoding: .utf8)
+                    guard !text.isEmpty else {
+                        draft.state = .error("File is empty")
+                        return
+                    }
+                    let truncated = text.count > 32_768
+                        ? String(text.prefix(32_768)) + "\n[... truncated at 32K characters]"
+                        : text
+                    draft.attachment = .document(
+                        text: truncated, filename: filename, fileType: ext
+                    )
+                    draft.state = .ready
+                } catch {
+                    draft.state = .error("Cannot read file as text")
+                }
             }
         }
     }

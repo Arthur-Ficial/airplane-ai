@@ -58,8 +58,7 @@ struct ConversationListView: View {
                 .onSubmit { commitEdit(for: conv) }
                 .onExitCommand { editingId = nil }
         } else {
-            let cleanTitle = OutputSanitizer.stripLeakingMarkers(conv.title).0
-                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let cleanTitle = OutputSanitizer.stripTrailingFragments(conv.title)
             VStack(alignment: .leading, spacing: 2) {
                 Text(cleanTitle.isEmpty ? "New Chat" : cleanTitle)
                     .font(.body).lineLimit(1)

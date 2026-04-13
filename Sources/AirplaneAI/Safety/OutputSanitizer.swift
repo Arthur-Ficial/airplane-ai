@@ -17,19 +17,51 @@ public final class OutputSanitizer: @unchecked Sendable {
         "<|start_of_turn|>",
         "<end_of_turn>",
         "<start_of_turn>",
+        "<|endoftext|>",
+        "<|eot_id|>",
+        "<|begin_of_text|>",
     ]
 
     // Prefixes — caught even when the model truncates the closing "|>".
-    // Broad: any ChatML/Gemma-flavored opener starts with one of these.
+    // Broad enough to catch partial emissions like "<|im" without "_".
     public static let stopPrefixes: [String] = [
-        "<|file_",
-        "<|im_",
-        "<|start_",
-        "<|end_",
+        "<|file",
+        "<|im",
+        "<|start",
+        "<|end",
         "<|system",
         "<|user",
         "<|assistant",
+        "<|eot",
+        "<|begin",
+        "<|pad",
+        "<|reserved",
     ]
+
+    // Trailing fragments that appear at the very end when the model hits EOS
+    // mid-control-token. These are too short for stopPrefixes but clearly junk.
+    private static let trailingJunk: [String] = [
+        "<|", "<\n", "< |",
+    ]
+
+    /// Strip any trailing control-token fragment from the end of final output.
+    public static func stripTrailingFragments(_ text: String) -> String {
+        var result = text
+        // First strip full markers/prefixes.
+        let (cleaned, _) = stripLeakingMarkers(result)
+        result = cleaned
+        // Then strip short trailing fragments like "<|", "<".
+        for junk in trailingJunk {
+            if result.hasSuffix(junk) {
+                result = String(result.dropLast(junk.count))
+            }
+        }
+        // Final safety: if the text ends with a lone "<", strip it.
+        while result.hasSuffix("<") {
+            result = String(result.dropLast())
+        }
+        return result.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     // Returns (cleanTail, true) when a marker appears; otherwise (input, false).
     public static func stripLeakingMarkers(_ text: String) -> (String, Bool) {

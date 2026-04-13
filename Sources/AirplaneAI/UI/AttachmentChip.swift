@@ -5,12 +5,10 @@ import AppKit
 struct AttachmentChip: View {
     let draft: DraftAttachment
     let onRemove: () -> Void
-    @State private var showPopover = false
 
     var body: some View {
         chipContent
             .overlay(alignment: .topTrailing) { removeButton }
-            .popover(isPresented: $showPopover) { previewPopover }
     }
 
     @ViewBuilder
@@ -24,7 +22,8 @@ struct AttachmentChip: View {
         }
         .contentShape(Rectangle())
         .onTapGesture {
-            if case .ready = draft.state { showPopover = true }
+            guard case .ready = draft.state, let att = draft.attachment else { return }
+            AttachmentTextWindow.open(title: draft.filename, text: att.extractedText)
         }
     }
 
@@ -36,7 +35,7 @@ struct AttachmentChip: View {
                     .frame(width: 48, height: 48)
                     .clipShape(RoundedRectangle(cornerRadius: Metrics.Radius.small))
             }
-            stateOverlay
+            stateOverlay(onImage: true)
         }
         .frame(width: 48, height: 48)
     }
@@ -48,7 +47,7 @@ struct AttachmentChip: View {
             Text(draft.filename)
                 .font(.caption2).lineLimit(1)
                 .foregroundStyle(.primary)
-            stateOverlay
+            stateOverlay(onImage: false)
         }
         .padding(.horizontal, 8).padding(.vertical, 6)
         .background(Color(nsColor: .controlBackgroundColor))
@@ -60,10 +59,11 @@ struct AttachmentChip: View {
     }
 
     @ViewBuilder
-    private var stateOverlay: some View {
+    private func stateOverlay(onImage: Bool) -> some View {
         switch draft.state {
         case .parsing:
             ProgressView().controlSize(.small)
+                .tint(onImage ? .white : nil)
         case .error:
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(.red).font(.caption)
@@ -84,18 +84,4 @@ struct AttachmentChip: View {
         .help("Remove attachment")
     }
 
-    private var previewPopover: some View {
-        ScrollView {
-            Text(previewText)
-                .font(.caption).padding()
-                .frame(maxWidth: 300, alignment: .leading)
-        }
-        .frame(maxHeight: 200)
-    }
-
-    private var previewText: String {
-        guard let att = draft.attachment else { return "" }
-        let text = att.extractedText
-        return text.count > 500 ? String(text.prefix(500)) + "…" : text
-    }
 }

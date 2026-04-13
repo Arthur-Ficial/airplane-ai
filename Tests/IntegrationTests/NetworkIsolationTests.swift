@@ -35,7 +35,11 @@ struct NetworkIsolationTests {
         let entPath = root.appendingPathComponent("AirplaneAI.entitlements")
         guard FileManager.default.fileExists(atPath: entPath.path) else { return }
         let content = try String(contentsOf: entPath, encoding: .utf8)
-        let allowed = ["com.apple.security.app-sandbox", "com.apple.security.device.audio-input"]
+        let allowed = [
+            "com.apple.security.app-sandbox",
+            "com.apple.security.device.audio-input",
+            "com.apple.security.files.user-selected.read-only",
+        ]
         // Extract all keys.
         let pattern = try NSRegularExpression(pattern: "<key>([^<]+)</key>")
         let matches = pattern.matches(in: content, range: NSRange(content.startIndex..., in: content))

@@ -13,7 +13,7 @@ struct AttachmentStrip: View {
                         AttachmentChip(draft: draft, onRemove: { onRemove(draft) })
                     }
                 }
-                .padding(.horizontal, Metrics.Padding.small)
+                .padding(.horizontal, Metrics.Composer.horizontalPadding)
                 .padding(.vertical, Metrics.Padding.tight)
             }
         }

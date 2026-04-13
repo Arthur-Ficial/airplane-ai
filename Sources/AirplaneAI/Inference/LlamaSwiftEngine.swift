@@ -137,43 +137,84 @@ public actor LlamaSwiftEngine: InferenceEngine, TokenCounter {
         let sanitizer = OutputSanitizer(maxOutputTokens: params.maxTokens)
         var pos = Int32(tokenized.count)
         var produced = 0
-        let eos = llama_vocab_eos(vocab)
         // Rolling tail for stop-string detection.
         var tail = ""
         let maxTail = 32
+        // Pending buffer: hold tokens that might be the start of a control sequence.
+        var pending = ""
 
         while produced < params.maxTokens {
             if cancellationRequested || Task.isCancelled {
                 continuation.yield(.finished(.cancelledByUser)); continuation.finish(); return
             }
             let id = llama_sampler_sample(chain, ctx, -1)
-            if id == eos {
+
+            // Token-level stop: catch ALL end-of-generation tokens (EOS, EOT, etc.)
+            if llama_vocab_is_eog(vocab, id) {
+                if !pending.isEmpty {
+                    let clean = OutputSanitizer.stripTrailingFragments(pending)
+                    if !clean.isEmpty {
+                        continuation.yield(.token(TokenChunk(text: clean, tokenID: nil, index: produced)))
+                    }
+                }
                 continuation.yield(.finished(.completed)); continuation.finish(); return
             }
+            // Skip control tokens entirely — they should never appear in output.
+            if llama_vocab_is_control(vocab, id) {
+                llama_sampler_accept(chain, id)
+                // Feed token back but don't emit it.
+                batch.n_tokens = 1; batch.token[0] = id; batch.pos[0] = pos
+                batch.n_seq_id[0] = 1; batch.seq_id[0]![0] = 0; batch.logits[0] = 1
+                pos += 1
+                if llama_decode(ctx, batch) != 0 {
+                    continuation.finish(throwing: AppError.generationFailed(summary: "decode failed mid-stream")); return
+                }
+                continue
+            }
+
             let piece = detokenize(id)
 
-            // Detect control-token leaks (full markers + partial prefixes).
+            // Detect control-token leaks via string matching (fallback for templates).
             tail += piece
             if tail.count > maxTail { tail.removeFirst(tail.count - maxTail) }
             let (_, hit) = OutputSanitizer.stripLeakingMarkers(tail)
             if hit {
-                // Yield any portion of `piece` that ends before the marker begins.
                 let (cleanFullTail, _) = OutputSanitizer.stripLeakingMarkers(tail)
                 let kept = max(0, cleanFullTail.count - (tail.count - piece.count))
                 if kept > 0 {
                     let cleanPiece = String(piece.prefix(kept))
                     if !cleanPiece.isEmpty {
-                        continuation.yield(.token(TokenChunk(text: cleanPiece, tokenID: id, index: produced)))
+                        pending += cleanPiece
+                    }
+                }
+                if !pending.isEmpty {
+                    let clean = OutputSanitizer.stripTrailingFragments(pending)
+                    if !clean.isEmpty {
+                        continuation.yield(.token(TokenChunk(text: clean, tokenID: nil, index: produced)))
                     }
                 }
                 continuation.yield(.finished(.completed)); continuation.finish(); return
             }
 
-            let chunk = TokenChunk(text: piece, tokenID: id, index: produced)
-            if let stop = sanitizer.check(chunk) {
-                continuation.yield(.finished(stop)); continuation.finish(); return
+            // Buffer tokens that might be the start of a control sequence (starts with '<').
+            pending += piece
+            let hasSuspiciousPrefix = pending.contains("<")
+            if hasSuspiciousPrefix && pending.count < maxTail {
+                // Hold — might be assembling a control token. Don't yield yet.
+                // But still count and check sanitizer.
+                let chunk = TokenChunk(text: piece, tokenID: id, index: produced)
+                if let stop = sanitizer.check(chunk) {
+                    continuation.yield(.finished(stop)); continuation.finish(); return
+                }
+            } else {
+                // Safe to yield the pending buffer.
+                let chunk = TokenChunk(text: pending, tokenID: id, index: produced)
+                if let stop = sanitizer.check(chunk) {
+                    continuation.yield(.finished(stop)); continuation.finish(); return
+                }
+                continuation.yield(.token(chunk))
+                pending = ""
             }
-            continuation.yield(.token(chunk))
             produced += 1
 
             // Feed the sampled token back.

@@ -1,4 +1,5 @@
 import Foundation
+import UniformTypeIdentifiers
 
 /// Defines which file extensions DocumentExtractor can handle.
 enum SupportedFormats {
@@ -13,6 +14,11 @@ enum SupportedFormats {
     // Word/RTF handled via /usr/bin/textutil
     private static let textutilExtensions: Set<String> = [
         "docx", "doc", "rtf", "rtfd",
+    ]
+
+    // Spreadsheets — extracted via XML inside the zip archive
+    private static let spreadsheetExtensions: Set<String> = [
+        "xlsx", "xls",
     ]
 
     // Plain text read directly via String(contentsOf:)
@@ -39,13 +45,24 @@ enum SupportedFormats {
         imageExtensions.contains(ext)
     }
 
+    static func isSpreadsheet(_ ext: String) -> Bool {
+        spreadsheetExtensions.contains(ext)
+    }
+
     static func isDocument(_ ext: String) -> Bool {
         pdfExtensions.contains(ext)
             || textutilExtensions.contains(ext)
             || plainTextExtensions.contains(ext)
+            || spreadsheetExtensions.contains(ext)
     }
 
     static func isSupported(_ ext: String) -> Bool {
         isImage(ext) || isDocument(ext)
+    }
+
+    /// UTTypes for the file picker dialog.
+    static var allowedContentTypes: [UTType] {
+        [.image, .pdf, .rtf, .rtfd, .plainText, .commaSeparatedText,
+         .json, .xml, .yaml, .html, .sourceCode, .spreadsheet, .item]
     }
 }

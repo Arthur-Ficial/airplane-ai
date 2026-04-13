@@ -10,10 +10,11 @@ ENT="$ROOT_DIR/AirplaneAI.entitlements"
 # Extract all <key>...</key> entries.
 KEYS=$(grep -oE '<key>[^<]+</key>' "$ENT" | sed -E 's#</?key>##g' | sort -u)
 
-# Allow-list: sandbox + audio-input only. Nothing else — ever.
+# Allow-list: sandbox + audio-input + user-selected files (file picker).
 ALLOWED=(
     "com.apple.security.app-sandbox"
     "com.apple.security.device.audio-input"
+    "com.apple.security.files.user-selected.read-only"
 )
 ALLOWED_SORTED=$(printf '%s\n' "${ALLOWED[@]}" | sort -u)
 
@@ -31,4 +32,4 @@ if [[ "$VAL" != "true" ]]; then
     exit 1
 fi
 
-print "→ entitlements OK (sandbox + audio-input)"
+print "→ entitlements OK (sandbox + audio-input + user-selected-files)"
