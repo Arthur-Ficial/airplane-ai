@@ -13,10 +13,6 @@ public final class ChatController {
 
     /// Pending attachments the user has pasted/dropped into the composer.
     public var draftAttachments: [DraftAttachment] = []
-    /// Real token count of the current draft text (debounced).
-    public var draftTokenCount: Int?
-    private var draftTokenCountTask: Task<Void, Never>?
-
     public let imageAnalyzer: any ImageAnalyzing
     public let documentExtractor: any DocumentExtracting
 
@@ -329,18 +325,6 @@ public final class ChatController {
 
     static let maxDraftAttachments = 10
 
-    public func updateDraftTokenCount(_ text: String) {
-        draftTokenCountTask?.cancel()
-        let counter = tokenCounter
-        draftTokenCountTask = Task {
-            try? await Task.sleep(nanoseconds: 300_000_000)
-            guard !Task.isCancelled else { return }
-            let count = try? await counter.countTokens(in: text)
-            guard !Task.isCancelled else { return }
-            self.draftTokenCount = count
-        }
-    }
-
     private func countTokensForDraft(_ draft: DraftAttachment) async {
         guard let text = draft.attachment?.extractedText else { return }
         let count = (try? await tokenCounter.countTokens(in: text)) ?? 0
@@ -356,7 +340,7 @@ public final class ChatController {
 
     private func ensureActiveConversation(firstUserContent: String) -> Conversation {
         if let c = state.activeConversation { return c }
-        var c = Conversation(title: Conversation.derivedTitle(from: firstUserContent))
+        let c = Conversation(title: Conversation.derivedTitle(from: firstUserContent))
         state.conversations.insert(c, at: 0)
         state.activeConversationID = c.id
         persist(c)

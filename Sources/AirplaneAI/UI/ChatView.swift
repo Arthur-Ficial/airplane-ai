@@ -208,24 +208,9 @@ struct InputBar: View {
             }
             .padding(.horizontal, Metrics.Composer.horizontalPadding)
             .padding(.vertical, Metrics.Composer.verticalPadding)
-            .overlay(alignment: .bottomTrailing) {
-                let attachTok = controller.draftAttachments.compactMap(\.tokenCount).reduce(0, +)
-                let draftTok = controller.draftTokenCount ?? 0
-                let total = attachTok + draftTok
-                if total > 0 {
-                    Text("\(total) tok")
-                        .font(.caption2.monospacedDigit())
-                        .foregroundStyle(.tertiary)
-                        .padding(.trailing, 56)
-                        .padding(.bottom, 2)
-                }
-            }
             .overlay(resizeHandle, alignment: .topTrailing)
         }
         .onAppear { focused.wrappedValue = true }
-        .onChange(of: draft) { _, new in
-            controller.updateDraftTokenCount(new)
-        }
         .fileImporter(
             isPresented: $showFilePicker,
             allowedContentTypes: SupportedFormats.allowedContentTypes,

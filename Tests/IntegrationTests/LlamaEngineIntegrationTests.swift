@@ -2,14 +2,16 @@ import Foundation
 import Testing
 @testable import AirplaneAI
 
-// Integration test against the REAL bundled Gemma E4B GGUF. Skipped if the
-// model isn't present (CI without model bundle).
-@Suite("LlamaSwiftEngine integration")
+// Integration test against the REAL bundled Gemma E4B GGUF.
+// SLOW (~3 min): loads a 4.2 GB model + compiles Metal pipelines.
+// Skipped by default. Run explicitly:
+//   AIRPLANE_INTEGRATION=1 swift test --filter LlamaEngineIntegration
+@Suite("LlamaSwiftEngine integration",
+       .enabled(if: ProcessInfo.processInfo.environment["AIRPLANE_INTEGRATION"] != nil))
 struct LlamaEngineIntegrationTests {
 
     private func findModel() -> URL? {
         if let u = ModelLocator.bundledModelURL() { return u }
-        // Dev fallback: absolute path from repo root.
         let dev = URL(fileURLWithPath: "/Users/franzenzenhofer/dev/airplane-ai/Sources/AirplaneAI/Resources/models/airplane-model.gguf")
         return FileManager.default.fileExists(atPath: dev.path) ? dev : nil
     }

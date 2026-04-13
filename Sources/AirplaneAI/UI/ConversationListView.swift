@@ -12,6 +12,12 @@ struct ConversationListView: View {
     @State private var cachedFiltered: [Conversation] = []
     @FocusState private var searchFocused: Bool
 
+    /// Lightweight fingerprint: only changes when sidebar-visible data changes
+    /// (title, message count, order), NOT on every streamed token.
+    private var sidebarFingerprint: [SidebarEntry] {
+        state.conversations.map { SidebarEntry(id: $0.id, title: $0.title, msgCount: $0.messages.count) }
+    }
+
     var body: some View {
         List(selection: Binding(
             get: { state.activeConversationID },
@@ -28,7 +34,7 @@ struct ConversationListView: View {
             searchFocused = true
         }
         .onChange(of: search) { _, _ in refilter() }
-        .onChange(of: state.conversations) { _, _ in refilter() }
+        .onChange(of: sidebarFingerprint) { _, _ in refilter() }
         .onAppear { refilter() }
         .navigationTitle(L.sidebarTitle)
         .toolbar {
@@ -96,4 +102,11 @@ struct ConversationListView: View {
             Text(date, format: .relative(presentation: .numeric))
         }
     }
+}
+
+/// Sidebar-visible fields only — avoids re-renders on streamed message content.
+private struct SidebarEntry: Equatable {
+    let id: UUID
+    let title: String
+    let msgCount: Int
 }
