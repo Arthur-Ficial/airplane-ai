@@ -19,6 +19,7 @@ struct ChatView: View {
                 WelcomeView()
             } else {
                 messageList(messages: messages)
+                    .id(state.activeConversationID)
             }
             InputBar(
                 state: state,

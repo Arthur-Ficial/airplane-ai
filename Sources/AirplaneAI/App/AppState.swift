@@ -34,7 +34,9 @@ public final class AppState {
     public var modelState: ModelLifecycle = .cold
     public var chatState: ChatLifecycle = .idle
     public var conversations: [Conversation] = []
-    public var activeConversationID: UUID?
+    public var activeConversationID: UUID? {
+        didSet { _activeIndex = nil }
+    }
     public var lastError: AppError?
     public var boot: BootProgress = BootProgress()
     public var modelInfo: ModelInfo?
