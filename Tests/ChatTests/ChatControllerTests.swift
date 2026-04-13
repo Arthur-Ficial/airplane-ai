@@ -24,7 +24,11 @@ struct ChatControllerTests {
         let (c, state, engine, _) = makeController()
         engine.scriptedTokens = ["Hello", " ", "there"]
         await c.send("hi")
-        try? await Task.sleep(nanoseconds: 50_000_000)
+        // Poll for completion — robust under parallel test load.
+        for _ in 0..<100 {
+            if state.chatState == .idle { break }
+            try? await Task.sleep(nanoseconds: 10_000_000)
+        }
         #expect(state.conversations.count == 1)
         let messages = state.activeConversation?.messages ?? []
         #expect(messages.count == 2)
@@ -36,11 +40,15 @@ struct ChatControllerTests {
 
     @Test func stopMarksAssistantInterrupted() async {
         let (c, state, engine, _) = makeController()
-        engine.scriptedTokens = Array(repeating: "x", count: 200)
-        engine.perTokenDelayNanos = 2_000_000
+        engine.scriptedTokens = Array(repeating: "x", count: 500)
+        engine.perTokenDelayNanos = 5_000_000  // 5ms/token = 2.5s total — enough time to cancel
         await c.send("hello")
-        // Give stream a moment to start
-        try? await Task.sleep(nanoseconds: 20_000_000)
+        // Wait for streaming to actually start before stopping.
+        for _ in 0..<50 {
+            if state.chatState == .generating { break }
+            try? await Task.sleep(nanoseconds: 10_000_000)
+        }
+        try? await Task.sleep(nanoseconds: 50_000_000)
         c.stop()
         // Wait for finalization
         for _ in 0..<50 {
