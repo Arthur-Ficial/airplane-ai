@@ -17,6 +17,7 @@ public struct ChatMessage: Identifiable, Codable, Sendable, Equatable {
     public var stopReason: StopReason?
     public var tokenCount: Int?         // set on assistant messages after streaming
     public var durationMs: Int?         // wall-clock ms from first to last token
+    public var attachments: [Attachment]
 
     public init(
         id: UUID = UUID(),
@@ -26,7 +27,8 @@ public struct ChatMessage: Identifiable, Codable, Sendable, Equatable {
         status: MessageStatus = .complete,
         stopReason: StopReason? = nil,
         tokenCount: Int? = nil,
-        durationMs: Int? = nil
+        durationMs: Int? = nil,
+        attachments: [Attachment] = []
     ) {
         self.id = id
         self.role = role
@@ -36,5 +38,6 @@ public struct ChatMessage: Identifiable, Codable, Sendable, Equatable {
         self.stopReason = stopReason
         self.tokenCount = tokenCount
         self.durationMs = durationMs
+        self.attachments = attachments
     }
 }

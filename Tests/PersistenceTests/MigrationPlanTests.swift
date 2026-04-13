@@ -12,8 +12,8 @@ struct MigrationPlanTests {
         #expect(versions.contains { $0.contains("AppSchemaV1") })
     }
 
-    @Test func stagesEmptyForSingleVersion() {
-        #expect(AppMigrationPlan.stages.isEmpty, "No migration stages expected while only V1 exists")
+    @Test func stagesIncludeV1ToV2() {
+        #expect(AppMigrationPlan.stages.count == 1, "One migration stage: V1→V2 (attachments)")
     }
 
     @Test func v1StoreOpensAndPersists() async throws {

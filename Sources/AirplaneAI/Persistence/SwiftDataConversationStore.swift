@@ -8,7 +8,7 @@ public actor SwiftDataConversationStore: ConversationStore {
     private let backupStore: BackupStore
 
     public init(storeURL: URL, backupDirectory: URL) throws {
-        let schema = Schema(versionedSchema: AppSchemaV1.self)
+        let schema = Schema(versionedSchema: AppSchemaV2.self)
         let config = ModelConfiguration(
             schema: schema,
             url: storeURL,

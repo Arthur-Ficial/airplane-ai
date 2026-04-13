@@ -17,13 +17,16 @@ enum StoreMapper {
     }
 
     static func toDomain(_ sm: StoredMessage) -> ChatMessage {
-        ChatMessage(
+        let attachments: [Attachment] = sm.attachmentsJSON
+            .flatMap { try? JSONDecoder().decode([Attachment].self, from: $0) } ?? []
+        return ChatMessage(
             id: sm.id,
             role: MessageRole(rawValue: sm.role) ?? .user,
             content: sm.content,
             createdAt: sm.createdAt,
             status: MessageStatus(rawValue: sm.status) ?? .complete,
-            stopReason: sm.stopReason.flatMap { StopReason(rawValue: $0) }
+            stopReason: sm.stopReason.flatMap { StopReason(rawValue: $0) },
+            attachments: attachments
         )
     }
 
@@ -39,11 +42,13 @@ enum StoreMapper {
                 sm.content = m.content
                 sm.status = m.status.rawValue
                 sm.stopReason = m.stopReason?.rawValue
+                sm.attachmentsJSON = encodeAttachments(m.attachments)
             } else {
                 let sm = StoredMessage(
                     id: m.id, role: m.role.rawValue, content: m.content,
                     createdAt: m.createdAt, status: m.status.rawValue,
-                    stopReason: m.stopReason?.rawValue
+                    stopReason: m.stopReason?.rawValue,
+                    attachmentsJSON: encodeAttachments(m.attachments)
                 )
                 sm.conversation = sc
                 sc.messages.append(sm)
@@ -58,11 +63,16 @@ enum StoreMapper {
             let sm = StoredMessage(
                 id: m.id, role: m.role.rawValue, content: m.content,
                 createdAt: m.createdAt, status: m.status.rawValue,
-                stopReason: m.stopReason?.rawValue
+                stopReason: m.stopReason?.rawValue,
+                attachmentsJSON: encodeAttachments(m.attachments)
             )
             sm.conversation = sc
             sc.messages.append(sm)
         }
         return sc
+    }
+
+    private static func encodeAttachments(_ a: [Attachment]) -> Data? {
+        a.isEmpty ? nil : (try? JSONEncoder().encode(a))
     }
 }

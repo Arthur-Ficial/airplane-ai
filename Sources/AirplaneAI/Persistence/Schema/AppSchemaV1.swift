@@ -32,14 +32,16 @@ public final class StoredMessage {
     public var createdAt: Date
     public var status: String
     public var stopReason: String?
+    public var attachmentsJSON: Data?
     public var conversation: StoredConversation?
 
-    public init(id: UUID, role: String, content: String, createdAt: Date, status: String, stopReason: String? = nil) {
+    public init(id: UUID, role: String, content: String, createdAt: Date, status: String, stopReason: String? = nil, attachmentsJSON: Data? = nil) {
         self.id = id
         self.role = role
         self.content = content
         self.createdAt = createdAt
         self.status = status
         self.stopReason = stopReason
+        self.attachmentsJSON = attachmentsJSON
     }
 }
