@@ -32,6 +32,23 @@ struct ContextManagerTests {
         #expect(kept.count >= 1)
     }
 
+    @Test func rejectsWhenAttachmentTextExceedsBudget() async throws {
+        let tc = MockTokenCounter(tokensPerCharacter: 1.0)
+        // Budget = 80. System = 3 ("sys"). Newest content = 2 ("hi").
+        // But attachment text = 200 chars → 200 tokens. Total = 205 > 80.
+        let cm = ContextManager(maxContextTokens: 100, reservedForResponse: 10, templateOverheadTokens: 10)
+        let bigAttachment = Attachment.document(
+            text: String(repeating: "x", count: 200), filename: "big.txt", fileType: "txt"
+        )
+        let msg = ChatMessage(role: .user, content: "hi", attachments: [bigAttachment])
+        do {
+            _ = try await cm.fitToContext(systemPrompt: "sys", messages: [msg], tokenCounter: tc)
+            Issue.record("expected inputTooLarge but fitToContext succeeded")
+        } catch let AppError.inputTooLarge(max) {
+            #expect(max == 80)
+        }
+    }
+
     @Test func noUserTurnYetReturnsUnchanged() async throws {
         let tc = MockTokenCounter()
         let cm = ContextManager(maxContextTokens: 100)

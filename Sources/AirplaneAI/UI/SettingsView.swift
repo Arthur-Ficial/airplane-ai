@@ -7,6 +7,7 @@ struct SettingsView: View {
     @AppStorage("airplane.timeFormat") private var timeFormat: String = "relative"
     @AppStorage("airplane.sendWith") private var sendWith: String = "enter"
     @AppStorage("airplane.contextOverride") private var contextOverride: Int = 0
+    @AppStorage("airplane.showTokenCounts") private var showTokenCounts: Bool = false
 
     init(state: AppState? = nil, store: (any ConversationStore)? = nil) {
         self.state = state
@@ -48,9 +49,13 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.segmented).labelsHidden()
                     Text(timeFormat == "relative"
-                         ? "e.g. “2 hours ago”"
-                         : "e.g. “Apr 12 15:04”")
+                         ? "e.g. \"2 hours ago\""
+                         : "e.g. \"Apr 12 15:04\"")
                         .font(.caption).foregroundStyle(.secondary)
+                }
+                SettingsCard(title: "Token counts") {
+                    Toggle("Show token counts on messages and in composer", isOn: $showTokenCounts)
+                        .toggleStyle(.switch)
                 }
             }
             .padding(20)

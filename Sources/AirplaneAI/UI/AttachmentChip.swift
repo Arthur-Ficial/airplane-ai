@@ -28,7 +28,7 @@ struct AttachmentChip: View {
     }
 
     private var imageChip: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             if let img = draft.thumbnail {
                 Image(nsImage: img)
                     .resizable().scaledToFill()
@@ -36,6 +36,14 @@ struct AttachmentChip: View {
                     .clipShape(RoundedRectangle(cornerRadius: Metrics.Radius.small))
             }
             stateOverlay(onImage: true)
+            if let tok = draft.tokenCount {
+                Text("\(tok)")
+                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 3)
+                    .background(Capsule().fill(.black.opacity(0.6)))
+                    .padding(.bottom, 2)
+            }
         }
         .frame(width: 48, height: 48)
     }
@@ -47,6 +55,11 @@ struct AttachmentChip: View {
             Text(draft.filename)
                 .font(.caption2).lineLimit(1)
                 .foregroundStyle(.primary)
+            if let tok = draft.tokenCount {
+                Text("\(tok) tok")
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
             stateOverlay(onImage: false)
         }
         .padding(.horizontal, 8).padding(.vertical, 6)

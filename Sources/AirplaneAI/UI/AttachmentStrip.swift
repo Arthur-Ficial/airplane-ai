@@ -7,14 +7,24 @@ struct AttachmentStrip: View {
 
     var body: some View {
         if !drafts.isEmpty {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: Metrics.Padding.small) {
-                    ForEach(drafts) { draft in
-                        AttachmentChip(draft: draft, onRemove: { onRemove(draft) })
+            VStack(alignment: .leading, spacing: 2) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: Metrics.Padding.small) {
+                        ForEach(drafts) { draft in
+                            AttachmentChip(draft: draft, onRemove: { onRemove(draft) })
+                        }
                     }
+                    .padding(.horizontal, Metrics.Composer.horizontalPadding)
+                    .padding(.top, Metrics.Padding.tight)
                 }
-                .padding(.horizontal, Metrics.Composer.horizontalPadding)
-                .padding(.vertical, Metrics.Padding.tight)
+                let total = drafts.compactMap(\.tokenCount).reduce(0, +)
+                if total > 0 {
+                    Text("\(total) tokens in attachments")
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, Metrics.Composer.horizontalPadding)
+                        .padding(.bottom, 2)
+                }
             }
         }
     }

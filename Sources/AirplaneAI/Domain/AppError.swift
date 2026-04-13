@@ -11,6 +11,8 @@ public enum AppError: LocalizedError, Sendable, Equatable, Hashable {
     case generationFailed(summary: String)
     case persistenceFailed(summary: String)
     case migrationFailed
+    case attachmentTooLarge(filename: String, tokens: Int, budget: Int)
+    case tooManyAttachments(limit: Int)
 
     public var errorDescription: String? {
         switch self {
@@ -26,6 +28,8 @@ public enum AppError: LocalizedError, Sendable, Equatable, Hashable {
         case .generationFailed(let s): return "Generation failed: \(s)"
         case .persistenceFailed(let s): return "Persistence failed: \(s)"
         case .migrationFailed: return "Data migration failed."
+        case .attachmentTooLarge(let f, let t, let b): return "\(f) is too large (\(t) tokens, budget \(b))."
+        case .tooManyAttachments(let l): return "Too many attachments (limit \(l))."
         }
     }
 }

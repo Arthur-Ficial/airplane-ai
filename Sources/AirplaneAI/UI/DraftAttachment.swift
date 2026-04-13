@@ -11,6 +11,7 @@ public final class DraftAttachment: Identifiable {
     public var thumbnail: NSImage?
     public var state: ParseState = .parsing
     public var attachment: Attachment?
+    public var tokenCount: Int?
 
     public enum ParseState {
         case parsing, ready, error(String)

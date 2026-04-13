@@ -135,6 +135,68 @@ struct AttachmentDraftTests {
         }
     }
 
+    // MARK: - Token counting after extraction
+
+    @Test func addImageDraftCountsTokensAfterExtraction() async throws {
+        let (controller, _) = makeController()
+        controller.addImageDraft(makeTestImage())
+        for _ in 0..<100 {
+            if controller.draftAttachments.first?.tokenCount != nil { break }
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+        let draft = controller.draftAttachments[0]
+        #expect(draft.tokenCount != nil)
+        #expect(draft.tokenCount! > 0)
+    }
+
+    @Test func addFileDraftCountsTokensAfterExtraction() async throws {
+        let extractor = MockDocumentExtractor()
+        extractor.result = DocumentExtraction(text: "hello world", filename: "f.txt", fileType: "txt")
+        let (controller, _) = makeController(documentExtractor: extractor)
+        let url = createTempFile(name: "count_test.txt", content: "hello world")
+        controller.addFileDraft(url: url)
+        for _ in 0..<100 {
+            if controller.draftAttachments.first?.tokenCount != nil { break }
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+        #expect(controller.draftAttachments[0].tokenCount != nil)
+        #expect(controller.draftAttachments[0].tokenCount! > 0)
+    }
+
+    // MARK: - Attachment limits
+
+    @Test func rejectsAttachmentExceedingTokenBudget() async throws {
+        // MockTokenCounter: 0.25 tok/char. Budget = 8192 - 512 - 128 = 7552.
+        // Configure mock to return 40000-char text → 10000 tokens > 7552.
+        let extractor = MockDocumentExtractor()
+        extractor.result = DocumentExtraction(
+            text: String(repeating: "x", count: 40_000),
+            filename: "huge.txt", fileType: "txt"
+        )
+        let (controller, _) = makeController(documentExtractor: extractor)
+        let url = createTempFile(name: "huge.txt", content: "placeholder")
+        controller.addFileDraft(url: url)
+        for _ in 0..<100 {
+            if case .parsing = controller.draftAttachments.first?.state ?? .parsing {} else { break }
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        if case .error = controller.draftAttachments[0].state {} else {
+            Issue.record("Expected .error for oversized attachment, got \(controller.draftAttachments[0].state)")
+        }
+    }
+
+    @Test func rejectsEleventhAttachment() async throws {
+        let (controller, state) = makeController()
+        for i in 0..<10 {
+            controller.addImageDraft(makeTestImage())
+            #expect(controller.draftAttachments.count == i + 1)
+        }
+        // 11th should be rejected
+        controller.addImageDraft(makeTestImage())
+        #expect(controller.draftAttachments.count == 10)
+        #expect(state.lastError == .tooManyAttachments(limit: 10))
+    }
+
     // MARK: - Remove draft
 
     @Test func removeDraftRemovesFromList() {

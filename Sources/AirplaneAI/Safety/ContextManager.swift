@@ -28,7 +28,7 @@ public struct ContextManager: Sendable {
             return messages
         }
         let sysTokens = try await tokenCounter.countTokens(in: systemPrompt)
-        let newestTokens = try await tokenCounter.countTokens(in: newest.content)
+        let newestTokens = try await tokenCounter.countTokens(in: newest.materializedContent)
         if sysTokens + newestTokens > budget {
             throw AppError.inputTooLarge(maxTokens: budget)
         }
@@ -37,7 +37,7 @@ public struct ContextManager: Sendable {
         var used = sysTokens + newestTokens
         let history = messages.dropLast()
         for msg in history.reversed() {
-            let t = try await tokenCounter.countTokens(in: msg.content)
+            let t = try await tokenCounter.countTokens(in: msg.materializedContent)
             if used + t > budget { break }
             kept.insert(msg, at: 0)
             used += t

@@ -13,6 +13,9 @@ public final class ChatController {
 
     /// Pending attachments the user has pasted/dropped into the composer.
     public var draftAttachments: [DraftAttachment] = []
+    /// Real token count of the current draft text (debounced).
+    public var draftTokenCount: Int?
+    private var draftTokenCountTask: Task<Void, Never>?
 
     public let imageAnalyzer: any ImageAnalyzing
     public let documentExtractor: any DocumentExtracting
@@ -231,6 +234,10 @@ public final class ChatController {
     // MARK: - Draft attachment helpers
 
     public func addImageDraft(_ image: NSImage) {
+        guard draftAttachments.count < Self.maxDraftAttachments else {
+            state.lastError = .tooManyAttachments(limit: Self.maxDraftAttachments)
+            return
+        }
         let draft = DraftAttachment(
             filename: "image.png",
             fileType: "image",
@@ -244,6 +251,7 @@ public final class ChatController {
                 let data = image.tiffRepresentation ?? Data()
                 draft.attachment = .image(data: data, extractedText: text)
                 draft.state = .ready
+                await self.countTokensForDraft(draft)
             } catch {
                 draft.state = .error(error.localizedDescription)
             }
@@ -251,6 +259,10 @@ public final class ChatController {
     }
 
     public func addFileDraft(url: URL) {
+        guard draftAttachments.count < Self.maxDraftAttachments else {
+            state.lastError = .tooManyAttachments(limit: Self.maxDraftAttachments)
+            return
+        }
         let ext = url.pathExtension.lowercased()
         let filename = url.lastPathComponent
 
@@ -267,6 +279,7 @@ public final class ChatController {
                     let data = image.tiffRepresentation ?? Data()
                     draft.attachment = .image(data: data, extractedText: text)
                     draft.state = .ready
+                    await self.countTokensForDraft(draft)
                 } catch { draft.state = .error(error.localizedDescription) }
             }
         } else if SupportedFormats.isDocument(ext) {
@@ -281,6 +294,7 @@ public final class ChatController {
                         fileType: result.fileType
                     )
                     draft.state = .ready
+                    await self.countTokensForDraft(draft)
                 } catch { draft.state = .error(error.localizedDescription) }
             }
         } else {
@@ -301,6 +315,7 @@ public final class ChatController {
                         text: truncated, filename: filename, fileType: ext
                     )
                     draft.state = .ready
+                    await self.countTokensForDraft(draft)
                 } catch {
                     draft.state = .error("Cannot read file as text")
                 }
@@ -310,6 +325,31 @@ public final class ChatController {
 
     public func removeDraft(_ draft: DraftAttachment) {
         draftAttachments.removeAll { $0.id == draft.id }
+    }
+
+    static let maxDraftAttachments = 10
+
+    public func updateDraftTokenCount(_ text: String) {
+        draftTokenCountTask?.cancel()
+        let counter = tokenCounter
+        draftTokenCountTask = Task {
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard !Task.isCancelled else { return }
+            let count = try? await counter.countTokens(in: text)
+            guard !Task.isCancelled else { return }
+            self.draftTokenCount = count
+        }
+    }
+
+    private func countTokensForDraft(_ draft: DraftAttachment) async {
+        guard let text = draft.attachment?.extractedText else { return }
+        let count = (try? await tokenCounter.countTokens(in: text)) ?? 0
+        draft.tokenCount = count
+        let budget = contextManager.inputBudget
+        if count > budget {
+            draft.state = .error("\(draft.filename): \(count) tokens exceeds budget (\(budget))")
+            draft.attachment = nil
+        }
     }
 
     // MARK: - conversation mutation helpers

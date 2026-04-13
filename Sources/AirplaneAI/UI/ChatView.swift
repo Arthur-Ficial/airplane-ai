@@ -9,6 +9,7 @@ struct ChatView: View {
     @State private var isFollowingTail = true
     @FocusState private var composerFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @AppStorage("airplane.showTokenCounts") private var showTokenCounts: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -90,6 +91,7 @@ struct ChatView: View {
                             message: msg,
                             isLastAssistant: msg.id == lastAssistantID,
                             isOutOfContext: outOfContext,
+                            showTokenCounts: showTokenCounts,
                             onRegenerate: msg.id == lastAssistantID ? { Task { await controller.regenerateLastAssistant() } } : nil,
                             onDelete: { controller.deleteMessage(msg.id) },
                             onQuote: { quoted in
@@ -207,17 +209,23 @@ struct InputBar: View {
             .padding(.horizontal, Metrics.Composer.horizontalPadding)
             .padding(.vertical, Metrics.Composer.verticalPadding)
             .overlay(alignment: .bottomTrailing) {
-                if draft.count > 500 {
-                    Text("\(draft.count)")
+                let attachTok = controller.draftAttachments.compactMap(\.tokenCount).reduce(0, +)
+                let draftTok = controller.draftTokenCount ?? 0
+                let total = attachTok + draftTok
+                if total > 0 {
+                    Text("\(total) tok")
                         .font(.caption2.monospacedDigit())
                         .foregroundStyle(.tertiary)
                         .padding(.trailing, 56)
                         .padding(.bottom, 2)
                 }
             }
+            .overlay(resizeHandle, alignment: .topTrailing)
         }
-        .overlay(resizeHandle, alignment: .topTrailing)
         .onAppear { focused.wrappedValue = true }
+        .onChange(of: draft) { _, new in
+            controller.updateDraftTokenCount(new)
+        }
         .fileImporter(
             isPresented: $showFilePicker,
             allowedContentTypes: SupportedFormats.allowedContentTypes,
