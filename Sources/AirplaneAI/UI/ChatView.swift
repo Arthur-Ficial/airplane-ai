@@ -7,16 +7,18 @@ struct ChatView: View {
     let controller: ChatController
     @State private var draft: String = ""
     @State private var isFollowingTail = true
+    @State private var lastScrollTime: ContinuousClock.Instant = .now
     @FocusState private var composerFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage("airplane.showTokenCounts") private var showTokenCounts: Bool = true
 
     var body: some View {
+        let messages = state.activeConversation?.messages ?? []
         VStack(spacing: 0) {
-            if (state.activeConversation?.messages ?? []).isEmpty {
+            if messages.isEmpty {
                 WelcomeView()
             } else {
-                messageList
+                messageList(messages: messages)
             }
             InputBar(
                 state: state,
@@ -47,10 +49,10 @@ struct ChatView: View {
         }
     }
 
-    private var messageList: some View {
+    private func messageList(messages: [ChatMessage]) -> some View {
         ScrollViewReader { proxy in
             ZStack(alignment: .bottomTrailing) {
-                messageScroll(proxy: proxy)
+                messageScroll(messages: messages, proxy: proxy)
                 if !isFollowingTail {
                     Button {
                         withAnimation(.easeOut(duration: Metrics.Duration.quickAnimation)) {
@@ -75,10 +77,9 @@ struct ChatView: View {
         }
     }
 
-    private func messageScroll(proxy: ScrollViewProxy) -> some View {
+    private func messageScroll(messages: [ChatMessage], proxy: ScrollViewProxy) -> some View {
             ScrollView {
                 LazyVStack(spacing: Metrics.Padding.large) {
-                    let messages = state.activeConversation?.messages ?? []
                     let lastAssistantID = messages.last(where: { $0.role == .assistant })?.id
                     ForEach(Array(messages.enumerated()), id: \.element.id) { index, msg in
                         let outOfContext = state.outOfContextMessageIDs.contains(msg.id)
@@ -110,9 +111,9 @@ struct ChatView: View {
                     .onAppear { isFollowingTail = true }
                     .onDisappear { isFollowingTail = false }
             }
-            .onChange(of: (state.activeConversation?.messages ?? []).count) { old, new in
+            .onChange(of: messages.count) { old, new in
                 guard new > old else { return }
-                let userJustSent = state.activeConversation?.messages.last?.role == .user
+                let userJustSent = messages.last?.role == .user
                 guard isFollowingTail || new <= 2 || userJustSent else { return }
                 if reduceMotion {
                     proxy.scrollTo("bottom", anchor: .bottom)
@@ -122,8 +123,11 @@ struct ChatView: View {
                     }
                 }
             }
-            .onChange(of: state.activeConversation?.messages.last?.content) { _, _ in
+            .onChange(of: messages.last?.content) { _, _ in
                 guard isFollowingTail else { return }
+                let now = ContinuousClock.now
+                guard now - lastScrollTime > .milliseconds(100) else { return }
+                lastScrollTime = now
                 proxy.scrollTo("bottom", anchor: .bottom)
             }
     }
@@ -197,8 +201,7 @@ struct InputBar: View {
                 VStack(spacing: 4) {
                     SendButton(
                         generating: state.chatState == .generating,
-                        canSend: !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                            || !controller.draftAttachments.isEmpty,
+                        canSend: !draft.isEmpty || !controller.draftAttachments.isEmpty,
                         awaitingFirstToken: state.awaitingFirstToken,
                         onTap: state.chatState == .generating ? onStop : onSubmit
                     )

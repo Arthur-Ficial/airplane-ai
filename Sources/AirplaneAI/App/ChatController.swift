@@ -128,7 +128,7 @@ public final class ChatController {
             // at 200+ tok/s. Buffer in the Task, flush on a clock tick.
             var buffer = ""
             var lastFlush = ContinuousClock.now
-            let flushBudget = Duration.milliseconds(16)
+            let flushBudget = Duration.milliseconds(50)
             var tokenCount = 0
             var firstTokenAt: ContinuousClock.Instant?
             do {

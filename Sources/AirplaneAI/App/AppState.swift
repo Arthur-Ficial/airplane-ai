@@ -46,6 +46,16 @@ public final class AppState {
 
     public var activeConversation: Conversation? {
         guard let id = activeConversationID else { return nil }
-        return conversations.first { $0.id == id }
+        // O(1) via cached index when available, fallback to linear search.
+        if let idx = _activeIndex, idx < conversations.count,
+           conversations[idx].id == id {
+            return conversations[idx]
+        }
+        guard let idx = conversations.firstIndex(where: { $0.id == id }) else { return nil }
+        _activeIndex = idx
+        return conversations[idx]
     }
+
+    /// Cached index — invalidated on conversation mutations.
+    var _activeIndex: Int?
 }
