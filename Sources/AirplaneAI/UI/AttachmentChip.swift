@@ -23,7 +23,7 @@ struct AttachmentChip: View {
         .contentShape(Rectangle())
         .onTapGesture {
             guard case .ready = draft.state, let att = draft.attachment else { return }
-            AttachmentTextWindow.open(title: draft.filename, text: att.extractedText)
+            AttachmentTextWindow.open(title: draft.filename, text: att.extractedText, tokenCount: draft.tokenCount)
         }
     }
 

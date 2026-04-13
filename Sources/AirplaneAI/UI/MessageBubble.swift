@@ -5,7 +5,7 @@ struct MessageBubble: View, Equatable {
     let message: ChatMessage
     var isLastAssistant: Bool = false
     var isOutOfContext: Bool = false
-    var showTokenCounts: Bool = false
+    var showTokenCounts: Bool = true
     var onRegenerate: (() -> Void)? = nil
     var onDelete: (() -> Void)? = nil
     var onQuote: ((String) -> Void)? = nil

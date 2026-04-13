@@ -9,7 +9,7 @@ struct ChatView: View {
     @State private var isFollowingTail = true
     @FocusState private var composerFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @AppStorage("airplane.showTokenCounts") private var showTokenCounts: Bool = false
+    @AppStorage("airplane.showTokenCounts") private var showTokenCounts: Bool = true
 
     var body: some View {
         VStack(spacing: 0) {

@@ -2,11 +2,12 @@ import SwiftUI
 import AppKit
 
 /// Opens a proper macOS window showing the extracted text of an attachment.
-/// Read-only, monospace, line numbers, light/dark aware.
+/// Read-only, monospace, line numbers, token count, light/dark aware.
 @MainActor
 enum AttachmentTextWindow {
-    static func open(title: String, text: String) {
-        let hostingView = NSHostingView(rootView: AttachmentTextView(title: title, text: text))
+    static func open(title: String, text: String, tokenCount: Int? = nil) {
+        let view = AttachmentTextView(title: title, text: text, tokenCount: tokenCount)
+        let hostingView = NSHostingView(rootView: view)
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 860, height: 540),
             styleMask: [.titled, .closable, .resizable, .miniaturizable],
@@ -24,6 +25,7 @@ enum AttachmentTextWindow {
 private struct AttachmentTextView: View {
     let title: String
     let text: String
+    let tokenCount: Int?
     @Environment(\.colorScheme) private var scheme
 
     private var lines: [String] { text.components(separatedBy: .newlines) }
@@ -42,26 +44,28 @@ private struct AttachmentTextView: View {
             Image(systemName: "doc.text")
                 .font(.system(size: 13))
                 .foregroundStyle(.secondary)
-            Text(title)
-                .font(.headline)
-                .lineLimit(1)
+            Text(title).font(.headline).lineLimit(1)
             Spacer()
             Text("READ ONLY")
                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
                 .foregroundStyle(scheme == .dark ? .white.opacity(0.5) : .black.opacity(0.4))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
                 .background(
-                    RoundedRectangle(cornerRadius: 4)
+                    RoundedRectangle(cornerRadius: 3)
                         .fill(scheme == .dark ? Color.white.opacity(0.08) : Color.black.opacity(0.06))
                 )
+            if let tok = tokenCount {
+                Text("\(tok) tok")
+                    .font(.caption.monospacedDigit().bold())
+                    .foregroundStyle(.secondary)
+            }
             Text("\(lines.count) lines")
-                .font(.caption)
+                .font(.caption.monospacedDigit())
                 .foregroundStyle(.tertiary)
-                .monospacedDigit()
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .background(scheme == .dark ? Color(white: 0.14) : Color(white: 0.97))
     }
 
@@ -69,39 +73,36 @@ private struct AttachmentTextView: View {
         let gutterWidth = gutterWidthForLineCount(lines.count)
         return ScrollView([.horizontal, .vertical]) {
             HStack(alignment: .top, spacing: 0) {
-                // Line number gutter
                 VStack(alignment: .trailing, spacing: 0) {
                     ForEach(Array(lines.enumerated()), id: \.offset) { idx, _ in
                         Text("\(idx + 1)")
-                            .font(.system(size: 12, design: .monospaced))
+                            .font(.system(size: 11, design: .monospaced))
                             .foregroundStyle(.tertiary)
-                            .frame(height: 18, alignment: .trailing)
+                            .frame(height: 16, alignment: .trailing)
                     }
                 }
                 .frame(width: gutterWidth)
-                .padding(.leading, 12)
-                .padding(.trailing, 8)
-                .padding(.top, 12)
+                .padding(.leading, 6)
+                .padding(.trailing, 4)
+                .padding(.top, 6)
                 .background(scheme == .dark ? Color(white: 0.12) : Color(white: 0.95))
 
-                // Gutter separator
                 Rectangle()
                     .fill(scheme == .dark ? Color.white.opacity(0.08) : Color.black.opacity(0.08))
                     .frame(width: 1)
 
-                // Text content
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
                         Text(line.isEmpty ? " " : line)
-                            .font(.system(size: 12, design: .monospaced))
+                            .font(.system(size: 11, design: .monospaced))
                             .foregroundStyle(.primary)
                             .textSelection(.enabled)
-                            .frame(height: 18, alignment: .leading)
+                            .frame(height: 16, alignment: .leading)
                     }
                 }
-                .padding(.leading, 12)
-                .padding(.trailing, 16)
-                .padding(.top, 12)
+                .padding(.leading, 8)
+                .padding(.trailing, 8)
+                .padding(.top, 6)
 
                 Spacer(minLength: 0)
             }
@@ -111,6 +112,6 @@ private struct AttachmentTextView: View {
 
     private func gutterWidthForLineCount(_ count: Int) -> CGFloat {
         let digits = max(2, String(count).count)
-        return CGFloat(digits) * 9 + 8
+        return CGFloat(digits) * 8 + 4
     }
 }
