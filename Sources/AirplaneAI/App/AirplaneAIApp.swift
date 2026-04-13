@@ -61,7 +61,7 @@ struct AirplaneAIApp: App {
     var body: some Scene {
         Window("Airplane AI", id: "main") {
             RootWindow(wiring: wiring, bootError: bootError)
-                .task { await boot() }
+                .onAppear { Task { await boot() } }
         }
         .windowResizability(.contentSize)
         .commands {

@@ -5,9 +5,10 @@ import Testing
 
 @Suite("Schema migration V1→V2")
 struct AttachmentMigrationTests {
-    @Test func migrationPlanIncludesV2() {
+    @Test func migrationPlanIncludesBothSchemas() {
         let schemas = AppMigrationPlan.schemas
         let names = schemas.map { String(describing: $0) }
+        #expect(names.contains { $0.contains("AppSchemaV1") })
         #expect(names.contains { $0.contains("AppSchemaV2") })
     }
 

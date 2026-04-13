@@ -12,8 +12,10 @@ struct MigrationPlanTests {
         #expect(versions.contains { $0.contains("AppSchemaV1") })
     }
 
-    @Test func stagesIncludeV1ToV2() {
-        #expect(AppMigrationPlan.stages.count == 1, "One migration stage: V1→V2 (attachments)")
+    @Test func stagesEmptyForAutomaticMigration() {
+        // V1→V2 is lightweight (new nullable column) — SwiftData handles it automatically.
+        // Explicit stages caused a deadlock on MainActor, so we leave stages empty.
+        #expect(AppMigrationPlan.stages.isEmpty)
     }
 
     @Test func v1StoreOpensAndPersists() async throws {

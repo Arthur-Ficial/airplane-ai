@@ -13,7 +13,6 @@ public final class AppWiring {
         let state = AppState()
         let engine = LlamaSwiftEngine()
 
-        // Persistence lives under Application Support inside the sandbox.
         let base = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
             .appendingPathComponent("AirplaneAI", isDirectory: true)
         try FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
@@ -35,7 +34,6 @@ public final class AppWiring {
         )
 
         let profile = RuntimeProfileProvider().current()
-        // User override from @AppStorage — 0 means "Auto".
         let userOverride = UserDefaults.standard.integer(forKey: "airplane.contextOverride")
         let contextWindow = ContextWindow.resolve(
             manifest: manifest, profile: profile,
@@ -68,9 +66,12 @@ public final class AppWiring {
             onWillSleep: { [engine = chatController] in Task { @MainActor in engine.stop() } },
             onDidWake: {}
         ))
+
+        // Boot progress: conversation load → model verify → load → warmup.
+        state.boot = BootProgress(step: "Loading conversations", detail: "database", fraction: 0.02)
         await conversationController.loadAll()
         await modelController.bringUp()
-        // After the model is ready, backfill AI titles for any default-named chats.
+
         if state.modelState == .ready {
             Task { await chatController.backfillTitles() }
         }
