@@ -44,5 +44,9 @@
 	<array/>
 	<key>UTExportedTypeDeclarations</key>
 	<array/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Airplane AI uses the microphone for on-device speech-to-text. No audio leaves your Mac.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Airplane AI uses on-device speech recognition to transcribe your voice. No audio leaves your Mac.</string>
 </dict>
 </plist>

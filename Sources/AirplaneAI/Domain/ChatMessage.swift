@@ -40,4 +40,28 @@ public struct ChatMessage: Identifiable, Codable, Sendable, Equatable {
         self.durationMs = durationMs
         self.attachments = attachments
     }
+
+    /// Content with attachment text prepended — what the model actually sees.
+    public var materializedContent: String {
+        guard !attachments.isEmpty else { return content }
+        var blocks: [String] = []
+        for a in attachments {
+            switch a {
+            case .image(_, let text):
+                blocks.append("CONTEXT: image\n\(text)")
+            case .document(let text, let name, _):
+                blocks.append("CONTEXT: document (\(name))\n\(text)")
+            case .audio(let transcript):
+                blocks.append("CONTEXT: speech transcript\n\(transcript)")
+            }
+        }
+        blocks.append(content)
+        return blocks.joined(separator: "\n\n")
+    }
+
+    /// Rough token estimate including attachment text (~4 chars/token).
+    public var estimatedTotalTokens: Int {
+        let attachTokens = attachments.reduce(0) { $0 + $1.estimatedTokenCount }
+        return attachTokens + max(1, content.count / 4)
+    }
 }

@@ -24,7 +24,7 @@ public struct PromptFormatter: Sendable {
     private func applyTemplate(messages: [ChatMessage], model: OpaquePointer) -> String? {
         // Build C-owned roles/contents.
         let roleStrings = messages.map { Self.roleString($0.role) }
-        let contentStrings = messages.map { $0.content }
+        let contentStrings = messages.map { $0.materializedContent }
 
         // Allocate llama_chat_message array.
         var chatMsgs = [llama_chat_message]()
@@ -59,7 +59,7 @@ public struct PromptFormatter: Sendable {
     private func fallbackGemma(messages: [ChatMessage]) -> String {
         var out = ""
         for m in messages {
-            out += "<start_of_turn>\(Self.roleString(m.role))\n\(m.content)<end_of_turn>\n"
+            out += "<start_of_turn>\(Self.roleString(m.role))\n\(m.materializedContent)<end_of_turn>\n"
         }
         out += "<start_of_turn>model\n"
         return out
