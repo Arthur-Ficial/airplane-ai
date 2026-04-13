@@ -1,6 +1,6 @@
 import SwiftUI
 
-// Apfel-chat port: search + rename + delete + instant selection.
+// Sidebar: search + select + rename + delete. Mirrors apfel-chat pattern.
 struct ConversationListView: View {
     let state: AppState
     let controller: ConversationController
@@ -9,7 +9,7 @@ struct ConversationListView: View {
     @State private var search: String = ""
     @State private var editingId: UUID?
     @State private var editTitle: String = ""
-
+    @State private var cachedFiltered: [Conversation] = []
     @FocusState private var searchFocused: Bool
 
     var body: some View {
@@ -17,8 +17,8 @@ struct ConversationListView: View {
             get: { state.activeConversationID },
             set: { if let id = $0 { controller.select(id: id) } }
         )) {
-            ForEach(filtered) { conv in
-                row(for: conv)
+            ForEach(cachedFiltered) { conv in
+                row(for: conv).tag(conv.id as UUID?)
             }
         }
         .listStyle(.sidebar)
@@ -27,6 +27,9 @@ struct ConversationListView: View {
         .onReceive(NotificationCenter.default.publisher(for: .airplaneFocusSearch)) { _ in
             searchFocused = true
         }
+        .onChange(of: search) { _, _ in refilter() }
+        .onChange(of: state.conversations.count) { _, _ in refilter() }
+        .onAppear { refilter() }
         .navigationTitle(L.sidebarTitle)
         .toolbar {
             ToolbarItem {
@@ -40,13 +43,11 @@ struct ConversationListView: View {
         }
     }
 
-    private var filtered: [Conversation] {
+    // Debounced: only refilter when search text or conversation count changes.
+    private func refilter() {
         let q = search.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard !q.isEmpty else { return state.conversations }
-        return state.conversations.filter {
-            $0.title.lowercased().contains(q)
-            || $0.messages.contains { $0.content.lowercased().contains(q) }
-        }
+        guard !q.isEmpty else { cachedFiltered = state.conversations; return }
+        cachedFiltered = state.conversations.filter { $0.title.lowercased().contains(q) }
     }
 
     @ViewBuilder
@@ -56,7 +57,6 @@ struct ConversationListView: View {
                 .textFieldStyle(.plain)
                 .onSubmit { commitEdit(for: conv) }
                 .onExitCommand { editingId = nil }
-                .tag(conv.id as UUID?)
         } else {
             let cleanTitle = OutputSanitizer.stripLeakingMarkers(conv.title).0
                 .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -69,11 +69,6 @@ struct ConversationListView: View {
                     timestampText(conv.updatedAt)
                 }
                 .font(.caption2).foregroundStyle(.secondary).lineLimit(1)
-            }
-            .tag(conv.id as UUID?)
-            .onTapGesture(count: 2) {
-                editTitle = conv.title
-                editingId = conv.id
             }
             .contextMenu {
                 Button("Rename") {
