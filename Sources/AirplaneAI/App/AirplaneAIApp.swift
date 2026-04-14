@@ -59,6 +59,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 }
 
 @main
+struct AirplaneEntry {
+    static func main() async {
+        let args = ProcessInfo.processInfo.arguments
+        if CLIArguments.isCLIInvocation(arguments: args) {
+            let cliArgs = Array(args.dropFirst())
+            let exitCode = await HeadlessCLIBoot.run(arguments: cliArgs)
+            exit(exitCode)
+        }
+        AirplaneAIApp.main()
+    }
+}
+
 struct AirplaneAIApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var wiring: AppWiring?
