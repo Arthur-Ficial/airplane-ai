@@ -11,3 +11,4 @@ Package.resolved.local
 .idea/
 Sources/AirplaneAI/Resources/models/*.gguf
 Sources/AirplaneAI/Resources/models/*.gguf.partial
+.wrangler/
