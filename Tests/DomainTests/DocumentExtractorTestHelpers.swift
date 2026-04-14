@@ -34,7 +34,7 @@ enum DocumentTestHelpers {
         CTLineDraw(line, context)
         context.endPage()
         context.closePDF()
-        try! data.write(to: url, atomically: true)
+        data.write(to: url, atomically: true)
         return url
     }
 }

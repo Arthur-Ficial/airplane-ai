@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Darwin
 
 extension Notification.Name {
     static let airplaneFocusSearch = Notification.Name("airplane.focusSearch")
@@ -27,25 +28,29 @@ enum MenuBarSanitizer {
     }
 }
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
-    private var observers: [NSObjectProtocol] = []
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         strip()
         // NSTextView re-injects the Format menu when the composer becomes first
         // responder. Re-strip on every activation and every menu-bar open.
         let nc = NotificationCenter.default
-        observers.append(nc.addObserver(forName: NSWindow.didBecomeMainNotification,
-                                        object: nil, queue: .main) { [weak self] _ in self?.strip() })
-        observers.append(nc.addObserver(forName: NSWindow.didBecomeKeyNotification,
-                                        object: nil, queue: .main) { [weak self] _ in self?.strip() })
-        observers.append(nc.addObserver(forName: NSApplication.didBecomeActiveNotification,
-                                        object: nil, queue: .main) { [weak self] _ in self?.strip() })
+        nc.addObserver(self, selector: #selector(stripNotification(_:)), name: NSWindow.didBecomeMainNotification, object: nil)
+        nc.addObserver(self, selector: #selector(stripNotification(_:)), name: NSWindow.didBecomeKeyNotification, object: nil)
+        nc.addObserver(self, selector: #selector(stripNotification(_:)), name: NSApplication.didBecomeActiveNotification, object: nil)
         NSApp.mainMenu?.delegate = self
     }
 
     // Called just before the top menu bar is about to open — final strip.
     func menuNeedsUpdate(_ menu: NSMenu) { strip() }
+
+    @objc private func stripNotification(_ notification: Notification) {
+        strip()
+    }
 
     private func strip() {
         guard let main = NSApp.mainMenu else { return }
@@ -62,7 +67,7 @@ struct AirplaneAIApp: App {
     var body: some Scene {
         Window("Airplane AI", id: "main") {
             RootWindow(wiring: wiring, bootError: bootError)
-                .onAppear { Task { await boot() } }
+                .onAppear { Task { await launch() } }
         }
         .windowResizability(.contentSize)
         .commands {
@@ -99,6 +104,20 @@ struct AirplaneAIApp: App {
         Settings {
             SettingsView(state: wiring?.state, store: wiring?.store)
         }
+    }
+
+    @MainActor private func launch() async {
+        if SampleConversationSeeder.shouldRun() {
+            do {
+                try await SampleConversationSeeder.run()
+            } catch {
+                bootError = error.localizedDescription
+            }
+            NSApp.terminate(nil)
+            exit(bootError == nil ? 0 : 1)
+        }
+
+        await boot()
     }
 
     @MainActor private func boot() async {

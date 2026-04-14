@@ -69,7 +69,7 @@ Macs with 8 GB of memory are not supported. The bundled Gemma 4 E4B model requir
 git clone https://github.com/Arthur-Ficial/airplane-ai.git
 cd airplane-ai
 ./scripts/setup-dev.sh    # install prerequisites
-make app                  # fetch model + build AirplaneAI.app
+make app                  # build AirplaneAI.app (warm rebuilds are near-instant)
 open build/AirplaneAI.app
 ```
 
@@ -143,10 +143,14 @@ Airplane AI does not just promise privacy -- it enforces it at the build system 
 
 ```bash
 make build       # swift build -c release
-make test        # swift test --parallel
+make test        # fast test lane (slow suites skipped by default)
+make test-slow   # opt-in slow lane: real-model + slow Vision suites
 make verify      # run all CI verification scripts
-make app         # fetch model + build .app bundle
+make app         # incremental .app build
 make run         # build + launch
+make seed        # seed reproducible sample conversations into SwiftData
+make screenshots # seed + regenerate product screenshots
+make unstick     # clear stale repo/SwiftPM build locks
 make bench       # run benchmark suite
 make clean       # remove build artifacts
 ```
@@ -163,7 +167,7 @@ Every change must pass before merging:
 
 ```bash
 swift build -c release
-swift test
+make test
 ./Tools/ci/verify-entitlements.sh
 ./Tools/ci/verify-no-network-symbols.sh
 ./Tools/ci/verify-model-manifest.sh
@@ -186,6 +190,16 @@ codesign -d --entitlements :- build/AirplaneAI.app
 | Runtime | llama.cpp via Swift Package Manager, pinned by full Git revision SHA |
 
 The model is memory-mapped at runtime (never loaded into a `Data` buffer), verified by incremental SHA-256 on launch, and cached after first verification. A model change is a product change -- it requires a new app version, new benchmarks, and updated release notes.
+
+## Developer tooling
+
+The repo now has two test lanes and deterministic UI helpers:
+
+- `make test` runs the fast default suite.
+- `make test-slow` opt-ins the slow real-model and Vision-backed tests.
+- `make seed` writes curated sample conversations through the real app/store stack.
+- `make screenshots` rebuilds deterministic screenshots into `build/screenshots/`.
+- `make unstick` removes stale repo and SwiftPM lock files if a prior build crashed.
 
 ## Documentation
 

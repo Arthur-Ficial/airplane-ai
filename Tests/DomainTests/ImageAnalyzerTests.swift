@@ -33,7 +33,10 @@ struct MockImageAnalyzerTests {
     }
 }
 
-@Suite("ImageAnalyzer — real")
+@Suite(
+    "ImageAnalyzer — real",
+    .enabled(if: ProcessInfo.processInfo.environment["AIRPLANE_SLOW_TESTS"] != nil)
+)
 struct RealImageAnalyzerTests {
     @Test func analyzesImageWithText() async throws {
         let analyzer = ImageAnalyzer()

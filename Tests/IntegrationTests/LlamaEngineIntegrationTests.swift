@@ -5,9 +5,12 @@ import Testing
 // Integration test against the REAL bundled Gemma E4B GGUF.
 // SLOW (~3 min): loads a 4.2 GB model + compiles Metal pipelines.
 // Skipped by default. Run explicitly:
-//   AIRPLANE_INTEGRATION=1 swift test --filter LlamaEngineIntegration
+//   AIRPLANE_REAL_MODEL_TESTS=1 swift test --filter LlamaEngineIntegration
 @Suite("LlamaSwiftEngine integration",
-       .enabled(if: ProcessInfo.processInfo.environment["AIRPLANE_INTEGRATION"] != nil))
+       .enabled(
+        if: ProcessInfo.processInfo.environment["AIRPLANE_REAL_MODEL_TESTS"] != nil ||
+            ProcessInfo.processInfo.environment["AIRPLANE_INTEGRATION"] != nil
+       ))
 struct LlamaEngineIntegrationTests {
 
     private func findModel() -> URL? {

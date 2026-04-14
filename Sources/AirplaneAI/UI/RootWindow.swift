@@ -63,7 +63,12 @@ struct RootWindow: View {
             ConversationListView(state: wiring.state, controller: wiring.conversationController)
                 .frame(minWidth: 240)
         } detail: {
-            ChatView(state: wiring.state, controller: wiring.chatController)
+            ChatView(
+                state: wiring.state,
+                controller: wiring.chatController,
+                speechInput: wiring.liveSpeechInput,
+                speechOutput: wiring.speechOutput
+            )
                 .navigationTitle(titleText)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
@@ -74,13 +79,14 @@ struct RootWindow: View {
                         .accessibilityLabel("Open Settings")
                     }
                     ToolbarItem(placement: .primaryAction) {
-                        MicButton(speechInput: wiring.liveSpeechInput) { text in
-                            NotificationCenter.default.post(
-                                name: .airplaneMicTranscript,
-                                object: nil,
-                                userInfo: ["text": text]
-                            )
+                        Button {
+                            wiring.speechOutput.isEnabled.toggle()
+                        } label: {
+                            Image(systemName: wiring.speechOutput.isEnabled ? "speaker.wave.2.fill" : "speaker.slash")
+                                .foregroundStyle(wiring.speechOutput.isEnabled ? Color.accentColor : Color.secondary)
                         }
+                        .help(wiring.speechOutput.isEnabled ? "Speech output on" : "Speech output off")
+                        .accessibilityLabel(wiring.speechOutput.isEnabled ? "Turn off spoken responses" : "Turn on spoken responses")
                     }
                 }
         }

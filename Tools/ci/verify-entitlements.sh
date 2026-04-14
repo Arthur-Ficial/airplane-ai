@@ -1,35 +1,28 @@
-#!/bin/zsh
-# Fails if the entitlements file contains any key other than app-sandbox.
+#!/usr/bin/env bash
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+source "$ROOT_DIR/scripts/lib.sh"
+
 ENT="$ROOT_DIR/AirplaneAI.entitlements"
+require_file "$ENT"
 
-[[ -f "$ENT" ]] || { print -u2 "missing: $ENT"; exit 1; }
+keys="$(grep -oE '<key>[^<]+</key>' "$ENT" | sed -E 's#</?key>##g' | sort -u)"
+allowed_sorted="$(
+  printf '%s\n' \
+    "com.apple.security.app-sandbox" \
+    "com.apple.security.device.audio-input" \
+    "com.apple.security.files.user-selected.read-only" | sort -u
+)"
 
-# Extract all <key>...</key> entries.
-KEYS=$(grep -oE '<key>[^<]+</key>' "$ENT" | sed -E 's#</?key>##g' | sort -u)
-
-# Allow-list: sandbox + audio-input + user-selected files (file picker).
-ALLOWED=(
-    "com.apple.security.app-sandbox"
-    "com.apple.security.device.audio-input"
-    "com.apple.security.files.user-selected.read-only"
-)
-ALLOWED_SORTED=$(printf '%s\n' "${ALLOWED[@]}" | sort -u)
-
-if [[ "$KEYS" != "$ALLOWED_SORTED" ]]; then
-    print -u2 "entitlements contain forbidden keys:"
-    print -u2 "  found:   $KEYS"
-    print -u2 "  allowed: $ALLOWED_SORTED"
-    exit 1
+if [[ "$keys" != "$allowed_sorted" ]]; then
+  printf 'entitlements contain forbidden keys:\n' >&2
+  printf '  found:   %s\n' "$keys" >&2
+  printf '  allowed: %s\n' "$allowed_sorted" >&2
+  exit 1
 fi
 
-# Sandbox value must be <true/>.
-VAL=$(/usr/libexec/PlistBuddy -c "Print :com.apple.security.app-sandbox" "$ENT" 2>/dev/null || echo "")
-if [[ "$VAL" != "true" ]]; then
-    print -u2 "app-sandbox is not true (got: '$VAL')"
-    exit 1
-fi
+value="$("/usr/libexec/PlistBuddy" -c "Print :com.apple.security.app-sandbox" "$ENT" 2>/dev/null || true)"
+[[ "$value" == "true" ]] || die "app-sandbox is not true (got '$value')"
 
-print "→ entitlements OK (sandbox + audio-input + user-selected-files)"
+step "entitlements OK"

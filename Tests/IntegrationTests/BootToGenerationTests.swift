@@ -6,7 +6,12 @@ import Testing
 /// End-to-end tests using the real model. These tests verify the full pipeline:
 /// AppWiring init → boot → conversation load → model verify → load → generate.
 @MainActor
-@Suite("Boot-to-generation e2e", .serialized, .timeLimit(.minutes(2)))
+@Suite(
+    "Boot-to-generation e2e",
+    .serialized,
+    .timeLimit(.minutes(2)),
+    .enabled(if: ProcessInfo.processInfo.environment["AIRPLANE_REAL_MODEL_TESTS"] != nil)
+)
 struct BootToGenerationTests {
     @Test func appWiringInitSucceeds() throws {
         let w = try AppWiring()

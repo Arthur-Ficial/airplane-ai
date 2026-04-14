@@ -1,110 +1,60 @@
-#!/bin/zsh
-# One-shot developer setup for Airplane AI on a new machine.
-# Verifies prerequisites, patches machine-specific paths, builds, tests, and verifies.
-# Usage: ./scripts/setup-dev.sh
+#!/usr/bin/env bash
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$ROOT_DIR"
+source "$ROOT_DIR/scripts/lib.sh"
 
+cd "$ROOT_DIR"
 VENDOR_DYLIB_DIR="$ROOT_DIR/Vendor/llama.cpp/llama-b8763"
 
-print "==> Airplane AI — Developer Setup"
-print "    Machine: $(whoami)@$(hostname)"
-print "    Date:    $(date +%Y-%m-%d)"
+step "Airplane AI developer setup"
+info "Machine: $(whoami)@$(hostname)"
+info "Date: $(date +%Y-%m-%d)"
 
-# ── 1. Check prerequisites ──────────────────────────────────────────────
-print "\n==> [1/7] Checking prerequisites..."
-
-# Xcode (full, not just CommandLineTools — SwiftData macros need the plugin).
-XCODE_PATH=$(xcode-select -p 2>/dev/null || echo "")
+step "[1/6] Checking prerequisites"
+XCODE_PATH="$(xcode-select -p 2>/dev/null || true)"
 if [[ "$XCODE_PATH" == "/Library/Developer/CommandLineTools" ]] || [[ -z "$XCODE_PATH" ]]; then
-    if [[ -d "/Applications/Xcode.app" ]]; then
-        print "    Switching xcode-select to Xcode.app..."
-        sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-    else
-        print -u2 "✗ Xcode.app required (SwiftData @Model macros need the full toolchain)."
-        print -u2 "  Install from App Store: mas install 497799835"
-        print -u2 "  Then: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer"
-        exit 1
-    fi
+  if [[ -d "/Applications/Xcode.app" ]]; then
+    info "Switching xcode-select to Xcode.app"
+    sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+  else
+    die "Xcode.app required (SwiftData @Model macros need the full toolchain)"
+  fi
 fi
 
-SWIFT_VER=$(swift --version 2>&1 | head -1)
-print "    Swift: $SWIFT_VER"
+info "Swift: $(swift --version 2>&1 | head -1)"
+os_ver="$(sw_vers -productVersion)"
+os_major="${os_ver%%.*}"
+(( os_major >= 15 )) || die "macOS 15+ required (got $os_ver)"
+info "macOS: $os_ver"
 
-# Check macOS version (15+ required).
-OS_VER=$(sw_vers -productVersion)
-OS_MAJOR="${OS_VER%%.*}"
-if (( OS_MAJOR < 15 )); then
-    print -u2 "✗ macOS 15+ required (got $OS_VER)"
-    exit 1
-fi
-print "    macOS: $OS_VER ✓"
+arch="$(uname -m)"
+[[ "$arch" == "arm64" ]] || die "Apple Silicon required (got $arch)"
+info "Arch: $arch"
 
-# Check Apple Silicon.
-ARCH=$(uname -m)
-if [[ "$ARCH" != "arm64" ]]; then
-    print -u2 "✗ Apple Silicon required (got $ARCH)"
-    exit 1
-fi
-print "    Arch: $ARCH ✓"
+require_dir "$VENDOR_DYLIB_DIR"
+info "Vendor dylibs: $(find "$VENDOR_DYLIB_DIR" -maxdepth 1 \( -type f -o -type l \) -name '*.dylib' | wc -l | tr -d ' ')"
 
-# Check vendored dylibs exist.
-if [[ ! -d "$VENDOR_DYLIB_DIR" ]]; then
-    print -u2 "✗ Vendored llama.cpp dylibs missing: $VENDOR_DYLIB_DIR"
-    exit 1
-fi
-DYLIB_COUNT=$(ls "$VENDOR_DYLIB_DIR"/*.dylib 2>/dev/null | wc -l | tr -d ' ')
-print "    Vendor dylibs: $DYLIB_COUNT found in $VENDOR_DYLIB_DIR ✓"
-
-# ── 2. Patch dev rpath in Package.swift ──────────────────────────────────
-print "\n==> [2/7] Patching Package.swift dev rpath for this machine..."
-
-CURRENT_RPATH=$(grep -oE '/Users/[^"]+/Vendor/llama.cpp/llama-b8763' Package.swift | head -1 || echo "")
-EXPECTED_RPATH="$VENDOR_DYLIB_DIR"
-
-if [[ "$CURRENT_RPATH" != "$EXPECTED_RPATH" ]]; then
-    if [[ -n "$CURRENT_RPATH" ]]; then
-        sed -i '' "s|${CURRENT_RPATH}|${EXPECTED_RPATH}|g" Package.swift
-        print "    Patched: $CURRENT_RPATH → $EXPECTED_RPATH"
-    else
-        print "    ⚠ Could not find dev rpath in Package.swift — manual fix may be needed"
-    fi
-else
-    print "    Already correct: $EXPECTED_RPATH"
-fi
-
-# ── 3. Accept Xcode license (if needed) ─────────────────────────────────
-print "\n==> [3/7] Checking Xcode license..."
+step "[2/6] Checking Xcode license"
 if ! xcodebuild -license check 2>/dev/null; then
-    print "    Accepting Xcode license..."
-    sudo xcodebuild -license accept
+  info "Accepting Xcode license"
+  sudo xcodebuild -license accept
 fi
-print "    Xcode license accepted ✓"
 
-# ── 4. Fetch AI model ───────────────────────────────────────────────────
-print "\n==> [4/7] Fetching AI model..."
+step "[3/6] Fetching AI model"
 "$ROOT_DIR/scripts/fetch-model.sh"
 
-# ── 5. Build ─────────────────────────────────────────────────────────────
-print "\n==> [5/7] Building (release)..."
-swift build -c release
+step "[4/6] Building release"
+"$ROOT_DIR/scripts/with-build-lock.sh" swift build -c release
 
-# ── 5. Test ──────────────────────────────────────────────────────────────
-print "\n==> [6/7] Running tests..."
-swift test --parallel
+step "[5/6] Running fast tests"
+"$ROOT_DIR/scripts/with-build-lock.sh" "$ROOT_DIR/scripts/line-buffered.sh" swift test --parallel
 
-# ── 6. Verify (CI scripts) ──────────────────────────────────────────────
-print "\n==> [7/7] Running verification scripts..."
+step "[6/6] Running verification scripts"
 ./Tools/ci/verify-entitlements.sh
 ./Tools/ci/verify-no-network-symbols.sh
 ./Tools/ci/verify-no-forbidden-deps.sh
 ./Tools/ci/verify-model-manifest.sh
 
-# ── Done ─────────────────────────────────────────────────────────────────
-print "\n==> ✓ Setup complete. Next steps:"
-print "    make app     # build AirplaneAI.app"
-print "    make run     # build + launch"
-print "    make verify  # run CI checks"
-print "    make test    # run tests"
+step "Setup complete"
+info "Next: make app"

@@ -3,6 +3,8 @@ import SwiftUI
 struct AboutSettingsTab: View {
     let state: AppState?
     @State private var showTermsOfUse = false
+    @State private var showGemmaLicense = false
+    @AppStorage("airplane.hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     var body: some View {
         ScrollView {
@@ -29,13 +31,29 @@ struct AboutSettingsTab: View {
                         LabeledContent("Runtime", value: "llama.cpp b8763")
                     }
                 }
-                SettingsCard(title: "Links") {
+                SettingsCard(title: "Legal") {
                     VStack(alignment: .leading, spacing: 10) {
-                        Link(destination: URL(string: "https://github.com/franzenzenhofer/airplane-ai")!) {
-                            Label("Source on GitHub", systemImage: "arrow.up.right.square")
-                        }
                         Button("Read Terms of Use") { showTermsOfUse = true }
                             .buttonStyle(.bordered)
+                        Button("Gemma Model License") { showGemmaLicense = true }
+                            .buttonStyle(.bordered)
+                    }
+                }
+                SettingsCard(title: "Welcome") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Button("Show welcome screen on next launch") {
+                            hasCompletedOnboarding = false
+                        }
+                        .buttonStyle(.bordered)
+                        Text("Re-runs the 3-step onboarding with the AI-works explainer and legal agreement.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                SettingsCard(title: "Links") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Link(destination: URL(string: "https://github.com/Arthur-Ficial/airplane-ai")!) {
+                            Label("Source on GitHub", systemImage: "arrow.up.right.square")
+                        }
                     }
                 }
             }
@@ -43,6 +61,9 @@ struct AboutSettingsTab: View {
         }
         .sheet(isPresented: $showTermsOfUse) {
             LegalTextView(title: "Terms of Use", resourceName: "TermsOfUse")
+        }
+        .sheet(isPresented: $showGemmaLicense) {
+            LegalTextView(title: "Gemma Model License", resourceName: "Gemma-Notice")
         }
     }
 

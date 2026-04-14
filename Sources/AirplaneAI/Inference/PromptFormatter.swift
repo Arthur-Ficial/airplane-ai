@@ -53,7 +53,9 @@ public struct PromptFormatter: Sendable {
             }
             if w2 <= 0 { return nil }
         }
-        return String(cString: out)
+        let end = out.firstIndex(of: 0) ?? out.endIndex
+        let bytes = out[..<end].map { UInt8(bitPattern: $0) }
+        return String(decoding: bytes, as: UTF8.self)
     }
 
     private func fallbackGemma(messages: [ChatMessage]) -> String {

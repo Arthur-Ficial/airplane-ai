@@ -1,19 +1,32 @@
 APP_NAME    = AirplaneAI
 APP_BUNDLE  = build/$(APP_NAME).app
 APP_DIR    ?= /Applications
+SWIFT      ?= swift
+LOCK        = ./scripts/with-build-lock.sh
+LINEBUF     = ./scripts/line-buffered.sh
 
-.PHONY: build test model app run dist install release clean verify verify-bundle bench
+.PHONY: build test test-slow test-all model app run dist install release clean verify verify-bundle bench icon seed screenshots unstick
 
 build:
-	swift build -c release
+	@echo "==> swift build -c release"
+	@$(LOCK) $(SWIFT) build -c release
 
 test:
-	swift test --parallel
+	@echo "==> swift test --parallel (fast lane)"
+	@$(LOCK) $(LINEBUF) $(SWIFT) test --parallel
+
+test-slow:
+	@echo "==> swift test --parallel (real-model lane)"
+	@AIRPLANE_SLOW_TESTS=1 AIRPLANE_REAL_MODEL_TESTS=1 $(LOCK) $(LINEBUF) $(SWIFT) test --parallel
+
+test-all:
+	@$(MAKE) test
+	@$(MAKE) test-slow
 
 model:
 	./scripts/fetch-model.sh
 
-app: model
+app:
 	./scripts/build-app.sh
 
 run: app
@@ -45,7 +58,21 @@ verify-bundle: app
 	./Tools/ci/verify-app-bundle.sh
 
 bench:
-	swift run -c release AirplaneBenchmarks
+	@echo "==> swift run -c release AirplaneBenchmarks"
+	@$(LOCK) $(SWIFT) run -c release AirplaneBenchmarks
+
+icon:
+	./scripts/generate-icon.sh
+
+seed:
+	@echo "==> swift run -c debug AirplaneAI --seed-sample-conversations --replace"
+	@$(LOCK) $(SWIFT) run -c debug AirplaneAI --seed-sample-conversations --replace
+
+screenshots: app
+	./scripts/generate-screenshots.sh
+
+unstick:
+	./scripts/unstick-swiftpm.sh
 
 clean:
 	swift package clean

@@ -20,25 +20,11 @@
 
 # Or step by step:
 make build      # swift build -c release
-make test       # swift test --parallel
+make test       # fast lane
+make test-slow  # opt-in slow lane
 make verify     # run all CI verification scripts
 make app        # build AirplaneAI.app bundle
 make run        # build + launch
-```
-
-## Machine-Specific Setup
-
-The `Package.swift` dev rpath points to the vendored llama.cpp dylibs using an absolute path. When cloning on a new machine, this path must match:
-
-```
-Vendor/llama.cpp/llama-b8763/
-```
-
-The `setup-dev.sh` script patches this automatically. To do it manually:
-
-```bash
-# In Package.swift, find the dev rpath line and update to your checkout:
-"-Xlinker", "/Users/<you>/dev/airplane-ai/Vendor/llama.cpp/llama-b8763",
 ```
 
 ## Xcode Toolchain Switch
@@ -54,11 +40,15 @@ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 | Target | Command | Output |
 |--------|---------|--------|
 | Release binary | `make build` | `.build/release/AirplaneAI` |
-| Test suite | `make test` | test results |
+| Fast tests | `make test` | default suite, slow lanes skipped |
+| Slow tests | `make test-slow` | real-model and slow Vision-backed suites |
 | App bundle | `make app` | `build/AirplaneAI.app` |
 | Distribution zip | `make dist` | `dist/AirplaneAI-<ver>.zip` |
 | Full release | `make release` | tagged + notarized + GitHub release |
 | CI verification | `make verify` | entitlements, symbols, deps, manifest |
+| Seed sample data | `make seed` | reproducible SwiftData conversations |
+| Screenshots | `make screenshots` | `build/screenshots/*.png` |
+| Clear stale locks | `make unstick` | removes repo/SwiftPM stale locks |
 | Benchmarks | `make bench` | performance baselines |
 | Clean | `make clean` | removes .build, build, dist |
 
@@ -72,6 +62,12 @@ All must pass before any "done" claim:
 ./Tools/ci/verify-no-forbidden-deps.sh  # only llama.cpp in Package.resolved
 ./Tools/ci/verify-model-manifest.sh     # GGUF SHA-256 matches manifest
 ```
+
+## Hot paths
+
+- `make app` is content-addressed. On an unchanged tree it should short-circuit after the SwiftPM no-op build instead of re-copying the model and re-signing the bundle.
+- `make test` is the fast default path. Slow real-model and Vision-backed suites only run under `make test-slow`.
+- `make unstick` clears stale repo and SwiftPM lock files when an interrupted build leaves the workspace blocked.
 
 ## Architecture
 

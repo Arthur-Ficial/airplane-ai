@@ -12,11 +12,16 @@ struct MicButton: View {
                 if speechInput.isListening {
                     pulseRing
                     Image(systemName: "mic.fill")
+                        .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(.red)
                 } else {
                     Image(systemName: "mic")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.secondary)
                 }
             }
+            .frame(width: Metrics.Size.sendButton, height: Metrics.Size.sendButton)
+            .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .help(speechInput.isListening ? L.micStopRecording : L.micVoiceInput)

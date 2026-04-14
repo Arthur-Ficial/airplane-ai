@@ -4,8 +4,10 @@
 // Dylibs are embedded into AirplaneAI.app/Contents/Frameworks by scripts/build-app.sh.
 
 import PackageDescription
+import Foundation
 
-let vendorDylibsDir = "./Vendor/llama.cpp/llama-b8763"
+let packageRoot = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+let vendorDylibsDir = packageRoot.appendingPathComponent("Vendor/llama.cpp/llama-b8763").path
 
 let package = Package(
     name: "AirplaneAI",
@@ -27,11 +29,9 @@ let package = Package(
                     "-L", vendorDylibsDir,
                     "-Xlinker", "-rpath",
                     "-Xlinker", "@executable_path/../Frameworks",
-                    "-Xlinker", "-rpath",
-                    "-Xlinker", "@loader_path/../Frameworks",
                     // Dev rpath so `swift test` and `swift run` find the dylibs without bundling.
                     "-Xlinker", "-rpath",
-                    "-Xlinker", "/Users/arthurficial/dev/airplane-ai/Vendor/llama.cpp/llama-b8763",
+                    "-Xlinker", vendorDylibsDir,
                 ]),
                 .linkedLibrary("llama"),
                 .linkedLibrary("ggml"),
@@ -44,9 +44,6 @@ let package = Package(
             name: "AirplaneAI",
             dependencies: ["CLlama"],
             path: "Sources/AirplaneAI",
-            exclude: [
-                "Resources/models/airplane-model.gguf.partial",
-            ],
             resources: [
                 .process("Resources"),
             ],
@@ -59,10 +56,6 @@ let package = Package(
                     "-Xlinker", "__TEXT",
                     "-Xlinker", "__info_plist",
                     "-Xlinker", "./Info.plist",
-                    "-Xlinker", "-rpath",
-                    "-Xlinker", "@executable_path/../Frameworks",
-                    "-Xlinker", "-rpath",
-                    "-Xlinker", "@loader_path/../Frameworks",
                 ]),
             ]
         ),

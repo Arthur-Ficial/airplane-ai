@@ -5,7 +5,10 @@ import UniformTypeIdentifiers
 struct ChatView: View {
     let state: AppState
     let controller: ChatController
+    let speechInput: LiveSpeechInput
+    let speechOutput: SpeechOutput
     @State private var draft: String = ""
+    @State private var lastSpokenMessageID: UUID? = nil
     @State private var isFollowingTail = true
     @State private var lastScrollTime: ContinuousClock.Instant = .now
     @FocusState private var composerFocused: Bool
@@ -24,6 +27,7 @@ struct ChatView: View {
             InputBar(
                 state: state,
                 controller: controller,
+                speechInput: speechInput,
                 draft: $draft,
                 focused: $composerFocused,
                 onSubmit: submit,
@@ -55,6 +59,17 @@ struct ChatView: View {
         .onChange(of: state.activeConversationID) { _, _ in
             isFollowingTail = true
             composerFocused = true
+            lastSpokenMessageID = nil
+        }
+        .onChange(of: state.chatState) { old, new in
+            guard speechOutput.isEnabled else { return }
+            guard old == .generating, new == .idle else { return }
+            guard let last = state.activeConversation?.messages.last,
+                  last.role == .assistant,
+                  last.status == .complete,
+                  last.id != lastSpokenMessageID else { return }
+            lastSpokenMessageID = last.id
+            speechOutput.speak(last.content)
         }
     }
 
@@ -189,6 +204,7 @@ struct ChatView: View {
 struct InputBar: View {
     let state: AppState
     let controller: ChatController
+    let speechInput: LiveSpeechInput
     @Binding var draft: String
     var focused: FocusState<Bool>.Binding
     let onSubmit: () -> Void
@@ -207,16 +223,25 @@ struct InputBar: View {
             )
             HStack(alignment: .bottom, spacing: Metrics.Composer.gap) {
                 editor
-                VStack(spacing: 4) {
+                VStack(spacing: 2) {
                     SendButton(
                         generating: state.chatState == .generating,
                         canSend: !draft.isEmpty || !controller.draftAttachments.isEmpty,
                         awaitingFirstToken: state.awaitingFirstToken,
                         onTap: state.chatState == .generating ? onStop : onSubmit
                     )
-                    attachButton
+                    HStack(spacing: 2) {
+                        MicButton(speechInput: speechInput) { text in
+                            NotificationCenter.default.post(
+                                name: .airplaneMicTranscript,
+                                object: nil,
+                                userInfo: ["text": text]
+                            )
+                        }
+                        attachButton
+                    }
                 }
-                .padding(.bottom, 4)
+                .padding(.bottom, 2)
             }
             .padding(.horizontal, Metrics.Composer.horizontalPadding)
             .padding(.vertical, Metrics.Composer.verticalPadding)
