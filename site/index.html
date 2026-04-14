@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Airplane AI — Private Offline AI Chat for Mac</title>
+<meta name="description" content="AI chat that runs entirely on your Mac. No cloud, no telemetry, no accounts. Gemma model. Apple Silicon. One purchase.">
+<link rel="canonical" href="https://airplane-ai.franzai.com/">
+
+<!-- Open Graph -->
+<meta property="og:title" content="Airplane AI — Private Offline AI Chat for Mac">
+<meta property="og:description" content="AI chat that runs entirely on your Mac. No cloud, no telemetry, no accounts. Gemma model. Apple Silicon. One purchase.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://airplane-ai.franzai.com/">
+<meta property="og:image" content="https://airplane-ai.franzai.com/og-image.png">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Airplane AI — Private Offline AI Chat for Mac">
+<meta name="twitter:description" content="AI chat that runs entirely on your Mac. No cloud, no telemetry, no accounts. Gemma model. Apple Silicon. One purchase.">
+<meta name="twitter:image" content="https://airplane-ai.franzai.com/og-image.png">
+
+<!-- Schema.org JSON-LD -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Airplane AI",
+  "operatingSystem": "macOS 15+",
+  "applicationCategory": "UtilitiesApplication",
+  "description": "AI chat that runs entirely on your Mac. No cloud, no telemetry, no accounts. Gemma model. Apple Silicon. One purchase.",
+  "url": "https://airplane-ai.franzai.com/",
+  "author": {
+    "@type": "Person",
+    "name": "Franz Enzenhofer",
+    "url": "https://fullstackoptimization.com"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/PreOrder"
+  },
+  "processorRequirements": "Apple Silicon M1+",
+  "memoryRequirements": "16 GB RAM"
+}
+</script>
+
+<style>
+/* ── Reset & Variables ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy: #0f1628;
+  --navy-mid: #1a2235;
+  --amber: #e8a427;
+  --amber-light: #f5c84c;
+  --cream: #faf6ed;
+  --white: #fefdfb;
+  --text: #1c1c1e;
+  --text-muted: #6b6b70;
+  --text-dark: #e8e4dc;
+  --text-dark-muted: #8a8780;
+  --border-light: #e0dbd2;
+  --border-dark: #2a3045;
+  --green: #34a853;
+  --red-soft: #c94040;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+
+/* ── Utilities ── */
+.container {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--amber);
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: clamp(22px, 5vw, 36px);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 16px;
+}
+
+.section-subtitle {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: 560px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s, transform 0.15s;
+  min-height: 44px;
+  min-width: 44px;
+  text-decoration: none;
+}
+
+.btn:hover { opacity: 0.88; }
+.btn:active { transform: scale(0.98); }
+
+.btn-amber {
+  background: var(--amber);
+  color: #fff;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--border-light);
+  color: var(--text);
+}
+
+.btn-outline:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.btn-amber-outline {
+  background: transparent;
+  border: 2px solid var(--amber);
+  color: var(--amber);
+}
+
+/* ── Fade-in animation ── */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ══════════════════════════════════════════
+   1. NAVIGATION
+   ══════════════════════════════════════════ */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--cream);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--amber);
+}
+
+.nav-brand span.icon {
+  font-size: 20px;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color 0.15s;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav-link:hover { color: var(--text); }
+
+.nav-cta {
+  display: none;
+  padding: 8px 18px;
+  font-size: 13px;
+  border-radius: 6px;
+  background: var(--amber);
+  color: #fff;
+  font-weight: 600;
+  min-height: 36px;
+}
+
+@media (min-width: 640px) {
+  .nav-cta { display: inline-flex; align-items: center; }
+}
+
+/* ══════════════════════════════════════════
+   2. HERO
+   ══════════════════════════════════════════ */
+.hero {
+  background: var(--white);
+  padding: 48px 0 56px;
+}
+
+.hero-grid {
+  display: grid;
+  gap: 40px;
+}
+
+.hero-text {
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: clamp(28px, 7vw, 56px);
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.hero h1 .amber { color: var(--amber); }
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1.5px solid var(--amber);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--amber);
+  background: var(--cream);
+  margin-bottom: 20px;
+}
+
+.hero-subtitle {
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--text-muted);
+  max-width: 520px;
+  margin: 0 auto 28px;
+}
+
+.hero-ctas {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.hero-meta {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.hero-meta-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--cream);
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+}
+
+.hero-screenshot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  min-height: 280px;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+@media (min-width: 1024px) {
+  .hero { padding: 72px 0 80px; }
+
+  .hero-grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 60px;
+  }
+
+  .hero-text { text-align: left; }
+  .hero-subtitle { margin: 0 0 28px; }
+  .hero-ctas { justify-content: flex-start; }
+  .hero-meta { justify-content: flex-start; }
+  .hero-screenshot { min-height: 400px; }
+}
+
+/* ══════════════════════════════════════════
+   3. COMPARISON TABLE
+   ══════════════════════════════════════════ */
+.comparison {
+  background: var(--cream);
+  padding: 56px 0;
+}
+
+.comparison-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.comparison .section-subtitle {
+  margin: 0 auto;
+}
+
+.comparison-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: var(--white);
+}
+
+.comparison-table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 14px 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.comparison-table th {
+  font-weight: 700;
+  font-size: 13px;
+  background: var(--cream);
+  color: var(--text-muted);
+}
+
+.comparison-table th:first-child,
+.comparison-table td:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+
+.comparison-table tr:last-child td { border-bottom: none; }
+
+.col-airplane {
+  background: rgba(232, 164, 39, 0.06);
+}
+
+.comparison-table th.col-airplane {
+  color: var(--amber);
+  font-weight: 800;
+}
+
+.check { color: var(--green); font-weight: 700; }
+.cross { color: var(--red-soft); font-weight: 700; }
+.cost-good { color: var(--green); font-weight: 700; font-size: 13px; }
+.cost-bad { color: var(--red-soft); font-weight: 600; font-size: 13px; }
+
+@media (min-width: 640px) {
+  .comparison-table { font-size: 15px; }
+  .comparison-table th,
+  .comparison-table td { padding: 16px 20px; }
+}
+
+/* ══════════════════════════════════════════
+   4. FEATURES GRID
+   ══════════════════════════════════════════ */
+.features {
+  background: var(--navy);
+  padding: 56px 0;
+}
+
+.features .section-title { color: var(--text-dark); }
+.features .section-subtitle { color: var(--text-dark-muted); }
+
+.features-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.features-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.feature-card {
+  background: var(--navy-mid);
+  border-left: 3px solid var(--amber);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.feature-card-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--amber);
+  margin-bottom: 8px;
+}
+
+.feature-card h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.feature-card p {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-dark-muted);
+}
+
+@media (min-width: 640px) {
+  .features-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .features { padding: 72px 0; }
+
+  .features-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+/* ══════════════════════════════════════════
+   5. SCREENSHOTS
+   ══════════════════════════════════════════ */
+.screenshots {
+  background: var(--white);
+  padding: 56px 0;
+}
+
+.screenshots-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.screenshots .section-subtitle { margin: 0 auto; }
+
+.screenshots-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.screenshot-card {
+  background: var(--cream);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.screenshot-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 20px;
+  text-align: center;
+}
+
+.screenshot-caption {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border-light);
+  background: var(--white);
+}
+
+.screenshot-caption h4 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.screenshot-caption p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+@media (min-width: 640px) {
+  .screenshots-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .screenshots { padding: 72px 0; }
+}
+
+/* ══════════════════════════════════════════
+   6. HOW IT WORKS
+   ══════════════════════════════════════════ */
+.how-it-works {
+  background: var(--navy);
+  padding: 56px 0;
+}
+
+.how-it-works .section-title { color: var(--text-dark); }
+.how-it-works .section-subtitle { color: var(--text-dark-muted); }
+
+.how-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.how-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.how-card {
+  background: var(--navy-mid);
+  border-radius: 10px;
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.how-card-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--amber);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.how-card h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.how-card p {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-dark-muted);
+}
+
+@media (min-width: 640px) {
+  .how-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .how-it-works { padding: 72px 0; }
+}
+
+/* ══════════════════════════════════════════
+   7. PRIVACY + SPECS
+   ══════════════════════════════════════════ */
+.privacy {
+  background: var(--cream);
+  padding: 56px 0;
+}
+
+.privacy-grid {
+  display: grid;
+  gap: 32px;
+}
+
+.privacy-dont {
+  background: var(--white);
+  border-left: 3px solid var(--amber);
+  border-radius: 8px;
+  padding: 28px 24px;
+}
+
+.privacy-dont h3 {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.privacy-list {
+  list-style: none;
+}
+
+.privacy-list li {
+  padding: 8px 0;
+  font-size: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.privacy-list li:last-child { border-bottom: none; }
+
+.privacy-x {
+  color: var(--red-soft);
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.specs-section h3 {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.specs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.spec-card {
+  background: var(--white);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.spec-card-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.spec-card-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+@media (min-width: 1024px) {
+  .privacy { padding: 72px 0; }
+
+  .privacy-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+}
+
+/* ══════════════════════════════════════════
+   8. DOWNLOAD CTA
+   ══════════════════════════════════════════ */
+.download-cta {
+  background: var(--navy);
+  padding: 64px 0;
+  text-align: center;
+}
+
+.download-cta .section-title {
+  color: var(--text-dark);
+  margin-bottom: 12px;
+}
+
+.download-cta .section-subtitle {
+  color: var(--text-dark-muted);
+  margin: 0 auto 32px;
+  text-align: center;
+}
+
+.download-cta .btn-amber {
+  padding: 16px 40px;
+  font-size: 17px;
+  border-radius: 10px;
+}
+
+.download-reqs {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--text-dark-muted);
+}
+
+@media (min-width: 1024px) {
+  .download-cta { padding: 88px 0; }
+}
+
+/* ══════════════════════════════════════════
+   9. FOOTER
+   ══════════════════════════════════════════ */
+.footer {
+  background: #0b1020;
+  padding: 32px 0;
+}
+
+.footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.footer-links {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.footer-links a {
+  font-size: 13px;
+  color: var(--text-dark-muted);
+  transition: color 0.15s;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.footer-links a:hover { color: var(--text-dark); }
+
+.footer-copy {
+  font-size: 12px;
+  color: var(--text-dark-muted);
+}
+
+@media (min-width: 640px) {
+  .footer-inner {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════ 1. NAV ════════ -->
+<nav class="nav" role="navigation" aria-label="Main navigation">
+  <div class="container nav-inner">
+    <a href="#" class="nav-brand" aria-label="Airplane AI Home">
+      <span class="icon" aria-hidden="true">&#9992;</span>
+      <span>Airplane AI</span>
+    </a>
+    <div class="nav-links">
+      <a href="https://github.com/Arthur-Ficial/airplane-ai" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+      <a href="#" class="nav-cta btn btn-amber">Mac App Store</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ════════ 2. HERO ════════ -->
+<section class="hero" id="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-text fade-in">
+        <p class="eyebrow">Offline AI for Mac</p>
+        <h1>Your conversations.<br><span class="amber">Your Mac.</span><br>Nobody else.</h1>
+        <div class="hero-badge">&#9992; Works offline. Even in airplane mode.</div>
+        <p class="hero-subtitle">A private AI assistant that runs entirely on your Mac. No cloud. No accounts. No subscriptions. One purchase, yours forever.</p>
+        <div class="hero-ctas">
+          <a href="#" class="btn btn-amber">Mac App Store</a>
+          <a href="#features" class="btn btn-outline">Learn More</a>
+        </div>
+        <div class="hero-meta">
+          <span class="hero-meta-badge">macOS 15+</span>
+          <span class="hero-meta-badge">Apple Silicon</span>
+          <span class="hero-meta-badge">16 GB RAM</span>
+        </div>
+      </div>
+      <div class="hero-screenshot fade-in">
+        <div>
+          <p style="font-size:32px;margin-bottom:12px;" aria-hidden="true">&#9992;</p>
+          <p>Screenshot coming soon</p>
+          <p style="font-size:12px;margin-top:8px;color:var(--text-muted);">Airplane AI running on macOS</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 3. COMPARISON TABLE ════════ -->
+<section class="comparison" id="comparison">
+  <div class="container">
+    <div class="comparison-header fade-in">
+      <p class="eyebrow">vs. Cloud AI</p>
+      <h2 class="section-title">Works when they don't.</h2>
+      <p class="section-subtitle">ChatGPT, Claude, and Gemini need servers, accounts, and a connection. Airplane AI needs your Mac.</p>
+    </div>
+    <div class="comparison-table-wrap fade-in">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="col-airplane">Airplane AI</th>
+            <th>ChatGPT</th>
+            <th>Claude</th>
+            <th>Gemini</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Works offline</td>
+            <td class="col-airplane"><span class="check" aria-label="Yes">&#10003;</span></td>
+            <td><span class="cross" aria-label="No">&#10005;</span></td>
+            <td><span class="cross" aria-label="No">&#10005;</span></td>
+            <td><span class="cross" aria-label="No">&#10005;</span></td>
+          </tr>
+          <tr>
+            <td>Cost</td>
+            <td class="col-airplane"><span class="cost-good">One-time</span></td>
+            <td><span class="cost-bad">$20+/mo</span></td>
+            <td><span class="cost-bad">$20+/mo</span></td>
+            <td><span class="cost-bad">$20+/mo</span></td>
+          </tr>
+          <tr>
+            <td>Data privacy</td>
+            <td class="col-airplane"><span class="check" aria-label="Yes">&#10003;</span></td>
+            <td><span class="cross" aria-label="No">&#10005;</span></td>
+            <td><span class="cross" aria-label="No">&#10005;</span></td>
+            <td><span class="cross" aria-label="No">&#10005;</span></td>
+          </tr>
+          <tr>
+            <td>No account needed</td>
+            <td class="col-airplane"><span class="check" aria-label="Yes">&#10003;</span></td>
+            <td><span class="cross" aria-label="No">&#10005;</span></td>
+            <td><span class="cross" aria-label="No">&#10005;</span></td>
+            <td><span class="cross" aria-label="No">&#10005;</span></td>
+          </tr>
+          <tr>
+            <td>Works during outages</td>
+            <td class="col-airplane"><span class="check" aria-label="Yes">&#10003;</span></td>
+            <td><span class="cross" aria-label="No">&#10005;</span></td>
+            <td><span class="cross" aria-label="No">&#10005;</span></td>
+            <td><span class="cross" aria-label="No">&#10005;</span></td>
+          </tr>
+          <tr>
+            <td>Multimodal input</td>
+            <td class="col-airplane"><span class="check" aria-label="Yes">&#10003;</span></td>
+            <td><span class="check" aria-label="Yes">&#10003;</span></td>
+            <td><span class="check" aria-label="Yes">&#10003;</span></td>
+            <td><span class="check" aria-label="Yes">&#10003;</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 4. FEATURES GRID ════════ -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="features-header fade-in">
+      <p class="eyebrow">Features</p>
+      <h2 class="section-title">Everything in one chat window.</h2>
+      <p class="section-subtitle">No plugins. No extensions. No settings rabbit holes. Just open it and talk.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card fade-in">
+        <p class="feature-card-eyebrow">Privacy</p>
+        <h3>Completely offline</h3>
+        <p>No network entitlements. App sandbox. Zero telemetry. Your conversations never leave your Mac.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <p class="feature-card-eyebrow">Multimodal</p>
+        <h3>Images, documents, speech</h3>
+        <p>Apple Vision OCR reads images and documents. Hold to record speech. All processed on-device.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <p class="feature-card-eyebrow">Speed</p>
+        <h3>Streaming responses</h3>
+        <p>Metal GPU acceleration. Real-time token streaming. Sub-second time-to-first-token on Apple Silicon.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <p class="feature-card-eyebrow">Persistence</p>
+        <h3>Conversation history</h3>
+        <p>SwiftData persistence. Auto-generated titles. Search across all your conversations instantly.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <p class="feature-card-eyebrow">Rendering</p>
+        <h3>Beautiful markdown</h3>
+        <p>Code blocks with syntax labels. One-click copy. Inline formatting. Clean, readable output.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <p class="feature-card-eyebrow">Honest</p>
+        <h3>No pretending</h3>
+        <p>No fake web searches. No fabricated citations. Clear disclaimer when the model is unsure.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 5. SCREENSHOTS ════════ -->
+<section class="screenshots" id="screenshots">
+  <div class="container">
+    <div class="screenshots-header fade-in">
+      <p class="eyebrow">In Action</p>
+      <h2 class="section-title">Real conversations. On your Mac.</h2>
+      <p class="section-subtitle">From code help to creative writing, Airplane AI handles everyday tasks without ever going online.</p>
+    </div>
+    <div class="screenshots-grid">
+      <div class="screenshot-card fade-in">
+        <div class="screenshot-placeholder">
+          <span>Screenshot: Swift @MainActor explanation</span>
+        </div>
+        <div class="screenshot-caption">
+          <h4>Code Help</h4>
+          <p>Explain Swift concurrency with @MainActor</p>
+        </div>
+      </div>
+      <div class="screenshot-card fade-in">
+        <div class="screenshot-placeholder">
+          <span>Screenshot: Noir detective story opening</span>
+        </div>
+        <div class="screenshot-caption">
+          <h4>Creative Writing</h4>
+          <p>Write a noir detective story opening</p>
+        </div>
+      </div>
+      <div class="screenshot-card fade-in">
+        <div class="screenshot-placeholder">
+          <span>Screenshot: SQLite vs Core Data analysis</span>
+        </div>
+        <div class="screenshot-caption">
+          <h4>Analysis</h4>
+          <p>Compare SQLite vs Core Data trade-offs</p>
+        </div>
+      </div>
+      <div class="screenshot-card fade-in">
+        <div class="screenshot-placeholder">
+          <span>Screenshot: Quick factual answer</span>
+        </div>
+        <div class="screenshot-caption">
+          <h4>Quick Answer</h4>
+          <p>How many feet in a mile?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 6. HOW IT WORKS ════════ -->
+<section class="how-it-works" id="how-it-works">
+  <div class="container">
+    <div class="how-header fade-in">
+      <p class="eyebrow">How It Works</p>
+      <h2 class="section-title">Install. Chat. Done.</h2>
+    </div>
+    <div class="how-grid">
+      <div class="how-card fade-in">
+        <div class="how-card-number">1</div>
+        <h3>Get from Mac App Store</h3>
+        <p>One click to download. The AI model is bundled inside the app. No extra setup required.</p>
+      </div>
+      <div class="how-card fade-in">
+        <div class="how-card-number">2</div>
+        <h3>Open and start chatting</h3>
+        <p>Launch the app. Type your question. Responses stream in real-time, powered by your own hardware.</p>
+      </div>
+      <div class="how-card fade-in">
+        <div class="how-card-number">3</div>
+        <h3>Your data stays yours</h3>
+        <p>Every conversation is stored locally in SwiftData. No cloud sync. No accounts. No one else can see it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 7. PRIVACY + SPECS ════════ -->
+<section class="privacy" id="privacy">
+  <div class="container">
+    <div class="privacy-grid">
+      <div class="privacy-dont fade-in">
+        <h3>What we DON'T do</h3>
+        <ul class="privacy-list">
+          <li><span class="privacy-x" aria-hidden="true">&#10005;</span> Connect to the internet</li>
+          <li><span class="privacy-x" aria-hidden="true">&#10005;</span> Require accounts or sign-ups</li>
+          <li><span class="privacy-x" aria-hidden="true">&#10005;</span> Send telemetry or analytics</li>
+          <li><span class="privacy-x" aria-hidden="true">&#10005;</span> Include crash reporting SDKs</li>
+          <li><span class="privacy-x" aria-hidden="true">&#10005;</span> Phone home for license checks</li>
+          <li><span class="privacy-x" aria-hidden="true">&#10005;</span> Train on your conversations</li>
+          <li><span class="privacy-x" aria-hidden="true">&#10005;</span> Share data with anyone</li>
+          <li><span class="privacy-x" aria-hidden="true">&#10005;</span> Include WebKit or web views</li>
+        </ul>
+      </div>
+      <div class="specs-section fade-in">
+        <h3>Technical Specs</h3>
+        <div class="specs-grid">
+          <div class="spec-card">
+            <p class="spec-card-label">Operating System</p>
+            <p class="spec-card-value">macOS 15+</p>
+          </div>
+          <div class="spec-card">
+            <p class="spec-card-label">Processor</p>
+            <p class="spec-card-value">Apple Silicon M1+</p>
+          </div>
+          <div class="spec-card">
+            <p class="spec-card-label">Memory</p>
+            <p class="spec-card-value">16 GB RAM</p>
+          </div>
+          <div class="spec-card">
+            <p class="spec-card-label">AI Model</p>
+            <p class="spec-card-value">Gemma 3n E4B Q4_K_M</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 8. DOWNLOAD CTA ════════ -->
+<section class="download-cta" id="download">
+  <div class="container fade-in">
+    <h2 class="section-title">Ready to chat privately?</h2>
+    <p class="section-subtitle">One download. No account. No subscription. Your AI, on your Mac, forever.</p>
+    <a href="#" class="btn btn-amber">Download on Mac App Store</a>
+    <p class="download-reqs">Requires macOS 15+, Apple Silicon, 16 GB RAM</p>
+  </div>
+</section>
+
+<!-- ════════ 9. FOOTER ════════ -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-links">
+      <a href="#">Mac App Store</a>
+      <a href="https://github.com/Arthur-Ficial/airplane-ai" target="_blank" rel="noopener">GitHub</a>
+      <a href="#">Privacy</a>
+      <a href="#">License</a>
+    </div>
+    <p class="footer-copy">&copy; 2026 Franz Enzenhofer. Powered by Gemma and llama.cpp.</p>
+  </div>
+</footer>
+
+<!-- ════════ Scroll animations ════════ -->
+<script>
+(function() {
+  var els = document.querySelectorAll('.fade-in');
+  if (!('IntersectionObserver' in window)) {
+    for (var i = 0; i < els.length; i++) els[i].classList.add('visible');
+    return;
+  }
+  var observer = new IntersectionObserver(function(entries) {
+    for (var i = 0; i < entries.length; i++) {
+      if (entries[i].isIntersecting) {
+        entries[i].target.classList.add('visible');
+        observer.unobserve(entries[i].target);
+      }
+    }
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  for (var i = 0; i < els.length; i++) observer.observe(els[i]);
+})();
+</script>
+
+</body>
+</html>

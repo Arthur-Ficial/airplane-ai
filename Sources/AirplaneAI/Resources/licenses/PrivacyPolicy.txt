@@ -1,0 +1,166 @@
+AIRPLANE AI — PRIVACY POLICY
+
+Last updated: 14 April 2026
+
+Developer: Franz Enzenhofer
+Website: fullstackoptimization.com
+Contact: arti.ficial@fullstackoptimization.com
+
+------------------------------------------------------------------------
+
+1. OVERVIEW
+
+Airplane AI is an offline-only AI assistant for macOS. It runs entirely on
+your device. This privacy policy explains what data the app handles, where
+it goes (nowhere), and what controls you have.
+
+The short version: your data never leaves your Mac. There is nothing else
+to say, but regulations require us to say it at length.
+
+------------------------------------------------------------------------
+
+2. DATA COLLECTION
+
+Airplane AI collects no data. Zero. None.
+
+- No analytics or usage tracking.
+- No telemetry of any kind.
+- No crash reporting.
+- No device fingerprinting.
+- No advertising identifiers.
+- No cookies, beacons, or pixels.
+
+The app has zero network entitlements. The macOS App Sandbox enforces this
+at the operating system level — the app is physically unable to connect to
+the internet, send packets, or resolve DNS. This is not a policy promise;
+it is a technical constraint enforced by Apple's sandbox.
+
+------------------------------------------------------------------------
+
+3. ACCOUNTS AND AUTHENTICATION
+
+Airplane AI does not require or support:
+
+- User accounts
+- Sign-up or registration
+- Login or authentication
+- Email verification
+- Any form of identity
+
+You open the app and use it. That is all.
+
+------------------------------------------------------------------------
+
+4. LOCAL DATA STORAGE
+
+Your conversations are stored locally in the app's sandboxed container on
+your Mac. This data is:
+
+- Readable only by Airplane AI and your macOS user account.
+- Not synced to iCloud or any cloud service.
+- Not shared with any other application.
+- Not backed up to any remote server.
+
+You can delete all conversation data from Settings > Danger Zone within
+the app. Uninstalling the app also removes all stored data.
+
+------------------------------------------------------------------------
+
+5. AI MODEL
+
+Airplane AI bundles a Gemma language model (by Google) that runs locally
+via the llama.cpp inference engine. The model:
+
+- Is included in the app bundle at install time.
+- Runs entirely on your Apple Silicon GPU and CPU.
+- Never communicates with any server.
+- Never sends or receives data over any network.
+
+All AI inference happens on-device. Your prompts and the model's responses
+never leave your machine.
+
+------------------------------------------------------------------------
+
+6. IMAGE ANALYSIS
+
+When you attach an image, Airplane AI uses Apple's on-device Vision
+framework to extract text and labels:
+
+- VNRecognizeTextRequest for OCR and handwriting recognition.
+- VNClassifyImageRequest for image classification labels.
+- VNDetectDocumentSegmentationRequest for document detection.
+
+All Vision processing runs on-device using Apple's built-in machine
+learning models. No image data is sent to any server — Apple's Vision
+framework operates entirely locally.
+
+The extracted text is shown to you before it is sent to the AI model.
+The model sees only the extracted text, never the raw image.
+
+------------------------------------------------------------------------
+
+7. SPEECH RECOGNITION
+
+When you use voice input, Airplane AI uses Apple's SFSpeechRecognizer
+with on-device recognition enforced:
+
+- requiresOnDeviceRecognition is set to true.
+- No audio is sent to Apple's servers or any other server.
+- If on-device recognition is unavailable, the feature fails rather than
+  falling back to server-based recognition.
+
+Your voice never leaves your device.
+
+------------------------------------------------------------------------
+
+8. AI OUTPUT DISCLAIMER
+
+AI-generated responses may contain errors, inaccuracies, or misleading
+information. You are responsible for independently verifying any important
+information provided by the AI. The developer makes no guarantees about
+the accuracy, completeness, or reliability of AI outputs.
+
+------------------------------------------------------------------------
+
+9. THIRD-PARTY SOFTWARE
+
+Airplane AI uses the following open-source components:
+
+- llama.cpp — inference engine (MIT License)
+- Gemma model — AI model (Apache 2.0 / Google Gemma Terms of Use)
+
+No third-party analytics SDKs, crash reporters, ad networks, WebKit
+views, or network libraries are included.
+
+------------------------------------------------------------------------
+
+10. CHILDREN'S PRIVACY
+
+Airplane AI does not collect data from anyone, including children. Because
+no data is collected or transmitted, there are no special provisions
+needed for children's privacy. The app contains AI-generated content that
+may not always be appropriate for all ages; parental discretion is advised.
+
+------------------------------------------------------------------------
+
+11. CHANGES TO THIS POLICY
+
+This privacy policy may be updated when new versions of the app are
+released. Changes will be included in the app update. Since the app has no
+network access, we cannot notify you of changes remotely — check this
+policy within the app after updates.
+
+------------------------------------------------------------------------
+
+12. CONTACT
+
+For questions about this privacy policy:
+
+Email: arti.ficial@fullstackoptimization.com
+Developer: Franz Enzenhofer, fullstackoptimization.com
+
+------------------------------------------------------------------------
+
+In summary: your data stays on your Mac. We cannot see it, access it,
+collect it, or transmit it. The operating system enforces this. That is
+the entire policy.

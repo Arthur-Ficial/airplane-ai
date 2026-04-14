@@ -49,4 +49,33 @@ enum L {
     static func msCount(_ n: Int) -> String { "\(n) ms" }
     static func linesCount(_ n: Int) -> String { "\(n) lines" }
     static func tokensInAttachments(_ n: Int) -> String { "\(n) tokens in attachments" }
+
+    // MARK: - Mic / Speech
+    static let micVoiceInput = "Voice input"
+    static let micStopRecording = "Stop recording"
+    static let micProcessing = "Processing voice…"
+    static let micPermissionDenied = "Microphone or speech recognition permission denied. Open System Settings to grant access."
+    static let micUnavailable = "On-device speech recognition is not available on this Mac."
+    static let privacySpeechOnDevice = "Speech transcription runs on-device via Apple SFSpeechRecognizer. No audio leaves your Mac."
+
+    // MARK: - Disclaimer
+    static let aiDisclaimer = "AI can make mistakes. Check important info."
+
+    // MARK: - Onboarding
+    static let onboardingWelcomeTitle = "Welcome to Airplane AI"
+    static let onboardingWelcomeSubtitle = "Your private, offline AI assistant"
+    static let onboardingHowAITitle = "How AI Works"
+    static let onboardingBullet1 = "This AI runs entirely on your Mac. Nothing leaves your device."
+    static let onboardingBullet2 = "AI generates responses based on patterns in training data. It doesn\u{2019}t truly \u{2018}know\u{2019} things."
+    static let onboardingBullet3 = "AI can be wrong, make things up, or miss context. Always verify important information."
+    static let onboardingAgreementTitle = "Before You Begin"
+    static let onboardingAgreementSubtitle = "AI is a tool, not an oracle."
+    static let onboardingAcceptTerms = "I accept the Terms of Use"
+    static let onboardingAcceptPrivacy = "I accept the Privacy Policy"
+    static let onboardingAcceptDisclaimer = "I understand AI can make mistakes and I will verify important information"
+    static let onboardingGetStarted = "Get Started"
+    static let onboardingReadTerms = "Read Terms of Use"
+    static let onboardingReadPrivacy = "Read Privacy Policy"
+    static let onboardingNext = "Next"
+    static let onboardingBack = "Back"
 }

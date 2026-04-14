@@ -8,6 +8,7 @@ public final class AppWiring {
     public let conversationController: ConversationController
     public let lifecycle: LifecycleManager
     public let store: any ConversationStore
+    public let liveSpeechInput: LiveSpeechInput
 
     public init() throws {
         let state = AppState()
@@ -58,6 +59,7 @@ public final class AppWiring {
         self.conversationController = ConversationController(state: state, store: store)
         self.lifecycle = LifecycleManager()
         self.store = store
+        self.liveSpeechInput = LiveSpeechInput()
     }
 
     public func boot() async {

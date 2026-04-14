@@ -1,51 +1,211 @@
-# Airplane AI
+<p align="center">
+  <img src="site/img/icon.png" alt="Airplane AI" width="128">
+</p>
 
-Paid, local-first macOS chat app with multimodal input. One bundled model (Gemma 4 E4B via pinned llama.cpp). Zero network. Zero telemetry. Sandboxed.
+<h1 align="center">Airplane AI</h1>
+
+<p align="center">
+  <strong>Private offline AI chat for macOS</strong><br>
+  <em>AI that never phones home.</em>
+</p>
+
+<p align="center">
+  <img alt="Platform" src="https://img.shields.io/badge/platform-macOS%2015%2B-blue">
+  <img alt="Architecture" src="https://img.shields.io/badge/arch-Apple%20Silicon-orange">
+  <img alt="Swift" src="https://img.shields.io/badge/swift-6.0-F05138">
+  <img alt="License" src="https://img.shields.io/badge/license-Proprietary-lightgrey">
+</p>
+
+---
+
+## What is Airplane AI?
+
+Airplane AI is a paid, local-first macOS chat app. It ships one bundled model -- Google's Gemma 4 E4B instruction-tuned, quantized to Q4_K_M -- and runs it entirely on your Mac through llama.cpp and Metal GPU acceleration. There is no server, no account, no telemetry, and no internet connection at runtime. Your conversations never leave your machine. Period.
+
+<p align="center">
+  <img src="site/img/screen-hero.png" alt="Airplane AI — main chat window" width="700">
+</p>
 
 ## Features
 
-- **Offline AI chat** — Gemma 4 E4B runs entirely on your Mac via Metal GPU
-- **Image understanding** — paste or drag images; Apple Vision extracts OCR text and labels on-device
-- **Document support** — drag PDF, Word, Markdown, code files, CSV, JSON into chat
-- **Speech input** — hold-to-record mic button; Apple SFSpeechRecognizer transcribes on-device
-- **Privacy first** — no network, no telemetry, no cloud. Everything stays on your Mac
-- **Apple Silicon** — optimized for 16 GB+ unified memory Macs
+- **Completely offline AI** -- Gemma 4 E4B runs on-device via Metal GPU. No cloud. No network entitlements. Kernel-enforced sandbox.
+- **Image understanding** -- paste or drag images into the composer. Apple Vision extracts OCR text and scene labels on-device. The model sees only the extracted text.
+- **Document support** -- drag PDF, Word, Markdown, code files, CSV, or JSON into chat. Text is extracted immediately and shown before sending.
+- **Speech input** -- hold the mic button to record. Apple SFSpeechRecognizer transcribes on-device with `requiresOnDeviceRecognition`. No audio leaves your Mac.
+- **Privacy by architecture** -- App Sandbox enabled, zero network entitlements, zero telemetry, zero analytics, zero crash SDKs. CI scripts verify this on every build.
+- **Streaming Markdown** -- responses stream token-by-token with live Markdown rendering. Code blocks, lists, emphasis -- all rendered as they arrive.
+- **Conversation history** -- SwiftData persistence with versioned schemas and migration plans. Your chats survive restarts, sleep/wake, and app updates.
+- **Honest AI** -- the system prompt tells the model it is offline and local. No fake citations, no invented links, no claims of internet access. The UI shows you exactly what the model sees.
+- **Apple Silicon optimized** -- runtime profiles tuned per memory class. 16 GB, 24 GB, 32 GB, and 64 GB+ machines each get context windows and GPU offload calibrated to their hardware.
+- **Single purchase** -- one-time purchase from the Mac App Store. No subscriptions, no in-app purchases, no freemium.
 
-## Build
+## Screenshots
+
+| | |
+|---|---|
+| ![Chat conversation](site/img/screen-chat.png) **Chat** -- clean single-window interface with streaming Markdown | ![Sidebar](site/img/screen-sidebar.png) **Conversations** -- sidebar with full history and search |
+| ![Image input](site/img/screen-image.png) **Images** -- paste an image, see extracted text before sending | ![Settings](site/img/screen-settings.png) **Settings** -- runtime profile, context window, model info |
+
+## Requirements
+
+| Requirement | Minimum |
+|---|---|
+| Operating system | macOS 15.0 (Sequoia) or later |
+| Processor | Apple Silicon (M1 or later) |
+| Memory | 16 GB unified memory |
+| Disk space | ~5 GB (app + bundled model) |
+
+Macs with 8 GB of memory are not supported. The bundled Gemma 4 E4B model requires approximately 5 GB just to load at Q4 quantization, before context windows, app memory, and macOS overhead. 16 GB is the engineering-validated minimum for a stable consumer experience.
+
+## Install
+
+### Mac App Store (recommended)
+
+[![Download on the Mac App Store](https://developer.apple.com/assets/elements/badges/download-on-the-mac-app-store.svg)](https://apps.apple.com/app/airplane-ai/id000000000)
+
+### Build from source
 
 ```bash
-make app        # fetches model (if needed), builds AirplaneAI.app
-make run        # build + launch
-make test       # run tests
-make verify     # CI verification scripts
+git clone https://github.com/Arthur-Ficial/airplane-ai.git
+cd airplane-ai
+./scripts/setup-dev.sh    # install prerequisites
+make app                  # fetch model + build AirplaneAI.app
+open build/AirplaneAI.app
 ```
 
-First-time setup on a new machine:
+Building from source requires Xcode 16+, Swift 6, and an Apple Silicon Mac. The model (~4.5 GB) is fetched once during the first build.
+
+## Architecture
+
+```
+UI Layer            SwiftUI + AppKit wrappers
+                    RootWindow, Sidebar, ChatView, Composer, Settings
+                         |
+                    @MainActor / @Observable
+                         |
+Application Layer   AppState, ChatController, ModelController
+                    ConversationController, SettingsStore
+                         |
+              +----------+----------+
+              |                     |
+Inference Layer              Persistence Layer
+LlamaSwiftEngine (actor)    SwiftDataStore (actor)
+PromptFormatter              BackupStore
+TokenCounter                 MigrationPlan
+              |                     |
+              +----------+----------+
+                         |
+Safety Layer        RuntimeProfileProvider, ResourceGuard
+                    ContextManager, OutputSanitizer
+                    GenerationWatchdog, ModelIntegrity
+                         |
+                    llama.cpp (pinned SPM)
+                    Metal backend + memory-mapped GGUF
+```
+
+### Multimodal pipeline
+
+All non-text input is converted to plain text on-device before reaching the model. The model never changes -- Gemma 4 E4B handles everything as text.
+
+| Input | Apple Framework | Output to model |
+|---|---|---|
+| Image (paste/drag) | Vision (`VNRecognizeTextRequest`, `VNClassifyImageRequest`) | OCR text + scene labels |
+| PDF | PDFKit | Extracted page text |
+| Word (.docx) / RTF | textutil | Extracted text |
+| Markdown / TXT / code | Direct UTF-8 read | Raw text |
+| Speech (hold to record) | SFSpeechRecognizer (on-device only) | Transcript |
+
+## Runtime Profiles
+
+Context windows and GPU offload are calibrated per memory class, not computed from formulas. Changes require benchmark approval on reference hardware.
+
+| Memory class | Default context | Max context | Notes |
+|---|---:|---:|---|
+| 16 -- 23 GB | 8,192 | 8,192 | Supported minimum. Conservative GPU offload. |
+| 24 -- 31 GB | 16,384 | 16,384 | Balanced offload. |
+| 32 -- 63 GB | 32,768 | 32,768 | Full offload if benchmark-approved. |
+| 64 GB+ | 65,536 | 65,536 | 128K is developer-only until proven. |
+
+## Privacy Commitment
+
+Airplane AI does not just promise privacy -- it enforces it at the build system level.
+
+- **Zero network entitlements.** The app ships with `com.apple.security.app-sandbox` and `com.apple.security.device.audio-input` only. No `network.client`, no `network.server`. macOS kernel enforcement means the app physically cannot connect to the internet.
+- **Zero telemetry.** No analytics SDKs, no crash reporters, no remote config, no Sparkle updater.
+- **CI-verified on every build.** Four verification scripts run as part of the build gate:
+  - `verify-entitlements.sh` -- rejects any entitlement not on the allow-list
+  - `verify-no-network-symbols.sh` -- scans for `URLSession`, `NWConnection`, `WKWebView`
+  - `verify-no-forbidden-deps.sh` -- blocks analytics, telemetry, and crash SDK imports
+  - `verify-model-manifest.sh` -- confirms model SHA-256 matches the committed manifest
+- **Local-only persistence.** Conversations are stored in SwiftData inside the app sandbox. No iCloud sync. No export in v1.
+
+## Development
+
+```bash
+make build       # swift build -c release
+make test        # swift test --parallel
+make verify      # run all CI verification scripts
+make app         # fetch model + build .app bundle
+make run         # build + launch
+make bench       # run benchmark suite
+make clean       # remove build artifacts
+```
+
+First-time setup:
 
 ```bash
 ./scripts/setup-dev.sh
 ```
 
-## Multimodal Architecture
+### Quality gate
 
-All input is converted to plain text before reaching the model:
+Every change must pass before merging:
 
-| Input | Processor | Output |
-|-------|-----------|--------|
-| Image (paste/drag) | Apple Vision (on-device OCR + labels) | Structured text block |
-| PDF | PDFKit | Extracted page text |
-| Word (.docx) | textutil | Extracted text |
-| Markdown/TXT/code | Direct read | Raw text |
-| Speech | SFSpeechRecognizer (on-device) | Transcript |
+```bash
+swift build -c release
+swift test
+./Tools/ci/verify-entitlements.sh
+./Tools/ci/verify-no-network-symbols.sh
+./Tools/ci/verify-model-manifest.sh
+./Tools/ci/verify-no-forbidden-deps.sh
+make app
+codesign -d --entitlements :- build/AirplaneAI.app
+```
 
-The model only ever sees text. No model downgrade for multimodal — Gemma 4 E4B stays the sole inference engine.
+## Model
 
-## Docs
+| Field | Value |
+|---|---|
+| Model | Gemma 4 E4B instruction-tuned |
+| Source | [google/gemma-4-E4B-it](https://huggingface.co/google/gemma-4-E4B-it) on Hugging Face |
+| Quantization | Q4_K_M |
+| Format | GGUF (converted via pinned llama.cpp revision) |
+| Size | ~4.5 GB |
+| License | Apache 2.0 (Gemma Terms of Use) |
+| Capabilities | Text-in / text-out, native system-role support, up to 128K model context |
+| Runtime | llama.cpp via Swift Package Manager, pinned by full Git revision SHA |
 
-- `CLAUDE.md` — build instructions for AI agents (mindset + developer requirements)
-- `briefing/golden-goal.md` — full product + engineering spec
-- `docs/BUILD.md` — detailed build guide and prerequisites
+The model is memory-mapped at runtime (never loaded into a `Data` buffer), verified by incremental SHA-256 on launch, and cached after first verification. A model change is a product change -- it requires a new app version, new benchmarks, and updated release notes.
+
+## Documentation
+
+| Document | Description |
+|---|---|
+| [`CLAUDE.md`](CLAUDE.md) | Build instructions for AI agents -- mindset, developer requirements, execution loop |
+| [`briefing/golden-goal.md`](briefing/golden-goal.md) | Full product and engineering specification (v3.0) |
+| [`docs/BUILD.md`](docs/BUILD.md) | Detailed build guide and prerequisites |
+| [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) | Release notes for each version |
 
 ## License
 
-Proprietary. Bundled model license in `Sources/AirplaneAI/Resources/licenses/`.
+Airplane AI is proprietary software.
+
+The bundled Gemma 4 E4B model weights are distributed under the [Gemma Terms of Use](https://ai.google.dev/gemma/terms) (Apache 2.0). License files are included in the app bundle at `Sources/AirplaneAI/Resources/licenses/`.
+
+llama.cpp is used under the [MIT License](https://github.com/ggml-org/llama.cpp/blob/master/LICENSE).
+
+---
+
+<p align="center">
+  <em>Built for the kind of person who turns off Wi-Fi before opening a notes app.</em>
+</p>

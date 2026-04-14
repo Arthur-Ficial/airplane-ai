@@ -1,0 +1,9 @@
+{
+  "benchmark": "ImageAnalyzer",
+  "machine": "MacBook Air M3 24GB",
+  "date": "2026-04-14",
+  "image_resolution": "1920x1080",
+  "cold_ms": null,
+  "warm_ms": null,
+  "notes": "Baseline pending — run with real hardware"
+}

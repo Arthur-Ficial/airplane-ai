@@ -29,6 +29,7 @@ struct ChatView: View {
                 onSubmit: submit,
                 onStop: stop
             )
+            DisclaimerFooter()
         }
         .onDrop(of: [.fileURL, .image], isTargeted: nil, perform: handleDrop)
         .background(Color(nsColor: .windowBackgroundColor))
@@ -44,6 +45,13 @@ struct ChatView: View {
             }
         }
         .animation(.easeInOut(duration: Metrics.Duration.standardAnimation), value: state.lastError)
+        .onReceive(NotificationCenter.default.publisher(for: .airplaneMicTranscript)) { note in
+            if let text = note.userInfo?["text"] as? String, !text.isEmpty {
+                if !draft.isEmpty && !draft.hasSuffix(" ") { draft += " " }
+                draft += text
+                composerFocused = true
+            }
+        }
         .onChange(of: state.activeConversationID) { _, _ in
             isFollowingTail = true
             composerFocused = true

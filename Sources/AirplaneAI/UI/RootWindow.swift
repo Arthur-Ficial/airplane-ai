@@ -4,6 +4,7 @@ struct RootWindow: View {
     let wiring: AppWiring?
     let bootError: String?
     @AppStorage("airplane.appearance") private var appearance: String = "system"
+    @AppStorage("airplane.hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
@@ -17,6 +18,10 @@ struct RootWindow: View {
         .preferredColorScheme(preferredScheme)
         .onReceive(NotificationCenter.default.publisher(for: .airplaneOpenSettings)) { _ in
             openSettings()
+        }
+        .sheet(isPresented: .constant(!hasCompletedOnboarding)) {
+            OnboardingView(onComplete: { hasCompletedOnboarding = true })
+                .interactiveDismissDisabled()
         }
     }
 
@@ -67,6 +72,15 @@ struct RootWindow: View {
                         }
                         .help("Settings (⌘,)")
                         .accessibilityLabel("Open Settings")
+                    }
+                    ToolbarItem(placement: .primaryAction) {
+                        MicButton(speechInput: wiring.liveSpeechInput) { text in
+                            NotificationCenter.default.post(
+                                name: .airplaneMicTranscript,
+                                object: nil,
+                                userInfo: ["text": text]
+                            )
+                        }
                     }
                 }
         }

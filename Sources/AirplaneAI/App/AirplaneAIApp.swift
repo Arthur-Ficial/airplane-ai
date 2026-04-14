@@ -4,6 +4,7 @@ import AppKit
 extension Notification.Name {
     static let airplaneFocusSearch = Notification.Name("airplane.focusSearch")
     static let airplaneOpenSettings = Notification.Name("airplane.openSettings")
+    static let airplaneMicTranscript = Notification.Name("airplane.micTranscript")
 }
 
 // Removes menus that NSTextView's responder chain adds automatically

@@ -119,81 +119,13 @@ struct SettingsView: View {
     // MARK: - About
 
     private var aboutTab: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                SettingsHero {
-                    HStack(spacing: 14) {
-                        AirplaneGlyph(size: Metrics.Size.airplaneGlyphSmall)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Airplane AI").font(.title2.weight(.semibold))
-                            Text("Version \(version) (build \(build))")
-                                .font(.callout).foregroundStyle(.secondary)
-                            Text(L.tagline).font(.callout).foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                    }
-                }
-                SettingsCard(title: "Bundled model") {
-                    VStack(alignment: .leading, spacing: 6) {
-                        LabeledContent("Model", value: state?.modelInfo?.name ?? "gemma-3n-E4B-it (Q4_K_M)")
-                        if let info = state?.modelInfo {
-                            LabeledContent("Size", value: "\(info.sizeBytes / 1_048_576) MB")
-                            LabeledContent("Context window", value: "\(info.contextWindow) tok")
-                        }
-                        LabeledContent("Runtime", value: "llama.cpp b8763")
-                    }
-                }
-                SettingsCard(title: "Links") {
-                    Link(destination: URL(string: "https://github.com/franzenzenhofer/airplane-ai")!) {
-                        Label("Source on GitHub", systemImage: "arrow.up.right.square")
-                    }
-                }
-            }
-            .padding(20)
-        }
+        AboutSettingsTab(state: state)
     }
 
     // MARK: - Privacy
 
     private var privacyTab: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                SettingsHero {
-                    HStack(spacing: 14) {
-                        Image(systemName: "lock.shield.fill")
-                            .font(.system(size: 32, weight: .semibold))
-                            .foregroundStyle(Palette.accent)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Private by design").font(.title3.weight(.semibold))
-                            Text("Nothing leaves your Mac. Kernel-enforced sandbox. Zero network entitlements.")
-                                .font(.callout).foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                }
-                SettingsCard(title: "Guarantees") {
-                    VStack(alignment: .leading, spacing: 10) {
-                        privacyBullet("airplane", "Runs entirely on your Mac.")
-                        privacyBullet("wifi.slash", "Zero network entitlements. Verified at build.")
-                        privacyBullet("lock.shield", "App Sandbox enabled.")
-                        privacyBullet("chart.bar.xaxis", "No telemetry. No analytics. No crash reports.")
-                        privacyBullet("person.slash.fill", "No accounts. Nothing to sign up for.")
-                    }
-                }
-            }
-            .padding(20)
-        }
-    }
-
-    private func privacyBullet(_ icon: String, _ text: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: icon)
-                .font(.callout)
-                .foregroundStyle(Palette.accent)
-                .frame(width: 22)
-            Text(text).fixedSize(horizontal: false, vertical: true)
-            Spacer()
-        }
+        PrivacySettingsTab()
     }
 
     // MARK: - Danger Zone
@@ -289,12 +221,4 @@ struct SettingsView: View {
     }
     #endif
 
-    // MARK: - Helpers
-
-    private var version: String {
-        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "dev"
-    }
-    private var build: String {
-        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "dev"
-    }
 }

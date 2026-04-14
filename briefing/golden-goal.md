@@ -7,11 +7,16 @@ I found and corrected the biggest structural faults before rewriting it:
 * The original spec said “no network” but did not ground it rigorously enough. Apple documents App Sandbox as kernel-enforced, and `com.apple.security.network.client` as the entitlement for outgoing network connections. The rewrite makes zero-network a hard build/runtime rule, not just a slogan. ([Apple Developer][4])
 * The original spec delayed storage hardening. The rewrite requires **versioned SwiftData schemas and a migration plan from v1**, plus local backup snapshots inside the sandbox. ([Apple Developer][5])
 
-# Airplane AI — Engineering Specification v3.0
+# Airplane AI — Engineering Specification v4.0
 
 > **Audience:** Coding AIs, human engineers, and future maintainers.
 > **Authority:** This document is the source of truth for v1.0. If code, comments, or conversations contradict this document, this document wins.
 > **Release philosophy:** Airplane AI is a consumer app, not a demo. Reliability, privacy, and clarity outrank feature count.
+
+### Changelog
+
+- **v4.0 (2026-04-14):** Added multimodal input via Apple Vision, VisionKit, and SFSpeechRecognizer. Image/document/audio attachments are processed on-device into plain text before model inference. Attachment extracted text counts against the context window budget. No model change — Gemma 4 E4B remains text-in/text-out.
+- **v3.0:** Initial engineering specification.
 
 ---
 

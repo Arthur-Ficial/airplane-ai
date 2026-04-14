@@ -1,0 +1,115 @@
+AIRPLANE AI — TERMS OF USE
+
+Last updated: 14 April 2026
+
+Developer: Franz Enzenhofer
+Website: fullstackoptimization.com
+Contact: arti.ficial@fullstackoptimization.com
+
+------------------------------------------------------------------------
+
+1. ACCEPTANCE
+
+By using Airplane AI, you agree to these Terms of Use. If you do not
+agree, do not use the app.
+
+------------------------------------------------------------------------
+
+2. LICENSE
+
+Airplane AI is licensed, not sold. You receive a non-exclusive,
+non-transferable license to use the app on any Mac you own or control,
+subject to the Apple App Store terms.
+
+------------------------------------------------------------------------
+
+3. AI-GENERATED CONTENT
+
+Airplane AI uses a local AI model to generate text responses. You
+acknowledge and agree that:
+
+- AI outputs may contain errors, inaccuracies, or fabricated information.
+- You are solely responsible for verifying any information provided by
+  the AI before relying on it.
+- The developer makes no guarantees about the accuracy, completeness,
+  reliability, or fitness for any particular purpose of AI outputs.
+- AI-generated content does not constitute professional advice of any
+  kind — legal, medical, financial, or otherwise.
+- You will not use the app to generate content that is illegal, harmful,
+  or violates the rights of others.
+
+------------------------------------------------------------------------
+
+4. PRIVACY
+
+Airplane AI runs entirely offline. No data is collected, transmitted, or
+shared. Your conversations stay on your device. See the Privacy Policy
+for full details.
+
+------------------------------------------------------------------------
+
+5. INTELLECTUAL PROPERTY
+
+The Airplane AI app, including its design, code, and bundled AI model,
+is the intellectual property of the developer or its licensors. The Gemma
+model is used under the Google Gemma Terms of Use. The llama.cpp engine
+is used under the MIT License.
+
+You own any text you input into the app. AI-generated outputs are not
+claimed by the developer.
+
+------------------------------------------------------------------------
+
+6. DISCLAIMER OF WARRANTIES
+
+AIRPLANE AI IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
+
+The developer does not warrant that:
+- The app will be error-free or uninterrupted.
+- AI outputs will be accurate or reliable.
+- The app will meet your specific requirements.
+
+------------------------------------------------------------------------
+
+7. LIMITATION OF LIABILITY
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE DEVELOPER SHALL NOT BE
+LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE
+DAMAGES ARISING FROM YOUR USE OF THE APP OR ANY AI-GENERATED CONTENT.
+
+------------------------------------------------------------------------
+
+8. TERMINATION
+
+You may stop using the app at any time. Uninstalling removes all local
+data. The developer reserves the right to stop distributing the app.
+
+------------------------------------------------------------------------
+
+9. GOVERNING LAW
+
+These terms are governed by the laws of Austria. Any disputes shall be
+resolved in the courts of Vienna, Austria.
+
+------------------------------------------------------------------------
+
+10. CHANGES
+
+These terms may be updated with new versions of the app. Continued use
+after an update constitutes acceptance of the revised terms.
+
+------------------------------------------------------------------------
+
+11. CONTACT
+
+For questions about these terms:
+
+Email: arti.ficial@fullstackoptimization.com
+Developer: Franz Enzenhofer, fullstackoptimization.com
+
+------------------------------------------------------------------------
+
+By using Airplane AI, you acknowledge that you have read, understood,
+and agree to these Terms of Use.
