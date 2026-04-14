@@ -1,8 +1,22 @@
 # Airplane AI v0.3.0 — Production Ready
 
-Award-winning quality release: comprehensive E2E testing, legal compliance, live speech input, landing page, and App Store readiness.
+Award-winning quality release: comprehensive E2E testing, legal compliance, live speech input, spoken responses, command-line interface, landing page, and App Store readiness.
 
 ## New in v0.3.0
+
+### Command-line interface
+- `airplaneai -p "prompt"` — single-shot prompt, streams reply to stdout
+- `airplaneai -p "prompt" -n "name"` — named persistent chat
+- `airplaneai -p "..." -n "name" --continue` — continue an existing chat
+- `--list`, `--show`, `--delete` for chat management
+- Shares the same SwiftData store as the GUI — CLI chats appear in the app
+- POSIX exit codes: `0` success, `1` engine error, `2` user error, `3` named chat not found
+- 20 TDD tests covering every flag and error path (closes #12)
+
+### Spoken responses (text-to-speech)
+- Speaker toggle in the toolbar next to the settings gear
+- When enabled, assistant replies are read aloud via `AVSpeechSynthesizer`
+- Persisted across launches, instant mute on toggle off
 
 ### First-launch onboarding
 - 3-page welcome flow: Welcome, How AI Works, Legal Agreement

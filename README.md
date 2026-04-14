@@ -75,6 +75,28 @@ open build/AirplaneAI.app
 
 Building from source requires Xcode 16+, Swift 6, and an Apple Silicon Mac. The model (~4.5 GB) is fetched once during the first build.
 
+## Command line
+
+The same `.app` binary also runs headless from the terminal. The CLI shares the SwiftData store with the GUI — chats you create from the terminal show up when you open the app.
+
+```bash
+# Single-shot (not persisted)
+airplaneai -p "What is 2+2?"
+
+# Named persistent chat
+airplaneai -p "Explain closures" -n "swift-learning"
+
+# Continue the same chat
+airplaneai -p "Now give me an example" -n "swift-learning" --continue
+
+# Housekeeping
+airplaneai --list
+airplaneai --show -n "swift-learning"
+airplaneai --delete -n "swift-learning"
+```
+
+Exit codes: `0` success, `1` engine error, `2` user error, `3` named chat not found.
+
 ## Architecture
 
 ```

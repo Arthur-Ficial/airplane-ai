@@ -104,6 +104,10 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
 .pain p{font-size:15px;color:#9aa4b2;line-height:1.55;}
 .pain p em{color:var(--brand);font-style:normal;font-weight:600;}
 .chat-mock{background:#fff;border:1px solid var(--bdl);border-radius:14px;padding:18px 16px 16px;box-shadow:0 4px 20px rgba(0,0,0,.06);overflow:hidden;}
+.shot-card{display:block;background:#fff;border:1px solid var(--bdl);border-radius:12px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.08);transition:transform .2s ease,box-shadow .2s ease;text-decoration:none;color:inherit;}
+.shot-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.12);}
+.shot-card img{display:block;width:100%;height:auto;}
+.shot-card span{display:block;padding:10px 14px;font-size:13px;font-weight:600;color:#444;border-top:1px solid var(--bdl);}
 .chat-tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-dark);background:var(--brand-light);padding:3px 9px;border-radius:4px;margin-bottom:14px;}
 .chat-msg{display:flex;margin-bottom:12px;gap:8px;}
 .chat-msg-user{justify-content:flex-end;}
@@ -202,12 +206,7 @@ footer a{color:var(--brand);}
       <span>100% Local</span>
     </div>
     <div class="hero-shot">
-      <div class="chat-mock">
-        <div class="chat-tag">Offline &middot; 0 KB sent</div>
-        <div class="chat-msg chat-msg-user"><div class="chat-bubble chat-bubble-user">What does <code>@MainActor</code> do in Swift?</div></div>
-        <div class="chat-msg chat-msg-assistant"><div class="chat-bubble chat-bubble-assistant"><strong>@MainActor</strong> is a global actor that ensures code runs on the main thread. The compiler enforces this at build time &mdash; you get errors if you call main-actor code from another context without <code>await</code>.<br><br>Use it for any UI code, view models, or state shared with SwiftUI views. Keep heavy work (network, disk, compute) off it.</div></div>
-        <div class="chat-disclaimer">AI can make mistakes. Check important info.</div>
-      </div>
+      <img src="img/screens/hero.png" alt="Airplane AI showing 10 real offline conversations" style="width:100%;max-width:1100px;border-radius:12px;box-shadow:0 12px 48px rgba(0,0,0,.18);border:1px solid var(--bdl);">
     </div>
   </div>
 </section>
@@ -246,83 +245,20 @@ footer a{color:var(--brand);}
   <div class="wrap">
     <div class="sec-head">
       <div class="lbl">See it work</div>
-      <h2>Real conversations. Wi-Fi off.</h2>
-      <p>Every example below runs entirely on your Mac.</p>
+      <h2>Ten real conversations. Wi-Fi off.</h2>
+      <p>Screenshots from the actual app &mdash; every response generated on-device by the bundled Gemma model.</p>
     </div>
     <div class="showcase">
-
-      <div class="chat-mock">
-        <div class="chat-tag">Code</div>
-        <div class="chat-msg chat-msg-user"><div class="chat-bubble chat-bubble-user">In Swift, sort an array of strings alphabetically, case-insensitive.</div></div>
-        <div class="chat-msg chat-msg-assistant"><div class="chat-bubble chat-bubble-assistant">Use <code>sorted(by:)</code> with case-insensitive comparison:<pre>let sorted = names.sorted {
-  $0.lowercased() &lt; $1.lowercased()
-}</pre>Or <code>localizedCaseInsensitiveCompare</code> for proper Unicode handling.</div></div>
-        <div class="chat-disclaimer">AI can make mistakes. Check important info.</div>
-      </div>
-
-      <div class="chat-mock">
-        <div class="chat-tag">Writing</div>
-        <div class="chat-msg chat-msg-user"><div class="chat-bubble chat-bubble-user">Rewrite more formally: "let me know asap if you can make it"</div></div>
-        <div class="chat-msg chat-msg-assistant"><div class="chat-bubble chat-bubble-assistant">"Please confirm your availability at your earliest convenience."<br><br>Or softer: "Kindly let me know whether you are able to attend."</div></div>
-        <div class="chat-disclaimer">AI can make mistakes. Check important info.</div>
-      </div>
-
-      <div class="chat-mock">
-        <div class="chat-tag">Translate</div>
-        <div class="chat-msg chat-msg-user"><div class="chat-bubble chat-bubble-user">Say "where is the bathroom" in Japanese.</div></div>
-        <div class="chat-msg chat-msg-assistant"><div class="chat-bubble chat-bubble-assistant">トイレはどこですか？<br><br>(<em>Toire wa doko desu ka?</em>) &mdash; polite, works anywhere.</div></div>
-        <div class="chat-disclaimer">AI can make mistakes. Check important info.</div>
-      </div>
-
-      <div class="chat-mock">
-        <div class="chat-tag">Explain</div>
-        <div class="chat-msg chat-msg-user"><div class="chat-bubble chat-bubble-user">Explain closures in one paragraph.</div></div>
-        <div class="chat-msg chat-msg-assistant"><div class="chat-bubble chat-bubble-assistant">A closure is a function together with the variables it captured from its surrounding scope. When the closure runs later &mdash; even elsewhere &mdash; it still has access to those captured values. That's why closures are useful as callbacks: they remember context.</div></div>
-        <div class="chat-disclaimer">AI can make mistakes. Check important info.</div>
-      </div>
-
-      <div class="chat-mock">
-        <div class="chat-tag">Creative</div>
-        <div class="chat-msg chat-msg-user"><div class="chat-bubble chat-bubble-user">Opening paragraph of a noir story set in Tokyo.</div></div>
-        <div class="chat-msg chat-msg-assistant"><div class="chat-bubble chat-bubble-assistant">The rain hit Shibuya like it had a grudge. I stood under the awning of a shuttered pachinko parlor, watching neon bleed across wet asphalt. My client had given me a name, an address in Roppongi, and a photograph. The photograph was the only honest thing in the whole arrangement &mdash; which made it the most dangerous.</div></div>
-        <div class="chat-disclaimer">AI can make mistakes. Check important info.</div>
-      </div>
-
-      <div class="chat-mock">
-        <div class="chat-tag">Analysis</div>
-        <div class="chat-msg chat-msg-user"><div class="chat-bubble chat-bubble-user">SQLite vs Core Data for a Mac app &mdash; which should I pick?</div></div>
-        <div class="chat-msg chat-msg-assistant"><div class="chat-bubble chat-bubble-assistant">Depends what you value:<ul><li><strong>SQLite (raw)</strong> &mdash; full control, portable <code>.sqlite</code>, you write migration SQL.</li><li><strong>SwiftData / Core Data</strong> &mdash; SwiftUI bindings, automatic change tracking, built-in migrations.</li></ul>For a SwiftUI Mac app: SwiftData is the pragmatic default.</div></div>
-        <div class="chat-disclaimer">AI can make mistakes. Check important info.</div>
-      </div>
-
-      <div class="chat-mock">
-        <div class="chat-tag">Grammar</div>
-        <div class="chat-msg chat-msg-user"><div class="chat-bubble chat-bubble-user">Fix: "their are to many errors in this sentance"</div></div>
-        <div class="chat-msg chat-msg-assistant"><div class="chat-bubble chat-bubble-assistant">"<strong>There are too many errors in this sentence.</strong>"<br><br>Three fixes: <em>their &rarr; there</em>, <em>to &rarr; too</em>, <em>sentance &rarr; sentence</em>.</div></div>
-        <div class="chat-disclaimer">AI can make mistakes. Check important info.</div>
-      </div>
-
-      <div class="chat-mock">
-        <div class="chat-tag">Quick fact</div>
-        <div class="chat-msg chat-msg-user"><div class="chat-bubble chat-bubble-user">How many feet in a mile?</div></div>
-        <div class="chat-msg chat-msg-assistant"><div class="chat-bubble chat-bubble-assistant"><strong>5,280 feet.</strong></div></div>
-        <div class="chat-disclaimer">AI can make mistakes. Check important info.</div>
-      </div>
-
-      <div class="chat-mock">
-        <div class="chat-tag">Regex</div>
-        <div class="chat-msg chat-msg-user"><div class="chat-bubble chat-bubble-user">Regex for a typical email address.</div></div>
-        <div class="chat-msg chat-msg-assistant"><div class="chat-bubble chat-bubble-assistant"><pre>^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$</pre>Good enough for forms. For RFC-compliant validation, send a confirmation email.</div></div>
-        <div class="chat-disclaimer">AI can make mistakes. Check important info.</div>
-      </div>
-
-      <div class="chat-mock">
-        <div class="chat-tag">Debugging</div>
-        <div class="chat-msg chat-msg-user"><div class="chat-bubble chat-bubble-user">Why would a SwiftUI view not update when my @Observable model changes?</div></div>
-        <div class="chat-msg chat-msg-assistant"><div class="chat-bubble chat-bubble-assistant">Most common causes:<ol><li>Mutating the model off the <code>MainActor</code>.</li><li>The view holds a copy instead of observing the original.</li><li>You're using <code>let</code> on a value that changes.</li></ol>Mark your model <code>@MainActor</code> and inject via <code>@Bindable</code> or <code>@Environment</code>.</div></div>
-        <div class="chat-disclaimer">AI can make mistakes. Check important info.</div>
-      </div>
-
+      <a class="shot-card" href="img/screens/code.png"><img src="img/screens/code.png" alt="Safer bash copy — multi-turn coding chat" loading="lazy"><span>Bash scripting</span></a>
+      <a class="shot-card" href="img/screens/debug.png"><img src="img/screens/debug.png" alt="SwiftUI view not updating — debugging chat" loading="lazy"><span>SwiftUI debugging</span></a>
+      <a class="shot-card" href="img/screens/travel.png"><img src="img/screens/travel.png" alt="Vienna weekend plan — travel chat" loading="lazy"><span>Travel planning</span></a>
+      <a class="shot-card" href="img/screens/writing.png"><img src="img/screens/writing.png" alt="Formal wording rewrite — writing chat" loading="lazy"><span>Formal wording</span></a>
+      <a class="shot-card" href="img/screens/translate.png"><img src="img/screens/translate.png" alt="Japanese then Spanish translation" loading="lazy"><span>Translation</span></a>
+      <a class="shot-card" href="img/screens/creative.png"><img src="img/screens/creative.png" alt="Tokyo noir opening — creative writing" loading="lazy"><span>Creative writing</span></a>
+      <a class="shot-card" href="img/screens/grammar.png"><img src="img/screens/grammar.png" alt="Grammar fix and explanation" loading="lazy"><span>Grammar</span></a>
+      <a class="shot-card" href="img/screens/context.png"><img src="img/screens/context.png" alt="Context window explainer" loading="lazy"><span>Tech explainer</span></a>
+      <a class="shot-card" href="img/screens/quickfact.png"><img src="img/screens/quickfact.png" alt="Miles, feet, and marathon kilometres" loading="lazy"><span>Quick facts</span></a>
+      <a class="shot-card" href="img/screens/hero.png"><img src="img/screens/hero.png" alt="Product launch memo" loading="lazy"><span>Product memo</span></a>
     </div>
   </div>
 </section>
@@ -354,6 +290,30 @@ footer a{color:var(--brand);}
           <tr><td>On-device speech</td><td class="cmp-us"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+</section>
+
+<section class="sec sec-dark">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="lbl">Command line</div>
+      <h2>Also yours to script.</h2>
+      <p>The same app runs from the terminal. Single shot, named chats, resumable context.</p>
+    </div>
+    <div class="chat-mock" style="max-width:720px;margin:0 auto;background:#0c1220;color:#e6edf3;border-color:#1c2540;">
+      <pre style="background:transparent;color:#e6edf3;padding:0;margin:0;font-size:14px;line-height:1.7;overflow-x:auto;">$ airplaneai -p "What is 2+2?"
+4. That is the sum of two and two.
+
+$ airplaneai -p "Explain closures" -n "swift-learning"
+<span style="color:#8ab4ff;">A closure is a function together with the variables it captured from its
+surrounding scope…</span>
+
+$ airplaneai -p "Give me an example" -n "swift-learning" --continue
+<span style="color:#8ab4ff;">Sure — here's a minimal Swift closure that captures a counter…</span>
+
+$ airplaneai --list
+swift-learning     (4 msgs)</pre>
     </div>
   </div>
 </section>
@@ -397,8 +357,8 @@ footer a{color:var(--brand);}
       <h2>One download. One minute.</h2>
     </div>
     <div class="install-card">
-      <h3>Mac App Store</h3>
-      <p>Coming soon. Meanwhile, build from source:</p>
+      <h3>Mac App Store &mdash; €29.99</h3>
+      <p>One purchase. No subscription. Includes the GUI and the <code>airplaneai</code> CLI.</p>
       <a class="btn-brand btn-big" href="https://github.com/Arthur-Ficial/airplane-ai" target="_blank" rel="noopener">View on GitHub</a>
     </div>
   </div>
