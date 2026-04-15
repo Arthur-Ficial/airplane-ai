@@ -3,25 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Airplane AI — The AI chat that works offline</title>
-<meta name="description" content="Your AI stops when the Wi-Fi stops. This one doesn't. Gemma runs on your Mac. No cloud, no account, no API key, no subscription. Works in airplane mode.">
+<title>Airplane AI — The NDA-safe AI that works in airplane mode</title>
+<meta name="description" content="Private AI chat for Mac. Gemma runs 100% on-device. No cloud, no account, no telemetry. GDPR-compliant by construction. Safe for NDA work, sensitive client material, and offline use on planes, trains, and locked-down networks.">
 <link rel="canonical" href="https://airplane-ai.franzai.com/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Airplane AI">
 <meta property="og:url" content="https://airplane-ai.franzai.com/">
-<meta property="og:title" content="Your AI stops when the Wi-Fi stops. This one doesn't.">
-<meta property="og:description" content="Private AI chat that runs entirely on your Mac. Works without Wi-Fi, without an account, without an API key.">
+<meta property="og:title" content="The NDA-safe AI that even works in airplane mode.">
+<meta property="og:description" content="Gemma runs entirely on your Mac. Your prompts never leave the device. Works offline, behind a firewall, on NDA-bound client work. GDPR-compliant by construction.">
 <meta property="og:image" content="https://airplane-ai.franzai.com/img/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Airplane AI — AI that never phones home. Runs on your Mac. Offline. Forever.">
+<meta property="og:image:alt" content="Airplane AI — The NDA-safe AI that even works in airplane mode.">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Your AI stops when the Wi-Fi stops. This one doesn't.">
-<meta name="twitter:description" content="Offline AI chat for Mac. 100% on-device. Gemma + llama.cpp.">
+<meta name="twitter:title" content="The NDA-safe AI that even works in airplane mode.">
+<meta name="twitter:description" content="Private AI chat for Mac. 100% on-device Gemma. GDPR-compliant. Safe for NDA work. Works offline.">
 <meta name="twitter:image" content="https://airplane-ai.franzai.com/img/og-image.png">
-<meta name="twitter:image:alt" content="Airplane AI — AI that never phones home.">
-<meta name="theme-color" content="#007AFF">
+<meta name="twitter:image:alt" content="Airplane AI — The NDA-safe AI that even works in airplane mode.">
+<meta name="theme-color" content="#0F4C81">
 <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
@@ -47,10 +47,11 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --brand:#007AFF;
-  --brand-dark:#0056b3;
-  --brand-light:#e6f1ff;
-  --brand-tint:#f5f9ff;
+  --brand:#0F4C81;
+  --brand-dark:#0A3960;
+  --brand-light:#E8EEF5;
+  --brand-tint:#F4F7FB;
+  --brand-highlight:#1E6BB8;
   --dark:#0d1117;
   --dark2:#161b22;
   --text:#1a1a1a;
@@ -104,6 +105,18 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
 .sec-dark .sec-head h2{color:#fff;}
 .sec-head p{font-size:16px;color:var(--text2);line-height:1.6;max-width:560px;margin:0 auto;}
 .sec-dark .sec-head p{color:#9aa4b2;}
+.trust-grid{display:grid;grid-template-columns:1fr;gap:14px;max-width:680px;margin:0 auto;}
+.trust-card{background:#fff;border:1px solid var(--bdl);border-radius:14px;padding:22px 24px;box-shadow:0 2px 10px rgba(15,76,129,.05);}
+.trust-card h3{font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;letter-spacing:-.2px;}
+.trust-card p{font-size:15px;color:var(--text2);line-height:1.6;}
+.trust-card code{background:var(--brand-light);color:var(--brand-dark);padding:1px 6px;border-radius:4px;font-family:ui-monospace,"SF Mono",monospace;font-size:13px;}
+.trust-card a{color:var(--brand);font-weight:600;}
+.trust-icon{font-size:26px;line-height:1;margin-bottom:10px;color:var(--brand);}
+.trust-note{font-size:12.5px;color:var(--muted);line-height:1.55;max-width:680px;margin:20px auto 0;text-align:center;}
+.model-spec{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:680px;margin:24px auto 0;}
+.model-spec dt{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:2px;}
+.model-spec dd{font-size:15px;color:var(--text);font-weight:600;margin-bottom:12px;}
+@media (min-width:640px){.trust-grid{grid-template-columns:1fr 1fr;}}
 .pain-grid{display:grid;grid-template-columns:1fr;gap:14px;}
 .pain{background:#0f1520;border:1px solid #1d2535;border-radius:12px;padding:20px 22px;}
 .pain-ask{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#f87171;margin-bottom:6px;}
@@ -111,9 +124,15 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
 .pain p{font-size:15px;color:#9aa4b2;line-height:1.55;}
 .pain p em{color:var(--brand);font-style:normal;font-weight:600;}
 .chat-mock{background:#fff;border:1px solid var(--bdl);border-radius:14px;padding:18px 16px 16px;box-shadow:0 4px 20px rgba(0,0,0,.06);overflow:hidden;}
-.shot-card{display:block;background:#fff;border:1px solid var(--bdl);border-radius:12px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.08);transition:transform .2s ease,box-shadow .2s ease;text-decoration:none;color:inherit;}
+.shot-card{display:block;background:#fff;border:1px solid var(--bdl);border-radius:12px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.08);transition:transform .2s ease,box-shadow .2s ease;text-decoration:none;color:inherit;cursor:zoom-in;}
 .shot-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.12);}
 .shot-card img{display:block;width:100%;height:auto;}
+.lbx{display:none;position:fixed;inset:0;background:rgba(13,17,23,.92);z-index:1000;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;animation:lbxfade .15s ease-out;}
+.lbx:target{display:flex;}
+.lbx img{max-width:96vw;max-height:92vh;width:auto;height:auto;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.6);}
+.lbx-close{position:absolute;top:16px;right:20px;color:#fff;text-decoration:none;font-size:30px;line-height:1;font-weight:300;opacity:.8;}
+.lbx-close:hover{opacity:1;}
+@keyframes lbxfade{from{opacity:0;}to{opacity:1;}}
 .shot-card span{display:block;padding:10px 14px;font-size:13px;font-weight:600;color:#444;border-top:1px solid var(--bdl);}
 .chat-tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-dark);background:var(--brand-light);padding:3px 9px;border-radius:4px;margin-bottom:14px;}
 .chat-msg{display:flex;margin-bottom:12px;gap:8px;}
@@ -137,7 +156,7 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
 .cmp th.cmp-us{background:var(--brand-light);color:var(--brand-dark);}
 .cmp td{padding:12px 14px;border-top:1px solid #f0f4f9;color:var(--text2);text-align:center;vertical-align:middle;}
 .cmp td:first-child{text-align:left;color:var(--text);font-weight:500;}
-.cmp td.cmp-us{background:#f5f9ff;}
+.cmp td.cmp-us{background:var(--brand-tint);}
 .ck,.cx{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:13px;font-weight:700;}
 .ck{background:var(--green);color:#fff;}
 .cx{background:#eaeaea;color:#aaa;}
@@ -200,8 +219,8 @@ footer a{color:var(--brand);}
 <section class="hero">
   <div class="wrap">
     <img class="hero-icon" src="img/icon-256.png" alt="Airplane AI app icon" width="112" height="112">
-    <h1>Your AI stops when the Wi-Fi stops.<br><em>This one doesn't.</em></h1>
-    <p class="hero-sub">A real AI chat &mdash; full Gemma model &mdash; that runs <strong>entirely on your Mac</strong>. No Wi-Fi. No account. No API key. No subscription. Works in airplane mode. Literally.</p>
+    <h1>The <em>NDA-safe AI</em> that even works in <em>airplane mode</em>.</h1>
+    <p class="hero-sub">A state-of-the-art local AI model running <strong>entirely on your Mac</strong>. Your prompts never leave the device. Works offline, on a plane, behind a firewall, on sensitive client work. No cloud, no account, no API key, no subscription, no telemetry. <strong>GDPR-compliant by construction</strong>.</p>
     <div class="hero-ctas">
       <a class="btn-brand btn-big" href="#install">Get for Mac</a>
       <a class="btn-dark btn-big" href="https://github.com/Arthur-Ficial/airplane-ai" target="_blank" rel="noopener">GitHub</a>
@@ -219,8 +238,51 @@ footer a{color:var(--brand);}
 </section>
 
 <div class="banner">
-  <p>No <span class="brand">Wi-Fi</span>. No <span class="brand">account</span>. No <span class="brand">subscription</span>. No <span class="brand">telemetry</span>.</p>
+  <p>No <span class="brand">Wi-Fi</span>. No <span class="brand">account</span>. No <span class="brand">subscription</span>. No <span class="brand">telemetry</span>. No <span class="brand">leaks</span>.</p>
 </div>
+
+<section class="sec sec-light">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="lbl">Safe by construction</div>
+      <h2>The NDA-safe AI.</h2>
+      <p>Nothing ever leaves your Mac &mdash; not even in the background. Enforced by the macOS sandbox, not by policy.</p>
+    </div>
+    <div class="trust-grid">
+      <div class="trust-card">
+        <div class="trust-icon">✈︎</div>
+        <h3>Works in airplane mode. Literally.</h3>
+        <p>Zero network code paths. No <code>URLSession</code>, no sockets, no telemetry SDKs in the binary. Auditable. You can drop Wi-Fi mid-sentence and keep typing.</p>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">🔒</div>
+        <h3>NDA-safe for the general case.</h3>
+        <p>Your prompts, attachments, and responses never leave the device. Nothing is sent to a vendor, cached on a server, or used to train a model. For typical confidentiality clauses that prohibit disclosure to third-party cloud services, Airplane AI removes the disclosure vector entirely.*</p>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">🇪🇺</div>
+        <h3>GDPR-compliant by construction.</h3>
+        <p>No personal data is transmitted, stored on a remote server, or processed by a third party &mdash; there is no third party. Article 6 lawful basis and Article 28 processor agreements don't apply when no processor exists. Your SwiftData store lives in your user container and stays there.</p>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">🛡</div>
+        <h3>Sandboxed to a single entitlement.</h3>
+        <p>The app ships with <code>com.apple.security.app-sandbox</code> and nothing else. No network, no outgoing connections, no file-system access outside its own container. CI blocks the build if forbidden symbols (<code>URLSession</code>, <code>NWConnection</code>, <code>WKWebView</code>, analytics SDKs) appear anywhere in the binary.</p>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">⌛︎</div>
+        <h3>One purchase. Yours forever.</h3>
+        <p>€29.99 one-time on the Mac App Store. No subscription. No per-seat pricing. No kill-switch. Your copy keeps working on macOS 15+ whether we ship new versions or not.</p>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">🧠</div>
+        <h3>Real model. Real answers.</h3>
+        <p>A state-of-the-art local AI model, Metal-accelerated on Apple Silicon. Streams tokens sub-second after warmup. Not a demo, not a toy &mdash; real open-weight quality, running locally. <a href="#the-model">What model and why →</a></p>
+      </div>
+    </div>
+    <p class="trust-note">* "NDA-safe for the general case" means that for typical NDAs prohibiting disclosure to third-party cloud services or generative AI vendors, Airplane AI eliminates the disclosure path because no such vendor exists in the data flow. Some NDAs have unusual clauses &mdash; always read your specific agreement. We can't read it for you.</p>
+  </div>
+</section>
 
 <section class="sec sec-dark">
   <div class="wrap">
@@ -256,19 +318,30 @@ footer a{color:var(--brand);}
       <p>Screenshots from the actual app &mdash; every response generated on-device by the bundled Gemma model.</p>
     </div>
     <div class="showcase">
-      <a class="shot-card" href="img/screens/code.png"><img src="img/screens/code.png" alt="Safer bash copy — multi-turn coding chat" width="2700" height="1684" loading="lazy" decoding="async"><span>Bash scripting</span></a>
-      <a class="shot-card" href="img/screens/debug.png"><img src="img/screens/debug.png" alt="SwiftUI view not updating — debugging chat" width="2700" height="1684" loading="lazy" decoding="async"><span>SwiftUI debugging</span></a>
-      <a class="shot-card" href="img/screens/travel.png"><img src="img/screens/travel.png" alt="Vienna weekend plan — travel chat" width="2700" height="1684" loading="lazy" decoding="async"><span>Travel planning</span></a>
-      <a class="shot-card" href="img/screens/writing.png"><img src="img/screens/writing.png" alt="Formal wording rewrite — writing chat" width="2700" height="1684" loading="lazy" decoding="async"><span>Formal wording</span></a>
-      <a class="shot-card" href="img/screens/translate.png"><img src="img/screens/translate.png" alt="Japanese then Spanish translation" width="2700" height="1684" loading="lazy" decoding="async"><span>Translation</span></a>
-      <a class="shot-card" href="img/screens/creative.png"><img src="img/screens/creative.png" alt="Tokyo noir opening — creative writing" width="2700" height="1684" loading="lazy" decoding="async"><span>Creative writing</span></a>
-      <a class="shot-card" href="img/screens/grammar.png"><img src="img/screens/grammar.png" alt="Grammar fix and explanation" width="2700" height="1684" loading="lazy" decoding="async"><span>Grammar</span></a>
-      <a class="shot-card" href="img/screens/context.png"><img src="img/screens/context.png" alt="Context window explainer" width="2700" height="1684" loading="lazy" decoding="async"><span>Tech explainer</span></a>
-      <a class="shot-card" href="img/screens/quickfact.png"><img src="img/screens/quickfact.png" alt="Miles, feet, and marathon kilometres" width="2700" height="1684" loading="lazy" decoding="async"><span>Quick facts</span></a>
-      <a class="shot-card" href="img/screens/hero.png"><img src="img/screens/hero.png" alt="Product launch memo" width="2700" height="1684" loading="lazy" decoding="async"><span>Product memo</span></a>
+      <a class="shot-card" href="#lbx-code"><img src="img/screens/code.png" alt="Safer bash copy — multi-turn coding chat" width="2700" height="1684" loading="lazy" decoding="async"><span>Bash scripting</span></a>
+      <a class="shot-card" href="#lbx-debug"><img src="img/screens/debug.png" alt="SwiftUI view not updating — debugging chat" width="2700" height="1684" loading="lazy" decoding="async"><span>SwiftUI debugging</span></a>
+      <a class="shot-card" href="#lbx-travel"><img src="img/screens/travel.png" alt="Vienna weekend plan — travel chat" width="2700" height="1684" loading="lazy" decoding="async"><span>Travel planning</span></a>
+      <a class="shot-card" href="#lbx-writing"><img src="img/screens/writing.png" alt="Formal wording rewrite — writing chat" width="2700" height="1684" loading="lazy" decoding="async"><span>Formal wording</span></a>
+      <a class="shot-card" href="#lbx-translate"><img src="img/screens/translate.png" alt="Japanese then Spanish translation" width="2700" height="1684" loading="lazy" decoding="async"><span>Translation</span></a>
+      <a class="shot-card" href="#lbx-creative"><img src="img/screens/creative.png" alt="Tokyo noir opening — creative writing" width="2700" height="1684" loading="lazy" decoding="async"><span>Creative writing</span></a>
+      <a class="shot-card" href="#lbx-grammar"><img src="img/screens/grammar.png" alt="Grammar fix and explanation" width="2700" height="1684" loading="lazy" decoding="async"><span>Grammar</span></a>
+      <a class="shot-card" href="#lbx-context"><img src="img/screens/context.png" alt="Context window explainer" width="2700" height="1684" loading="lazy" decoding="async"><span>Tech explainer</span></a>
+      <a class="shot-card" href="#lbx-quickfact"><img src="img/screens/quickfact.png" alt="Miles, feet, and marathon kilometres" width="2700" height="1684" loading="lazy" decoding="async"><span>Quick facts</span></a>
+      <a class="shot-card" href="#lbx-hero"><img src="img/screens/hero.png" alt="Product launch memo" width="2700" height="1684" loading="lazy" decoding="async"><span>Product memo</span></a>
     </div>
   </div>
 </section>
+
+<a class="lbx" id="lbx-code" href="#showcase"><a class="lbx-close" href="#showcase" aria-label="Close">×</a><img src="img/screens/code.png" alt="Safer bash copy — multi-turn coding chat" loading="lazy"></a>
+<a class="lbx" id="lbx-debug" href="#showcase"><a class="lbx-close" href="#showcase" aria-label="Close">×</a><img src="img/screens/debug.png" alt="SwiftUI view not updating — debugging chat" loading="lazy"></a>
+<a class="lbx" id="lbx-travel" href="#showcase"><a class="lbx-close" href="#showcase" aria-label="Close">×</a><img src="img/screens/travel.png" alt="Vienna weekend plan — travel chat" loading="lazy"></a>
+<a class="lbx" id="lbx-writing" href="#showcase"><a class="lbx-close" href="#showcase" aria-label="Close">×</a><img src="img/screens/writing.png" alt="Formal wording rewrite — writing chat" loading="lazy"></a>
+<a class="lbx" id="lbx-translate" href="#showcase"><a class="lbx-close" href="#showcase" aria-label="Close">×</a><img src="img/screens/translate.png" alt="Japanese then Spanish translation" loading="lazy"></a>
+<a class="lbx" id="lbx-creative" href="#showcase"><a class="lbx-close" href="#showcase" aria-label="Close">×</a><img src="img/screens/creative.png" alt="Tokyo noir opening — creative writing" loading="lazy"></a>
+<a class="lbx" id="lbx-grammar" href="#showcase"><a class="lbx-close" href="#showcase" aria-label="Close">×</a><img src="img/screens/grammar.png" alt="Grammar fix and explanation" loading="lazy"></a>
+<a class="lbx" id="lbx-context" href="#showcase"><a class="lbx-close" href="#showcase" aria-label="Close">×</a><img src="img/screens/context.png" alt="Context window explainer" loading="lazy"></a>
+<a class="lbx" id="lbx-quickfact" href="#showcase"><a class="lbx-close" href="#showcase" aria-label="Close">×</a><img src="img/screens/quickfact.png" alt="Miles, feet, and marathon kilometres" loading="lazy"></a>
+<a class="lbx" id="lbx-hero" href="#showcase"><a class="lbx-close" href="#showcase" aria-label="Close">×</a><img src="img/screens/hero.png" alt="Product launch memo" loading="lazy"></a>
 
 <section class="sec sec-light">
   <div class="wrap">
@@ -288,10 +361,13 @@ footer a{color:var(--brand);}
           </tr>
         </thead>
         <tbody>
-          <tr><td>Works offline</td><td class="cmp-us"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
+          <tr><td>Works offline / airplane mode</td><td class="cmp-us"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
           <tr><td>Data stays on your Mac</td><td class="cmp-us"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
           <tr><td>No account required</td><td class="cmp-us"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
           <tr><td>No subscription</td><td class="cmp-us"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
+          <tr><td>GDPR-compliant by construction</td><td class="cmp-us"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
+          <tr><td>No training on your data</td><td class="cmp-us"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
+          <tr><td>Works behind a firewall</td><td class="cmp-us"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
           <tr><td>No rate limits</td><td class="cmp-us"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
           <tr><td>Works during outages</td><td class="cmp-us"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
           <tr><td>On-device speech</td><td class="cmp-us"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
@@ -340,6 +416,34 @@ swift-learning     (4 msgs)</pre>
   </div>
 </section>
 
+<section class="sec" id="the-model">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="lbl">The model</div>
+      <h2>Gemma 3n E4B, quantized for your Mac.</h2>
+      <p>We ship Google's open-weight Gemma 3n Effective-4B model (~4B-param quality, mixture-of-experts design). Q4_K_M quantization keeps the weights dense enough to stay sharp on writing, coding, and reasoning while fitting comfortably in 16 GB of RAM with headroom for the OS, browser, and your real work.</p>
+    </div>
+    <div class="wrap" style="max-width:680px;padding:0;">
+      <p style="font-size:15px;color:var(--text2);line-height:1.65;margin-bottom:14px;"><strong>Why Gemma 3n.</strong> Open weights (Gemma Terms of Use), state-of-the-art efficiency at this size class, multilingual, handles code, respects instructions, and runs well under <code style="background:var(--brand-light);color:var(--brand-dark);padding:1px 6px;border-radius:4px;font-family:ui-monospace,&quot;SF Mono&quot;,monospace;font-size:13px;">llama.cpp</code> with Metal acceleration. No vendor lock-in &mdash; the same weights are public and auditable.</p>
+      <p style="font-size:15px;color:var(--text2);line-height:1.65;margin-bottom:0;"><strong>Why Q4_K_M.</strong> Four-bit K-means quantization preserves almost all of the reasoning quality of the full model while cutting RAM use by ~4x. It's the sweet spot between file size and answer quality for 16&ndash;24 GB Macs.</p>
+    </div>
+    <dl class="model-spec">
+      <div><dt>Model</dt><dd>Gemma 3n E4B (instruct)</dd></div>
+      <div><dt>Format</dt><dd>GGUF, Q4_K_M quantization</dd></div>
+      <div><dt>Inference</dt><dd>llama.cpp, Metal accelerated</dd></div>
+      <div><dt>Context window</dt><dd>up to 8K tokens</dd></div>
+      <div><dt>Minimum RAM</dt><dd>16 GB</dd></div>
+      <div><dt>Recommended RAM</dt><dd>24 GB for best speed</dd></div>
+      <div><dt>Model size on disk</dt><dd>~4.5 GB (bundled)</dd></div>
+      <div><dt>Time to first token</dt><dd>sub-second after warmup (24 GB class)</dd></div>
+      <div><dt>Streaming</dt><dd>live token-by-token, cancelable &lt; 150 ms</dd></div>
+      <div><dt>Verification</dt><dd>SHA-256 checked at launch</dd></div>
+      <div><dt>Network</dt><dd>zero &mdash; model is bundled, never downloaded</dd></div>
+      <div><dt>Training on your data</dt><dd>never &mdash; weights are frozen</dd></div>
+    </dl>
+  </div>
+</section>
+
 <section class="sec sec-light">
   <div class="wrap">
     <div class="sec-head">
@@ -347,11 +451,15 @@ swift-learning     (4 msgs)</pre>
       <h2>Every question, answered.</h2>
     </div>
     <div class="aa-grid">
-      <div class="aa-row"><div class="aa-q">Will it replace ChatGPT?</div><div class="aa-a">No. For deep research, cloud AI is still better. Most days you don't need it.</div></div>
-      <div class="aa-row"><div class="aa-q">Is the bundled model good enough?</div><div class="aa-a">For what you actually ask every day? <strong>Yes.</strong> Gemma 3n E4B handles code, writing, analysis, translation.</div></div>
-      <div class="aa-row"><div class="aa-q">Does it phone home?</div><div class="aa-a"><strong>No.</strong> Zero network entitlements. Verified by a CI script that fails the build if <code>URLSession</code> ever appears.</div></div>
+      <div class="aa-row"><div class="aa-q">Is it safe for NDA-bound work?</div><div class="aa-a">For the general case, <strong>yes</strong>. Your prompts never leave your Mac &mdash; nothing is sent to a vendor, cached on a server, or used to train a model. If your NDA prohibits disclosure to third-party cloud / generative-AI services, Airplane AI removes that disclosure path entirely. Always read your specific NDA &mdash; unusual clauses exist.</div></div>
+      <div class="aa-row"><div class="aa-q">Is it GDPR-compliant?</div><div class="aa-a"><strong>By construction.</strong> No personal data is transmitted, stored remotely, or processed by a third party &mdash; there is no third party. Article 28 processor agreements don't apply when no processor exists. The only data on disk is your local SwiftData store, inside your user sandbox.</div></div>
+      <div class="aa-row"><div class="aa-q">Does it really work in airplane mode?</div><div class="aa-a"><strong>Yes &mdash; literally.</strong> Drop Wi-Fi mid-sentence, it keeps going. Zero network code paths in the binary. Verified by a CI script that fails the build if <code>URLSession</code>, <code>NWConnection</code>, or any analytics SDK ever appears.</div></div>
+      <div class="aa-row"><div class="aa-q">What does it cost?</div><div class="aa-a">€29.99 one-time on the Mac App Store. No subscription, no per-seat pricing, no kill-switch. Your copy keeps working forever.</div></div>
+      <div class="aa-row"><div class="aa-q">Will it replace ChatGPT?</div><div class="aa-a">No. For deep research and the latest knowledge, cloud AI is still better. Most days you don't need it &mdash; and on the days you need privacy, you can't use it.</div></div>
       <div class="aa-row"><div class="aa-q">Do I need an account or API key?</div><div class="aa-a"><strong>No.</strong> Just a Mac.</div></div>
-      <div class="aa-row"><div class="aa-q">How big is the model?</div><div class="aa-a">~4.5 GB bundled inside the app. Memory-mapped, so it doesn't eat all your RAM.</div></div>
+      <div class="aa-row"><div class="aa-q">Is the bundled model good enough?</div><div class="aa-a">For what you actually ask every day? <strong>Yes.</strong> It handles code, writing, analysis, translation. <a href="#the-model">See the model spec →</a></div></div>
+      <div class="aa-row"><div class="aa-q">How much RAM do I need?</div><div class="aa-a">16 GB minimum, 24 GB recommended for best throughput. Apple Silicon only (M1 or newer).</div></div>
+      <div class="aa-row"><div class="aa-q">How big is the model?</div><div class="aa-a">~4.5 GB bundled inside the app. Memory-mapped at launch, so it doesn't eat all your RAM.</div></div>
       <div class="aa-row"><div class="aa-q">Multimodal?</div><div class="aa-a"><strong>Yes.</strong> Paste images (Apple Vision OCR), drag documents, hold the mic. All processed on-device.</div></div>
     </div>
   </div>
