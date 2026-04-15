@@ -11,17 +11,22 @@
 <meta property="og:url" content="https://airplane-ai.franzai.com/">
 <meta property="og:title" content="Your AI stops when the Wi-Fi stops. This one doesn't.">
 <meta property="og:description" content="Private AI chat that runs entirely on your Mac. Works without Wi-Fi, without an account, without an API key.">
-<meta property="og:image" content="https://airplane-ai.franzai.com/img/icon.png">
-<meta property="og:image:width" content="1024">
-<meta property="og:image:height" content="1024">
+<meta property="og:image" content="https://airplane-ai.franzai.com/img/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Airplane AI — AI that never phones home. Runs on your Mac. Offline. Forever.">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Your AI stops when the Wi-Fi stops. This one doesn't.">
 <meta name="twitter:description" content="Offline AI chat for Mac. 100% on-device. Gemma + llama.cpp.">
-<meta name="twitter:image" content="https://airplane-ai.franzai.com/img/icon.png">
+<meta name="twitter:image" content="https://airplane-ai.franzai.com/img/og-image.png">
+<meta name="twitter:image:alt" content="Airplane AI — AI that never phones home.">
 <meta name="theme-color" content="#007AFF">
-<link rel="icon" type="image/png" href="img/icon-64.png">
-<link rel="apple-touch-icon" href="img/icon-256.png">
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preload" as="image" href="img/icon-256.png" fetchpriority="high">
 <script type="application/ld+json">
 {
 "@context": "https://schema.org",
@@ -31,7 +36,9 @@
 "applicationCategory": "ProductivityApplication",
 "description": "Private offline AI chat for macOS. Gemma model via llama.cpp, multimodal input, zero cloud, zero telemetry.",
 "url": "https://airplane-ai.franzai.com/",
-"softwareVersion": "0.3.0",
+"softwareVersion": "0.3.1",
+"image": "https://airplane-ai.franzai.com/img/og-image.png",
+"offers": { "@type": "Offer", "price": "29.99", "priceCurrency": "EUR", "availability": "https://schema.org/PreOrder" },
 "processorRequirements": "Apple Silicon",
 "memoryRequirements": "16 GB",
 "author": { "@type": "Person", "name": "Franz Enzenhofer", "url": "https://fullstackoptimization.com" }
@@ -206,7 +213,7 @@ footer a{color:var(--brand);}
       <span>100% Local</span>
     </div>
     <div class="hero-shot">
-      <img src="img/screens/hero.png" alt="Airplane AI showing 10 real offline conversations" style="width:100%;max-width:1100px;border-radius:12px;box-shadow:0 12px 48px rgba(0,0,0,.18);border:1px solid var(--bdl);">
+      <img src="img/screens/hero.png" alt="Airplane AI showing 10 real offline conversations" width="2700" height="1684" fetchpriority="high" decoding="async" style="width:100%;height:auto;max-width:1100px;border-radius:12px;box-shadow:0 12px 48px rgba(0,0,0,.18);border:1px solid var(--bdl);">
     </div>
   </div>
 </section>
@@ -249,16 +256,16 @@ footer a{color:var(--brand);}
       <p>Screenshots from the actual app &mdash; every response generated on-device by the bundled Gemma model.</p>
     </div>
     <div class="showcase">
-      <a class="shot-card" href="img/screens/code.png"><img src="img/screens/code.png" alt="Safer bash copy — multi-turn coding chat" loading="lazy"><span>Bash scripting</span></a>
-      <a class="shot-card" href="img/screens/debug.png"><img src="img/screens/debug.png" alt="SwiftUI view not updating — debugging chat" loading="lazy"><span>SwiftUI debugging</span></a>
-      <a class="shot-card" href="img/screens/travel.png"><img src="img/screens/travel.png" alt="Vienna weekend plan — travel chat" loading="lazy"><span>Travel planning</span></a>
-      <a class="shot-card" href="img/screens/writing.png"><img src="img/screens/writing.png" alt="Formal wording rewrite — writing chat" loading="lazy"><span>Formal wording</span></a>
-      <a class="shot-card" href="img/screens/translate.png"><img src="img/screens/translate.png" alt="Japanese then Spanish translation" loading="lazy"><span>Translation</span></a>
-      <a class="shot-card" href="img/screens/creative.png"><img src="img/screens/creative.png" alt="Tokyo noir opening — creative writing" loading="lazy"><span>Creative writing</span></a>
-      <a class="shot-card" href="img/screens/grammar.png"><img src="img/screens/grammar.png" alt="Grammar fix and explanation" loading="lazy"><span>Grammar</span></a>
-      <a class="shot-card" href="img/screens/context.png"><img src="img/screens/context.png" alt="Context window explainer" loading="lazy"><span>Tech explainer</span></a>
-      <a class="shot-card" href="img/screens/quickfact.png"><img src="img/screens/quickfact.png" alt="Miles, feet, and marathon kilometres" loading="lazy"><span>Quick facts</span></a>
-      <a class="shot-card" href="img/screens/hero.png"><img src="img/screens/hero.png" alt="Product launch memo" loading="lazy"><span>Product memo</span></a>
+      <a class="shot-card" href="img/screens/code.png"><img src="img/screens/code.png" alt="Safer bash copy — multi-turn coding chat" width="2700" height="1684" loading="lazy" decoding="async"><span>Bash scripting</span></a>
+      <a class="shot-card" href="img/screens/debug.png"><img src="img/screens/debug.png" alt="SwiftUI view not updating — debugging chat" width="2700" height="1684" loading="lazy" decoding="async"><span>SwiftUI debugging</span></a>
+      <a class="shot-card" href="img/screens/travel.png"><img src="img/screens/travel.png" alt="Vienna weekend plan — travel chat" width="2700" height="1684" loading="lazy" decoding="async"><span>Travel planning</span></a>
+      <a class="shot-card" href="img/screens/writing.png"><img src="img/screens/writing.png" alt="Formal wording rewrite — writing chat" width="2700" height="1684" loading="lazy" decoding="async"><span>Formal wording</span></a>
+      <a class="shot-card" href="img/screens/translate.png"><img src="img/screens/translate.png" alt="Japanese then Spanish translation" width="2700" height="1684" loading="lazy" decoding="async"><span>Translation</span></a>
+      <a class="shot-card" href="img/screens/creative.png"><img src="img/screens/creative.png" alt="Tokyo noir opening — creative writing" width="2700" height="1684" loading="lazy" decoding="async"><span>Creative writing</span></a>
+      <a class="shot-card" href="img/screens/grammar.png"><img src="img/screens/grammar.png" alt="Grammar fix and explanation" width="2700" height="1684" loading="lazy" decoding="async"><span>Grammar</span></a>
+      <a class="shot-card" href="img/screens/context.png"><img src="img/screens/context.png" alt="Context window explainer" width="2700" height="1684" loading="lazy" decoding="async"><span>Tech explainer</span></a>
+      <a class="shot-card" href="img/screens/quickfact.png"><img src="img/screens/quickfact.png" alt="Miles, feet, and marathon kilometres" width="2700" height="1684" loading="lazy" decoding="async"><span>Quick facts</span></a>
+      <a class="shot-card" href="img/screens/hero.png"><img src="img/screens/hero.png" alt="Product launch memo" width="2700" height="1684" loading="lazy" decoding="async"><span>Product memo</span></a>
     </div>
   </div>
 </section>

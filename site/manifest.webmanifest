@@ -1,0 +1,14 @@
+{
+  "name": "Airplane AI",
+  "short_name": "Airplane AI",
+  "description": "Private offline AI chat for macOS. Gemma runs on your Mac. No cloud. No telemetry.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#ffffff",
+  "theme_color": "#007AFF",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "img/icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" }
+  ]
+}

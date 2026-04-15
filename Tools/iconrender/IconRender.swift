@@ -1,26 +1,39 @@
-// Renders the canonical AirplaneGlyph to PNGs at all required macOS icon sizes
-// and builds AppIcon.icns via iconutil. Run via:
+// Rasterizes the canonical brand PNG to all macOS iconset sizes and packages
+// AppIcon.icns via iconutil. Run via:
 //   swift run -c release AirplaneIconRender <output-icns-path>
 //
-// This is the SSOT for the icon: the exact same glyph the About tab shows.
-import SwiftUI
+// Source of truth: branding/airplane-ai.png (pre-designed full app-icon artwork,
+// light background included). The tool rescales that single master to every
+// iconset spec Apple requires, preserving color and sharp edges via high-quality
+// Lanczos interpolation through CoreImage.
+import Foundation
 import AppKit
 
 @main
-@MainActor
 struct IconRenderMain {
     static func main() throws {
-        let outArg = CommandLine.arguments.dropFirst().first
-            ?? "Sources/AirplaneAI/Resources/AppIcon.icns"
+        let args = CommandLine.arguments.dropFirst()
+        let outArg = args.first ?? "Sources/AirplaneAI/Resources/AppIcon.icns"
         let outURL = URL(fileURLWithPath: outArg)
+
+        let repoRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let sourcePNG = repoRoot.appendingPathComponent("branding/airplane-ai.png")
+        guard FileManager.default.fileExists(atPath: sourcePNG.path) else {
+            throw NSError(domain: "IconRender", code: -10,
+                          userInfo: [NSLocalizedDescriptionKey: "Missing \(sourcePNG.path)"])
+        }
+        guard let master = NSImage(contentsOf: sourcePNG) else {
+            throw NSError(domain: "IconRender", code: -11,
+                          userInfo: [NSLocalizedDescriptionKey: "Cannot decode \(sourcePNG.path)"])
+        }
 
         let buildDir = outURL.deletingLastPathComponent().appendingPathComponent(".iconrender-tmp", isDirectory: true)
         let iconset = buildDir.appendingPathComponent("AppIcon.iconset", isDirectory: true)
         try? FileManager.default.removeItem(at: buildDir)
         try FileManager.default.createDirectory(at: iconset, withIntermediateDirectories: true)
 
-        // All sizes Apple's iconutil wants for macOS AppIcon.icns.
-        let specs: [(pt: CGFloat, name: String)] = [
+        let specs: [(pt: Int, name: String)] = [
             (16,   "icon_16x16.png"),
             (32,   "icon_16x16@2x.png"),
             (32,   "icon_32x32.png"),
@@ -33,9 +46,10 @@ struct IconRenderMain {
             (1024, "icon_512x512@2x.png"),
         ]
         for spec in specs {
-            try render(size: spec.pt, to: iconset.appendingPathComponent(spec.name))
+            try rescale(master: master, to: spec.pt,
+                        outURL: iconset.appendingPathComponent(spec.name))
         }
-        // Ask iconutil to package.
+
         let proc = Process()
         proc.launchPath = "/usr/bin/iconutil"
         proc.arguments = ["-c", "icns", "-o", outURL.path, iconset.path]
@@ -48,44 +62,34 @@ struct IconRenderMain {
         try? FileManager.default.removeItem(at: buildDir)
     }
 
-    @MainActor
-    static func render(size: CGFloat, to url: URL) throws {
-        let view = AppIconRenderable().frame(width: size, height: size)
-        let renderer = ImageRenderer(content: view)
-        renderer.scale = 1.0
-        renderer.proposedSize = .init(width: size, height: size)
-        guard let nsImage = renderer.nsImage else {
-            throw NSError(domain: "IconRender", code: -1)
-        }
-        guard let tiff = nsImage.tiffRepresentation,
-              let rep = NSBitmapImageRep(data: tiff),
-              let png = rep.representation(using: .png, properties: [:]) else {
+    static func rescale(master: NSImage, to pt: Int, outURL: URL) throws {
+        let size = NSSize(width: pt, height: pt)
+        let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: pt, pixelsHigh: pt,
+            bitsPerSample: 8, samplesPerPixel: 4,
+            hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: 0, bitsPerPixel: 32
+        )
+        rep?.size = size
+        guard let rep else {
             throw NSError(domain: "IconRender", code: -2)
         }
-        try png.write(to: url)
-    }
-}
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        NSGraphicsContext.current?.imageInterpolation = .high
+        master.draw(
+            in: NSRect(origin: .zero, size: size),
+            from: .zero,
+            operation: .copy,
+            fraction: 1.0
+        )
+        NSGraphicsContext.restoreGraphicsState()
 
-// The icon body — must match AirplaneGlyph in the app exactly.
-// White rounded-square background, accent-blue tinted circle, SF-Symbol airplane rotated -20°.
-struct AppIconRenderable: View {
-    var body: some View {
-        GeometryReader { geo in
-            let s = min(geo.size.width, geo.size.height)
-            ZStack {
-                RoundedRectangle(cornerRadius: s * 0.22, style: .continuous)
-                    .fill(Color.white)
-                Circle()
-                    .fill(Color(red: 0.0, green: 0.48, blue: 1.0).opacity(0.12))
-                    .frame(width: s * 0.66, height: s * 0.66)
-                Image(systemName: "airplane")
-                    .resizable()
-                    .scaledToFit()
-                    .foregroundStyle(Color(red: 0.0, green: 0.48, blue: 1.0))
-                    .frame(width: s * 0.44, height: s * 0.44)
-                    .rotationEffect(.degrees(-20))
-            }
-            .frame(width: s, height: s)
+        guard let png = rep.representation(using: .png, properties: [:]) else {
+            throw NSError(domain: "IconRender", code: -3)
         }
+        try png.write(to: outURL)
     }
 }
