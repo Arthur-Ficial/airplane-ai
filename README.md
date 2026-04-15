@@ -31,7 +31,7 @@ Airplane AI is a paid, local-first macOS chat app. It ships one bundled model --
 - **Completely offline AI** -- Gemma 4 E4B runs on-device via Metal GPU. No cloud. No network entitlements. Kernel-enforced sandbox.
 - **Image understanding** -- paste or drag images into the composer. Apple Vision extracts OCR text and scene labels on-device. The model sees only the extracted text.
 - **Document support** -- drag PDF, Word, Markdown, code files, CSV, or JSON into chat. Text is extracted immediately and shown before sending.
-- **Speech input** -- hold the mic button to record. Apple SFSpeechRecognizer transcribes on-device with `requiresOnDeviceRecognition`. No audio leaves your Mac.
+- **Speech input** -- tap the mic button to dictate into the composer. Airplane AI uses Apple speech recognition and prefers on-device dictation whenever Apple provides it for the selected language.
 - **Privacy by architecture** -- App Sandbox enabled, zero network entitlements, zero telemetry, zero analytics, zero crash SDKs. CI scripts verify this on every build.
 - **Streaming Markdown** -- responses stream token-by-token with live Markdown rendering. Code blocks, lists, emphasis -- all rendered as they arrive.
 - **Conversation history** -- SwiftData persistence with versioned schemas and migration plans. Your chats survive restarts, sleep/wake, and app updates.
@@ -86,8 +86,14 @@ airplaneai -p "What is 2+2?"
 # Named persistent chat
 airplaneai -p "Explain closures" -n "swift-learning"
 
+# Replace an existing named chat with a fresh one
+airplaneai -p "Start over from scratch" -n "swift-learning" --new
+
 # Continue the same chat
 airplaneai -p "Now give me an example" -n "swift-learning" --continue
+
+# JSON output for scripts
+airplaneai -p "Summarize this repo" --json
 
 # Housekeeping
 airplaneai --list
@@ -96,6 +102,12 @@ airplaneai --delete -n "swift-learning"
 ```
 
 Exit codes: `0` success, `1` engine error, `2` user error, `3` named chat not found.
+
+Install the GUI app and CLI symlink together with:
+
+```bash
+make install
+```
 
 ## Architecture
 
@@ -135,7 +147,7 @@ All non-text input is converted to plain text on-device before reaching the mode
 | PDF | PDFKit | Extracted page text |
 | Word (.docx) / RTF | textutil | Extracted text |
 | Markdown / TXT / code | Direct UTF-8 read | Raw text |
-| Speech (hold to record) | SFSpeechRecognizer (on-device only) | Transcript |
+| Speech (tap mic to record) | SFSpeechRecognizer (prefers on-device when available) | Transcript |
 
 ## Runtime Profiles
 
@@ -160,6 +172,7 @@ Airplane AI does not just promise privacy -- it enforces it at the build system 
   - `verify-no-forbidden-deps.sh` -- blocks analytics, telemetry, and crash SDK imports
   - `verify-model-manifest.sh` -- confirms model SHA-256 matches the committed manifest
 - **Local-only persistence.** Conversations are stored in SwiftData inside the app sandbox. No iCloud sync. No export in v1.
+- **Frozen dependency notices.** Shipped third-party components and exact pinned revisions are listed in [ThirdPartyNotices.txt](Sources/AirplaneAI/Resources/licenses/ThirdPartyNotices.txt).
 
 ## Development
 

@@ -74,7 +74,7 @@ private struct AttachmentTextView: View {
         return ScrollView([.horizontal, .vertical]) {
             HStack(alignment: .top, spacing: 0) {
                 VStack(alignment: .trailing, spacing: 0) {
-                    ForEach(Array(lines.enumerated()), id: \.offset) { idx, _ in
+                    ForEach(lines.indices, id: \.self) { idx in
                         Text("\(idx + 1)")
                             .font(.system(size: 11, design: .monospaced))
                             .foregroundStyle(.tertiary)
@@ -92,8 +92,8 @@ private struct AttachmentTextView: View {
                     .frame(width: 1)
 
                 VStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
-                        Text(line.isEmpty ? " " : line)
+                    ForEach(lines.indices, id: \.self) { idx in
+                        Text(lines[idx].isEmpty ? " " : lines[idx])
                             .font(.system(size: 11, design: .monospaced))
                             .foregroundStyle(.primary)
                             .textSelection(.enabled)

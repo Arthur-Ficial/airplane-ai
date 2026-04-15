@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "tolerancePercent": 10.0,
+  "benchmarks": [
+    {
+      "name": "context_fit_200_messages",
+      "maxMilliseconds": 2.5,
+      "iterations": 200
+    },
+    {
+      "name": "output_sanitizer_10000_chunks",
+      "maxMilliseconds": 7.5,
+      "iterations": 120
+    },
+    {
+      "name": "prompt_formatter_200_messages",
+      "maxMilliseconds": 0.8,
+      "iterations": 250
+    }
+  ]
+}

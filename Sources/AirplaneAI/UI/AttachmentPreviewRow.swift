@@ -7,7 +7,7 @@ struct AttachmentPreviewRow: View {
 
     var body: some View {
         HStack(spacing: Metrics.Padding.small) {
-            ForEach(Array(attachments.enumerated()), id: \.offset) { _, att in
+            ForEach(attachments) { att in
                 attachmentView(att)
                     .onTapGesture { openPreview(att) }
             }

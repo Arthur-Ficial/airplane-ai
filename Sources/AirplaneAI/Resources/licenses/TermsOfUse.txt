@@ -29,8 +29,12 @@ Airplane AI uses a local AI model to generate text responses. You
 acknowledge and agree that:
 
 - AI outputs may contain errors, inaccuracies, or fabricated information.
+- AI outputs may also be harmful, misleading, defamatory, infringing, unsafe,
+  offensive, or otherwise unlawful depending on how they are generated or used.
 - You are solely responsible for verifying any information provided by
   the AI before relying on it.
+- You are solely responsible for reviewing outputs before using, sharing,
+  publishing, or acting on them.
 - The developer makes no guarantees about the accuracy, completeness,
   reliability, or fitness for any particular purpose of AI outputs.
 - AI-generated content does not constitute professional advice of any
@@ -77,7 +81,9 @@ The developer does not warrant that:
 
 TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE DEVELOPER SHALL NOT BE
 LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE
-DAMAGES ARISING FROM YOUR USE OF THE APP OR ANY AI-GENERATED CONTENT.
+DAMAGES ARISING FROM YOUR USE OF THE APP, YOUR USE OF ANY AI-GENERATED
+CONTENT, OR YOUR RELIANCE ON ANY OUTPUT THAT IS HARMFUL, INFRINGING,
+MISLEADING, DEFAMATORY, OR OTHERWISE UNSUITABLE.
 
 ------------------------------------------------------------------------
 

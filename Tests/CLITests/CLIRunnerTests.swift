@@ -40,6 +40,33 @@ struct CLIRunnerTests {
         #expect(saved?.messages.last?.content.contains("capture") == true)
     }
 
+    @Test("--new replaces existing named chat contents")
+    func replacingChat() async throws {
+        let engine = MockInferenceEngine()
+        engine.scriptedTokens = ["fresh ", "reply"]
+        let store = MockConversationStore()
+        try await store.save(Conversation(
+            title: "swift-learning",
+            messages: [
+                ChatMessage(role: .user, content: "old", createdAt: Date(), status: .complete),
+                ChatMessage(role: .assistant, content: "stale", createdAt: Date(), status: .complete),
+            ]
+        ))
+        let runner = CLIRunner(engine: engine, store: store, systemPrompt: "sys")
+        let output = CapturingCLIOutput()
+
+        let code = await runner.run(
+            arguments: ["-p", "Explain closures.", "-n", "swift-learning", "--new", "-q"],
+            output: output
+        )
+
+        #expect(code == 0)
+        let saved = try await store.allConversations().first { $0.title == "swift-learning" }
+        #expect(saved?.messages.count == 2)
+        #expect(saved?.messages.first?.content == "Explain closures.")
+        #expect(saved?.messages.last?.content == "fresh reply")
+    }
+
     @Test("--continue on existing chat appends rather than replacing")
     func continueChat() async throws {
         let engine = MockInferenceEngine()
@@ -117,6 +144,24 @@ struct CLIRunnerTests {
         let code = await runner.run(arguments: ["--nope"], output: output)
 
         #expect(code == 2)
+    }
+
+    @Test("--json emits JSON payload")
+    func jsonOutput() async throws {
+        let engine = MockInferenceEngine()
+        engine.scriptedTokens = ["fo", "ur"]
+        let runner = CLIRunner(
+            engine: engine,
+            store: MockConversationStore(),
+            systemPrompt: "sys"
+        )
+        let output = CapturingCLIOutput()
+
+        let code = await runner.run(arguments: ["-p", "What is 2+2?", "--json"], output: output)
+
+        #expect(code == 0)
+        #expect(output.stdout.contains("\"reply\""))
+        #expect(output.stdout.contains("four"))
     }
 }
 

@@ -1,0 +1,25 @@
+Airplane AI — Third-Party Dependency Index
+
+Airplane AI itself is proprietary software.
+This file is the short version: exact shipped dependency, frozen version, and
+where the real license or terms live.
+
+1. llama.cpp / ggml runtime
+   - Frozen release: b8763
+   - Frozen revision: ff5ef8278615a2462b79b50abdf3cc95cfb31c6f
+   - License: MIT
+   - License file: Vendor/llama.cpp/llama-b8763/LICENSE
+
+2. Gemma model weights
+   - Frozen source model: unsloth/gemma-3n-E4B-it-GGUF
+   - Frozen bundled file: gemma-3n-E4B-it-Q4_K_M.gguf
+   - Frozen SHA-256: 43b489bb77a81bda85180e7c490d40ad7f1d5c2ce654c9b05e15e104bd3c777e
+   - Terms file: Sources/AirplaneAI/Resources/licenses/Gemma-Notice.txt
+   - Manifest: Sources/AirplaneAI/Resources/models/airplane-model-manifest.json
+
+3. Apple system frameworks
+   - SwiftUI, AppKit, AVFoundation, Speech, Vision, PDFKit,
+     UniformTypeIdentifiers
+   - Provided by macOS, not redistributed in this repository
+
+There are currently no external Swift Package Manager dependencies in this repo.

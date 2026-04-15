@@ -101,15 +101,10 @@ The model sees only the extracted text, never the raw image.
 
 7. SPEECH RECOGNITION
 
-When you use voice input, Airplane AI uses Apple's SFSpeechRecognizer
-with on-device recognition enforced:
-
-- requiresOnDeviceRecognition is set to true.
-- No audio is sent to Apple's servers or any other server.
-- If on-device recognition is unavailable, the feature fails rather than
-  falling back to server-based recognition.
-
-Your voice never leaves your device.
+When you use voice input, Airplane AI uses Apple's SFSpeechRecognizer.
+When Apple provides on-device recognition for the selected language,
+Airplane AI asks for it. Some languages may rely on Apple's standard
+speech-recognition path instead.
 
 ------------------------------------------------------------------------
 

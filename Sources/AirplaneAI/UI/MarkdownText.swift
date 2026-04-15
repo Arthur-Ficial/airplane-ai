@@ -6,9 +6,10 @@ struct MarkdownText: View {
     let text: String
 
     var body: some View {
+        let blocks = parseBlocks(text)
         VStack(alignment: .leading, spacing: 8) {
-            ForEach(Array(parseBlocks(text).enumerated()), id: \.offset) { _, block in
-                render(block)
+            ForEach(blocks.indices, id: \.self) { idx in
+                render(blocks[idx])
             }
         }
     }
@@ -23,10 +24,10 @@ struct MarkdownText: View {
             CodeBlockView(code: body, language: lang)
         case .list(let items, let ordered):
             VStack(alignment: .leading, spacing: 4) {
-                ForEach(Array(items.enumerated()), id: \.offset) { i, item in
+                ForEach(items.indices, id: \.self) { i in
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text(ordered ? "\(i + 1)." : "•").foregroundStyle(.secondary)
-                        Text(inline(item)).textSelection(.enabled)
+                        Text(inline(items[i])).textSelection(.enabled)
                     }
                 }
             }

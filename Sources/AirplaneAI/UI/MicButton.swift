@@ -13,7 +13,7 @@ struct MicButton: View {
                     pulseRing
                     Image(systemName: "mic.fill")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Color.accentColor)
                 } else {
                     Image(systemName: "mic")
                         .font(.system(size: 14, weight: .medium))
@@ -24,20 +24,19 @@ struct MicButton: View {
             .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .help(speechInput.isListening ? L.micStopRecording : L.micVoiceInput)
+        .help(buttonHelpText)
         .accessibilityLabel(speechInput.isListening ? L.micStopRecording : L.micVoiceInput)
-        .disabled(speechInput.errorMessage != nil)
     }
 
     @ViewBuilder
     private var pulseRing: some View {
         if reduceMotion {
             Circle()
-                .stroke(.red.opacity(0.4), lineWidth: 1.5)
+                .stroke(Color.accentColor.opacity(0.4), lineWidth: 1.5)
                 .frame(width: 22, height: 22)
         } else {
             Circle()
-                .stroke(.red.opacity(0.4), lineWidth: 1.5)
+                .stroke(Color.accentColor.opacity(0.4), lineWidth: 1.5)
                 .frame(width: 22, height: 22)
                 .scaleEffect(pulseScale)
                 .onAppear {
@@ -55,6 +54,7 @@ struct MicButton: View {
             if !text.isEmpty { onTranscript(text) }
         } else {
             Task {
+                speechInput.errorMessage = nil
                 let ok = await speechInput.requestPermissions()
                 guard ok else {
                     speechInput.errorMessage = L.micPermissionDenied
@@ -63,5 +63,12 @@ struct MicButton: View {
                 speechInput.startListening()
             }
         }
+    }
+
+    private var buttonHelpText: String {
+        if let errorMessage = speechInput.errorMessage, !speechInput.isListening {
+            return errorMessage
+        }
+        return speechInput.isListening ? L.micStopRecording : L.micVoiceInput
     }
 }

@@ -3,21 +3,29 @@ import SwiftUI
 struct SettingsView: View {
     let state: AppState?
     let store: (any ConversationStore)?
+    let audioPreferences: AudioPreferences?
     @AppStorage("airplane.appearance") private var appearance: String = "system"
     @AppStorage("airplane.timeFormat") private var timeFormat: String = "relative"
     @AppStorage("airplane.sendWith") private var sendWith: String = "enter"
     @AppStorage("airplane.contextOverride") private var contextOverride: Int = 0
     @AppStorage("airplane.showTokenCounts") private var showTokenCounts: Bool = true
+    @AppStorage("airplane.showOnboardingOnNextLaunch") private var showOnboardingOnNextLaunch: Bool = false
 
-    init(state: AppState? = nil, store: (any ConversationStore)? = nil) {
+    init(
+        state: AppState? = nil,
+        store: (any ConversationStore)? = nil,
+        audioPreferences: AudioPreferences? = nil
+    ) {
         self.state = state
         self.store = store
+        self.audioPreferences = audioPreferences
     }
 
     var body: some View {
         TabView {
             appearanceTab.tabItem { Label("Appearance", systemImage: "paintbrush") }
             keyboardTab.tabItem { Label("Keyboard", systemImage: "keyboard") }
+            audioTab.tabItem { Label(L.audioTabTitle, systemImage: "waveform.and.mic") }
             contextTab.tabItem { Label("Context", systemImage: "text.alignleft") }
             aboutTab.tabItem { Label("About", systemImage: "info.circle") }
             privacyTab.tabItem { Label("Privacy", systemImage: "lock.shield") }
@@ -110,6 +118,12 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Audio
+
+    private var audioTab: some View {
+        AudioSettingsTab(audioPreferences: audioPreferences)
+    }
+
     // MARK: - Context
 
     private var contextTab: some View {
@@ -157,6 +171,13 @@ struct SettingsView: View {
                     .tint(.red)
                     .controlSize(.large)
                 }
+                SettingsCard(
+                    title: "Welcome sequence",
+                    subtitle: "Show the onboarding flow again the next time the app launches."
+                ) {
+                    Toggle("Show welcome sequence with next launch", isOn: $showOnboardingOnNextLaunch)
+                        .toggleStyle(.switch)
+                }
             }
             .padding(20)
         }
@@ -166,9 +187,22 @@ struct SettingsView: View {
         guard let store else { return }
         do {
             let all = try await store.allConversations()
-            for c in all { try? await store.delete(id: c.id) }
+            for c in all {
+                do {
+                    try await store.delete(id: c.id)
+                } catch {
+                    await MainActor.run {
+                        state?.lastError = .generationFailed(summary: error.localizedDescription)
+                    }
+                    return
+                }
+            }
             await MainActor.run { state?.conversations.removeAll() }
-        } catch {}
+        } catch {
+            await MainActor.run {
+                state?.lastError = .generationFailed(summary: error.localizedDescription)
+            }
+        }
     }
 
     // MARK: - Debug

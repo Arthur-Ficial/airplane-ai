@@ -4,7 +4,7 @@ struct AboutSettingsTab: View {
     let state: AppState?
     @State private var showTermsOfUse = false
     @State private var showGemmaLicense = false
-    @AppStorage("airplane.hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @State private var showThirdPartyNotices = false
 
     var body: some View {
         ScrollView {
@@ -37,16 +37,8 @@ struct AboutSettingsTab: View {
                             .buttonStyle(.bordered)
                         Button("Gemma Model License") { showGemmaLicense = true }
                             .buttonStyle(.bordered)
-                    }
-                }
-                SettingsCard(title: "Welcome") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Button("Show welcome screen on next launch") {
-                            hasCompletedOnboarding = false
-                        }
-                        .buttonStyle(.bordered)
-                        Text("Re-runs the 3-step onboarding with the AI-works explainer and legal agreement.")
-                            .font(.caption).foregroundStyle(.secondary)
+                        Button("Third-Party Notices") { showThirdPartyNotices = true }
+                            .buttonStyle(.bordered)
                     }
                 }
                 SettingsCard(title: "Links") {
@@ -64,6 +56,9 @@ struct AboutSettingsTab: View {
         }
         .sheet(isPresented: $showGemmaLicense) {
             LegalTextView(title: "Gemma Model License", resourceName: "Gemma-Notice")
+        }
+        .sheet(isPresented: $showThirdPartyNotices) {
+            LegalTextView(title: "Third-Party Notices", resourceName: "ThirdPartyNotices")
         }
     }
 

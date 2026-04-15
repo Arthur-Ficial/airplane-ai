@@ -1,29 +1,40 @@
 import Foundation
 import Speech
 
-/// On-device speech-to-text via SFSpeechRecognizer. Fails hard if on-device is unavailable.
-public final class SpeechTranscriber: SpeechTranscribing, @unchecked Sendable {
-    private let recognizer: SFSpeechRecognizer?
+/// Speech-to-text via SFSpeechRecognizer. Prefers on-device mode when Apple provides it.
+public actor SpeechTranscriber: SpeechTranscribing {
+    private let locale: Locale
 
     public init(locale: Locale = .current) {
-        self.recognizer = SFSpeechRecognizer(locale: locale)
-        recognizer?.defaultTaskHint = .dictation
+        self.locale = locale
     }
 
     public var isAvailable: Bool {
-        guard let r = recognizer else { return false }
-        return r.isAvailable && r.supportsOnDeviceRecognition
+        SFSpeechRecognizer(locale: locale)?.isAvailable ?? false
     }
 
     public func transcribe(_ audioURL: URL) async throws -> String {
-        guard let recognizer else {
+        try await Self.runRecognitionTask(locale: locale, audioURL: audioURL)
+    }
+
+    // SFSpeechRecognizer.recognitionTask delivers its callback on a background queue.
+    // Constructing the recognizer AND starting the task from a nonisolated helper keeps
+    // the non-Sendable SFSpeechRecognizer from crossing isolation boundaries, and
+    // prevents the callback closure from inheriting actor isolation — which would
+    // trip swift_task_checkIsolatedSwift when the system invokes it off-actor and
+    // trap with EXC_BREAKPOINT under Swift 6.
+    private nonisolated static func runRecognitionTask(
+        locale: Locale,
+        audioURL: URL
+    ) async throws -> String {
+        guard let recognizer = SFSpeechRecognizer(locale: locale) else {
             throw AppError.generationFailed(summary: "Speech recognizer unavailable")
         }
-        guard recognizer.supportsOnDeviceRecognition else {
-            throw AppError.generationFailed(summary: "On-device speech not supported")
-        }
+        recognizer.defaultTaskHint = .dictation
         let request = SFSpeechURLRecognitionRequest(url: audioURL)
-        request.requiresOnDeviceRecognition = true
+        if recognizer.supportsOnDeviceRecognition {
+            request.requiresOnDeviceRecognition = true
+        }
         request.shouldReportPartialResults = false
 
         return try await withCheckedThrowingContinuation { cont in

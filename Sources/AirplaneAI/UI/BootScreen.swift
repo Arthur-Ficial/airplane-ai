@@ -28,7 +28,7 @@ struct BootScreen: View {
                 ProgressView(value: displayedFraction)
                     .progressViewStyle(.linear)
                     .tint(.accentColor)
-                    .animation(.easeInOut(duration: 0.25), value: displayedFraction)
+                    .animation(ScreenshotMode.isEnabled ? nil : .easeInOut(duration: 0.25), value: displayedFraction)
 
                 VStack(spacing: 3) {
                     Text(state.boot.step).font(.callout.weight(.medium))
@@ -44,9 +44,18 @@ struct BootScreen: View {
         .padding(40)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(bootBackground)
-        .onAppear { startTicker() }
+        .onAppear {
+            displayedFraction = state.boot.fraction
+            if !ScreenshotMode.isEnabled {
+                startTicker()
+            }
+        }
         .onChange(of: state.boot.fraction) { _, new in
-            withAnimation(.easeInOut(duration: 0.3)) { displayedFraction = new }
+            if ScreenshotMode.isEnabled {
+                displayedFraction = new
+            } else {
+                withAnimation(.easeInOut(duration: 0.3)) { displayedFraction = new }
+            }
         }
     }
 

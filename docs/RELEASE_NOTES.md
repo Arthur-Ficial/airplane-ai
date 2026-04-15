@@ -1,3 +1,27 @@
+# Airplane AI v0.3.1 — Speech stability + composer performance
+
+Reliability release focused on the voice-input pipeline and main-thread responsiveness during live transcription.
+
+## Fixed in v0.3.1
+
+### Speech input: three separate isolation-trap crashes
+- `SFSpeechRecognizer.requestAuthorization` callback from TCC on a background queue no longer traps `swift_task_checkIsolatedSwift` — extracted into a `nonisolated static` bridge so the closure never inherits `@MainActor`.
+- `AVAudioInputNode.installTap` callback on the real-time `RealtimeMessenger.mServiceQueue` no longer traps on the first audio buffer — same nonisolated bridge pattern.
+- `SFSpeechRecognizer.recognitionTask` callback preemptively hardened with `@Sendable` result/error reporters; `SpeechTranscriber` actor refactored to construct the recognizer inside the nonisolated helper so the non-Sendable recognizer never crosses actor isolation.
+
+### Composer hang during live transcription fixed at the root
+- `ChatMessage` is a struct; `ForEach(Array(messages.enumerated()))` was deep-copying every message on every body re-render. At ~10Hz partial-transcript updates with 14+ messages that pegged the main thread and hung the app.
+- Replaced with `ForEach(messages)` + a precomputed `Set<UUID>` of divider-before IDs — O(n) once per render, zero per-item value copies.
+- Extracted composer state into `ComposerModel` (`@Observable @MainActor`). `ChatView` never reads `composer.draft` in its body, so live transcription now invalidates only the `InputBar` subtree. Profiler: zero `ChatMessage` copies and zero `AG::Subgraph::update` samples during 2s of active listening (was ~1749 of 2167 samples during the 61s hang).
+- Same allocation fix applied to `AttachmentTextWindow`, `AttachmentPreviewRow`, and `MarkdownText`.
+
+### UX polish
+- Mic button pulses accent-color (blue) while recording instead of red.
+- Live partial transcript is mirrored into the composer in real time.
+- "Listening…" pill indicator appears above the composer while speech is active.
+
+---
+
 # Airplane AI v0.3.0 — Production Ready
 
 Award-winning quality release: comprehensive E2E testing, legal compliance, live speech input, spoken responses, command-line interface, landing page, and App Store readiness.
@@ -26,7 +50,7 @@ Award-winning quality release: comprehensive E2E testing, legal compliance, live
 ### Live microphone input
 - Toggle mic button in toolbar (right of settings gear)
 - Tap to start, tap to stop — transcript appended to composer
-- On-device only via SFSpeechRecognizer with `requiresOnDeviceRecognition = true`
+- Apple SFSpeechRecognizer, preferring on-device dictation when available
 - Red pulse animation while recording (respects Reduce Motion)
 - Permission error handling with System Settings deep link
 
@@ -83,7 +107,7 @@ Airplane AI now understands images, documents, and speech — all processed on-d
 
 ### Speech input
 - Hold-to-record mic button in the composer
-- Apple SFSpeechRecognizer with `requiresOnDeviceRecognition = true`
+- Apple SFSpeechRecognizer with on-device preference when Apple provides it
 - Transcript appended to your message draft
 - Entitlement: `com.apple.security.device.audio-input` (the only addition to sandbox)
 

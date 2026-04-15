@@ -68,8 +68,8 @@ Source: `Sources/AirplaneAI/Resources/AppIcon.icns` (icon_512x512@2x)
 ```
 Airplane AI is a fully-offline AI assistant. It ships with a bundled ~4.5 GB
 model file (Gemma 3n E4B Q4_K_M, Apache 2.0 licensed). The app has only the
-app-sandbox entitlement plus device.audio-input (for on-device speech
-dictation via SFSpeechRecognizer with requiresOnDeviceRecognition = true).
+app-sandbox entitlement plus device.audio-input (for Apple speech
+dictation via SFSpeechRecognizer).
 
 It performs NO network activity. You can verify by running with Little Snitch
 or Airport mode — all features remain functional.
@@ -109,8 +109,8 @@ Enforced by `Tools/ci/verify-entitlements.sh` on every build.
 
 ## Info.plist Keys
 
-- `NSMicrophoneUsageDescription`: "Airplane AI uses your microphone for on-device speech-to-text dictation. Audio never leaves your Mac."
-- `NSSpeechRecognitionUsageDescription`: "Airplane AI uses on-device speech recognition to transcribe your voice into text. Speech is never sent to Apple or any server."
+- `NSMicrophoneUsageDescription`: "Airplane AI uses your microphone for speech-to-text dictation."
+- `NSSpeechRecognitionUsageDescription`: "Airplane AI uses Apple speech recognition to transcribe your voice into text."
 
 ## Build & Submit Workflow
 
@@ -126,9 +126,9 @@ make test                            # 201 tests pass
 # 3. Notarize
 ./scripts/notarize.sh                # xcrun notarytool submit → staple
 
-# 4. Upload via Transporter or xcrun altool
-xcrun altool --upload-app -f build/AirplaneAI.pkg \
-  -u "f.enzenhofer@gmail.com" -p "@keychain:AC_PASSWORD"
+# 4. Package or upload
+./scripts/appstore-submit.sh          # build + package only
+./scripts/appstore-submit.sh --upload # upload candidate build
 ```
 
 ## Final Pre-Submit Checks

@@ -8,6 +8,7 @@ public final class AppWiring {
     public let conversationController: ConversationController
     public let lifecycle: LifecycleManager
     public let store: any ConversationStore
+    public let audioPreferences: AudioPreferences
     public let liveSpeechInput: LiveSpeechInput
     public let speechOutput: SpeechOutput
 
@@ -60,8 +61,9 @@ public final class AppWiring {
         self.conversationController = ConversationController(state: state, store: store)
         self.lifecycle = LifecycleManager()
         self.store = store
-        self.liveSpeechInput = LiveSpeechInput()
-        self.speechOutput = SpeechOutput()
+        self.audioPreferences = AudioPreferences()
+        self.liveSpeechInput = LiveSpeechInput(preferences: audioPreferences)
+        self.speechOutput = SpeechOutput(preferences: audioPreferences)
     }
 
     public func boot() async {

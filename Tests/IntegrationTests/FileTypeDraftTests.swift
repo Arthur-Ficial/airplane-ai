@@ -178,7 +178,7 @@ struct FileTypeDraftTests {
     }
 
     private func writeTempImage(name: String, format: NSBitmapImageRep.FileType) -> URL {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        let url = uniqueTempURL(name: name)
         let img = NSImage(size: NSSize(width: 50, height: 50))
         img.lockFocus()
         NSColor.blue.drawSwatch(in: NSRect(x: 0, y: 0, width: 50, height: 50))
@@ -192,14 +192,21 @@ struct FileTypeDraftTests {
     }
 
     private func writeTempText(_ name: String, _ content: String) -> URL {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        let url = uniqueTempURL(name: name)
         try? content.write(to: url, atomically: true, encoding: .utf8)
         return url
     }
 
     private func writeTempBinary(_ name: String) -> URL {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        let url = uniqueTempURL(name: name)
         try? Data([0xFF, 0xFE, 0x00, 0x01, 0x80, 0x81]).write(to: url)
         return url
+    }
+
+    private func uniqueTempURL(name: String) -> URL {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory.appendingPathComponent(name)
     }
 }

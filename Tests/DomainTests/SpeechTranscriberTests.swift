@@ -19,11 +19,11 @@ struct SpeechTranscriberTests {
         }
     }
 
-    @Test func mockReportsAvailability() {
+    @Test func mockReportsAvailability() async {
         let mock = MockSpeechTranscriber()
-        #expect(mock.isAvailable == true)
+        #expect(await mock.isAvailable == true)
         mock.available = false
-        #expect(mock.isAvailable == false)
+        #expect(await mock.isAvailable == false)
     }
 
     @Test func audioAttachmentFromTranscript() {

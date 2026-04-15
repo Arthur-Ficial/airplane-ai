@@ -1,7 +1,7 @@
 import Foundation
 
 // Spec §12.4: stop on repetitive output / whitespace runs / over-length.
-public final class OutputSanitizer: @unchecked Sendable {
+public final class OutputSanitizer {
     public let maxOutputTokens: Int
     public let maxRepeatTokenID: Int          // same tokenID N times in a row
     public let maxRepeatLine: Int             // same line N times in a row

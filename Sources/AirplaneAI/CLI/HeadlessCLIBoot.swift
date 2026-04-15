@@ -71,7 +71,7 @@ enum HeadlessCLIBoot {
     }
 }
 
-private struct DummyEngine: InferenceEngine, @unchecked Sendable {
+private struct DummyEngine: InferenceEngine {
     var isModelLoaded: Bool { get async { false } }
     var loadedModelInfo: ModelInfo? { get async { nil } }
     func loadModel(at path: URL, contextWindow: Int) async throws {}

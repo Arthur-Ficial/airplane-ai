@@ -94,7 +94,11 @@ public final class ChatController {
                 tokenCounter: tokenCounter
             )
             beginGeneration(messages: withSystemPrompt(fit))
-        } catch let e as AppError { state.lastError = e } catch {}
+        } catch let e as AppError {
+            state.lastError = e
+        } catch {
+            state.lastError = .generationFailed(summary: error.localizedDescription)
+        }
     }
 
     public func deleteMessage(_ id: UUID) {

@@ -117,10 +117,11 @@ public struct CLIRunner: Sendable {
         var convo: Conversation
         do {
             if let existing = try await findByName(name) {
-                if args.continuing == false {
-                    // Default behavior for a named chat: append to existing if present.
+                if args.replacing {
+                    convo = Conversation(title: name, messages: [])
+                } else {
+                    convo = existing
                 }
-                convo = existing
             } else if args.continuing {
                 output.writeError("error: no chat named '\(name)' — run without --continue to create\n")
                 return 3
@@ -183,13 +184,17 @@ public struct CLIRunner: Sendable {
                 switch event {
                 case .token(let chunk):
                     accumulated += chunk.text
-                    if !args.quiet { output.write(chunk.text) }
+                    if !args.quiet && !args.json { output.write(chunk.text) }
                 case .finished:
                     break
                 }
             }
-            if args.quiet { output.write(accumulated) }
-            output.write("\n")
+            if args.json {
+                output.write(jsonResponse(reply: accumulated, args: args) + "\n")
+            } else {
+                if args.quiet { output.write(accumulated) }
+                output.write("\n")
+            }
             return accumulated
         } catch {
             output.writeError("\nerror: \(error.localizedDescription)\n")
@@ -214,6 +219,30 @@ public struct CLIRunner: Sendable {
         }
     }
 
+    private func jsonResponse(reply: String, args: CLIArguments) -> String {
+        struct Payload: Encodable {
+            let mode: String
+            let name: String?
+            let prompt: String?
+            let reply: String
+        }
+
+        let payload = Payload(
+            mode: String(describing: args.mode),
+            name: args.name,
+            prompt: args.prompt,
+            reply: reply
+        )
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        guard let data = try? encoder.encode(payload),
+              let string = String(data: data, encoding: .utf8) else {
+            return "{\"reply\":\"\(reply.replacingOccurrences(of: "\"", with: "\\\""))\"}"
+        }
+        return string
+    }
+
     public static let version = "0.3.0"
 
     public static let usage = """
@@ -223,6 +252,7 @@ public struct CLIRunner: Sendable {
       airplaneai -p <prompt>                    single-shot (not persisted)
       airplaneai -p <prompt> -n <name>          named chat (persisted)
       airplaneai -p <prompt> -n <name> --continue   continue existing chat
+      airplaneai -p <prompt> -n <name> --new        replace named chat contents
       airplaneai --list                         list saved chats
       airplaneai --show -n <name>               print chat transcript
       airplaneai --delete -n <name>             delete a chat
@@ -231,6 +261,7 @@ public struct CLIRunner: Sendable {
       -p, --prompt <text>       The prompt
       -n, --name <slug>         Named persistent chat
       --continue                Require the named chat to exist
+      --new                     Replace the named chat if it already exists
       -s, --system <text>       Override system prompt
       --max-tokens <n>          Cap output tokens
       --seed <n>                Reproducible sampling

@@ -18,6 +18,7 @@ struct CLIArgumentsTests {
         #expect(args.prompt == "hi")
         #expect(args.name == "foo")
         #expect(args.continuing == true)
+        #expect(args.replacing == false)
     }
 
     @Test("single-shot with just -p")
@@ -96,12 +97,31 @@ struct CLIArgumentsTests {
         #expect(args.quiet == true)
     }
 
+    @Test("--new requires --name and cannot combine with --continue")
+    func newFlagValidation() {
+        #expect(throws: CLIArgumentError.self) {
+            _ = try CLIArguments.parse(["-p", "hi", "--new"])
+        }
+        #expect(throws: CLIArgumentError.self) {
+            _ = try CLIArguments.parse(["-p", "hi", "-n", "demo", "--new", "--continue"])
+        }
+    }
+
+    @Test("--new parses for named replacement")
+    func newNamedChatParses() throws {
+        let args = try CLIArguments.parse(["-p", "hi", "-n", "demo", "--new", "--json"])
+        #expect(args.mode == .named)
+        #expect(args.replacing == true)
+        #expect(args.json == true)
+    }
+
     @Test("isCLIInvocation: true when -p or --prompt present")
     func detectsCLIInvocation() {
         #expect(CLIArguments.isCLIInvocation(arguments: ["AirplaneAI", "-p", "hi"]))
         #expect(CLIArguments.isCLIInvocation(arguments: ["AirplaneAI", "--prompt", "hi"]))
         #expect(CLIArguments.isCLIInvocation(arguments: ["AirplaneAI", "--list"]))
         #expect(CLIArguments.isCLIInvocation(arguments: ["AirplaneAI", "--help"]))
+        #expect(CLIArguments.isCLIInvocation(arguments: ["AirplaneAI", "--new", "-n", "demo", "-p", "hi"]))
     }
 
     @Test("isCLIInvocation: false for plain launch or seed mode")

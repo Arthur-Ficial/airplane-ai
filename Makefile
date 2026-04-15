@@ -1,11 +1,13 @@
 APP_NAME    = AirplaneAI
 APP_BUNDLE  = build/$(APP_NAME).app
 APP_DIR    ?= /Applications
+BIN_DIR    ?= /usr/local/bin
+BIN_LINK   ?= $(BIN_DIR)/airplaneai
 SWIFT      ?= swift
 LOCK        = ./scripts/with-build-lock.sh
 LINEBUF     = ./scripts/line-buffered.sh
 
-.PHONY: build test test-slow test-all model app run dist install release clean verify verify-bundle bench icon seed screenshots unstick
+.PHONY: build test test-slow test-all model app run dist install release clean verify verify-bundle bench icon seed screenshots appstore-submit unstick
 
 build:
 	@echo "==> swift build -c release"
@@ -42,24 +44,30 @@ install: app
 	@if [ -w "$(APP_DIR)" ]; then \
 		rm -rf "$(APP_DIR)/$(APP_NAME).app"; \
 		ditto "$(APP_BUNDLE)" "$(APP_DIR)/$(APP_NAME).app"; \
+		mkdir -p "$(BIN_DIR)"; \
+		ln -sf "$(APP_DIR)/$(APP_NAME).app/Contents/MacOS/$(APP_NAME)" "$(BIN_LINK)"; \
 	else \
 		sudo rm -rf "$(APP_DIR)/$(APP_NAME).app"; \
 		sudo ditto "$(APP_BUNDLE)" "$(APP_DIR)/$(APP_NAME).app"; \
+		sudo mkdir -p "$(BIN_DIR)"; \
+		sudo ln -sf "$(APP_DIR)/$(APP_NAME).app/Contents/MacOS/$(APP_NAME)" "$(BIN_LINK)"; \
 	fi
 	@echo "Installed $(APP_NAME).app to $(APP_DIR)"
+	@echo "Linked CLI at $(BIN_LINK)"
 
 verify:
 	./Tools/ci/verify-entitlements.sh
 	./Tools/ci/verify-no-network-symbols.sh
 	./Tools/ci/verify-no-forbidden-deps.sh
+	./Tools/ci/verify-quality-rules.sh
 	./Tools/ci/verify-model-manifest.sh
 
 verify-bundle: app
 	./Tools/ci/verify-app-bundle.sh
 
 bench:
-	@echo "==> swift run -c release AirplaneBenchmarks"
-	@$(LOCK) $(SWIFT) run -c release AirplaneBenchmarks
+	@echo "==> swift test --parallel (benchmark lane)"
+	@AIRPLANE_BENCHMARKS=1 $(LOCK) $(LINEBUF) $(SWIFT) test --parallel
 
 icon:
 	./scripts/generate-icon.sh
@@ -70,6 +78,9 @@ seed:
 
 screenshots: app
 	./scripts/generate-screenshots.sh
+
+appstore-submit:
+	./scripts/appstore-submit.sh
 
 unstick:
 	./scripts/unstick-swiftpm.sh

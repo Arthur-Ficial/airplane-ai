@@ -114,7 +114,11 @@ struct AirplaneAIApp: App {
         }
 
         Settings {
-            SettingsView(state: wiring?.state, store: wiring?.store)
+            SettingsView(
+                state: wiring?.state,
+                store: wiring?.store,
+                audioPreferences: wiring?.audioPreferences
+            )
         }
     }
 

@@ -4,8 +4,9 @@ struct RootWindow: View {
     let wiring: AppWiring?
     let bootError: String?
     @AppStorage("airplane.appearance") private var appearance: String = "system"
-    @AppStorage("airplane.hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @Environment(\.openSettings) private var openSettings
+    @State private var showOnboarding = false
+    @State private var didResolveOnboardingForLaunch = false
 
     var body: some View {
         Group {
@@ -14,13 +15,21 @@ struct RootWindow: View {
             else { BootScreen(state: AppState()) }
         }
         .frame(minWidth: 960, minHeight: 640)
-        .animation(.easeInOut(duration: 0.4), value: wiring != nil)
+        .animation(ScreenshotMode.isEnabled ? nil : .easeInOut(duration: 0.4), value: wiring != nil)
         .preferredColorScheme(preferredScheme)
         .onReceive(NotificationCenter.default.publisher(for: .airplaneOpenSettings)) { _ in
             openSettings()
         }
-        .sheet(isPresented: .constant(!hasCompletedOnboarding)) {
-            OnboardingView(onComplete: { hasCompletedOnboarding = true })
+        .onAppear {
+            guard !didResolveOnboardingForLaunch else { return }
+            didResolveOnboardingForLaunch = true
+            showOnboarding = OnboardingLaunchPolicy.shouldPresentOnLaunch(defaults: .standard)
+        }
+        .sheet(isPresented: $showOnboarding) {
+            OnboardingView {
+                OnboardingLaunchPolicy.markCompleted(defaults: .standard)
+                showOnboarding = false
+            }
                 .interactiveDismissDisabled()
         }
     }
@@ -66,6 +75,7 @@ struct RootWindow: View {
             ChatView(
                 state: wiring.state,
                 controller: wiring.chatController,
+                audioPreferences: wiring.audioPreferences,
                 speechInput: wiring.liveSpeechInput,
                 speechOutput: wiring.speechOutput
             )
@@ -80,13 +90,13 @@ struct RootWindow: View {
                     }
                     ToolbarItem(placement: .primaryAction) {
                         Button {
-                            wiring.speechOutput.isEnabled.toggle()
+                            wiring.audioPreferences.speechOutputEnabled.toggle()
                         } label: {
-                            Image(systemName: wiring.speechOutput.isEnabled ? "speaker.wave.2.fill" : "speaker.slash")
-                                .foregroundStyle(wiring.speechOutput.isEnabled ? Color.accentColor : Color.secondary)
+                            Image(systemName: wiring.audioPreferences.speechOutputEnabled ? "speaker.wave.2.fill" : "speaker.slash")
+                                .foregroundStyle(wiring.audioPreferences.speechOutputEnabled ? Color.accentColor : Color.secondary)
                         }
-                        .help(wiring.speechOutput.isEnabled ? "Speech output on" : "Speech output off")
-                        .accessibilityLabel(wiring.speechOutput.isEnabled ? "Turn off spoken responses" : "Turn on spoken responses")
+                        .help(wiring.audioPreferences.speechOutputEnabled ? "Speech output on" : "Speech output off")
+                        .accessibilityLabel(wiring.audioPreferences.speechOutputEnabled ? "Turn off spoken responses" : "Turn on spoken responses")
                     }
                 }
         }

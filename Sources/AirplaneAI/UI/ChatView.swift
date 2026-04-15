@@ -5,9 +5,10 @@ import UniformTypeIdentifiers
 struct ChatView: View {
     let state: AppState
     let controller: ChatController
+    let audioPreferences: AudioPreferences
     let speechInput: LiveSpeechInput
     let speechOutput: SpeechOutput
-    @State private var draft: String = ""
+    @State private var composer = ComposerModel()
     @State private var lastSpokenMessageID: UUID? = nil
     @State private var isFollowingTail = true
     @State private var lastScrollTime: ContinuousClock.Instant = .now
@@ -28,7 +29,7 @@ struct ChatView: View {
                 state: state,
                 controller: controller,
                 speechInput: speechInput,
-                draft: $draft,
+                composer: composer,
                 focused: $composerFocused,
                 onSubmit: submit,
                 onStop: stop
@@ -49,20 +50,13 @@ struct ChatView: View {
             }
         }
         .animation(.easeInOut(duration: Metrics.Duration.standardAnimation), value: state.lastError)
-        .onReceive(NotificationCenter.default.publisher(for: .airplaneMicTranscript)) { note in
-            if let text = note.userInfo?["text"] as? String, !text.isEmpty {
-                if !draft.isEmpty && !draft.hasSuffix(" ") { draft += " " }
-                draft += text
-                composerFocused = true
-            }
-        }
         .onChange(of: state.activeConversationID) { _, _ in
             isFollowingTail = true
             composerFocused = true
             lastSpokenMessageID = nil
         }
         .onChange(of: state.chatState) { old, new in
-            guard speechOutput.isEnabled else { return }
+            guard audioPreferences.speechOutputEnabled else { return }
             guard old == .generating, new == .idle else { return }
             guard let last = state.activeConversation?.messages.last,
                   last.role == .assistant,
@@ -77,7 +71,7 @@ struct ChatView: View {
         ScrollViewReader { proxy in
             ZStack(alignment: .bottomTrailing) {
                 messageScroll(messages: messages, proxy: proxy)
-                if !isFollowingTail {
+                if !isFollowingTail && !ScreenshotMode.isEnabled {
                     Button {
                         withAnimation(.easeOut(duration: Metrics.Duration.quickAnimation)) {
                             proxy.scrollTo("bottom", anchor: .bottom)
@@ -105,11 +99,10 @@ struct ChatView: View {
             ScrollView {
                 LazyVStack(spacing: Metrics.Padding.large) {
                     let lastAssistantID = messages.last(where: { $0.role == .assistant })?.id
-                    ForEach(Array(messages.enumerated()), id: \.element.id) { index, msg in
+                    let dividerBeforeIDs = computeDividerIDs(messages: messages)
+                    ForEach(messages) { msg in
                         let outOfContext = state.outOfContextMessageIDs.contains(msg.id)
-                        // Divider BETWEEN the last out-of-context message and the first in-context one.
-                        if !outOfContext, index > 0,
-                           state.outOfContextMessageIDs.contains(messages[index - 1].id) {
+                        if dividerBeforeIDs.contains(msg.id) {
                             contextCutoffDivider
                         }
                         MessageBubble(
@@ -120,7 +113,7 @@ struct ChatView: View {
                             onRegenerate: msg.id == lastAssistantID ? { Task { await controller.regenerateLastAssistant() } } : nil,
                             onDelete: { controller.deleteMessage(msg.id) },
                             onQuote: { quoted in
-                                draft = quoted + draft
+                                composer.prepend(quoted)
                                 composerFocused = true
                             }
                         )
@@ -157,10 +150,10 @@ struct ChatView: View {
     }
 
     private func submit() {
-        let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        let text = composer.draft.trimmingCharacters(in: .whitespacesAndNewlines)
         let hasAttachments = !controller.draftAttachments.isEmpty
         guard !text.isEmpty || hasAttachments else { return }
-        draft = ""
+        composer.clear()
         Task {
             await controller.send(text)
             composerFocused = true
@@ -168,6 +161,20 @@ struct ChatView: View {
     }
 
     private func stop() { controller.stop() }
+
+    // Divider marks the boundary between the trailing out-of-context messages and
+    // the first in-context message. Precompute the IDs that should render a divider
+    // BEFORE them so ForEach can test in O(1) without allocating an enumerated copy.
+    private func computeDividerIDs(messages: [ChatMessage]) -> Set<UUID> {
+        var result = Set<UUID>()
+        var previousWasOOC = false
+        for msg in messages {
+            let isOOC = state.outOfContextMessageIDs.contains(msg.id)
+            if previousWasOOC && !isOOC { result.insert(msg.id) }
+            previousWasOOC = isOOC
+        }
+        return result
+    }
 
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
         for provider in providers {
@@ -205,7 +212,7 @@ struct InputBar: View {
     let state: AppState
     let controller: ChatController
     let speechInput: LiveSpeechInput
-    @Binding var draft: String
+    let composer: ComposerModel
     var focused: FocusState<Bool>.Binding
     let onSubmit: () -> Void
     let onStop: () -> Void
@@ -221,33 +228,53 @@ struct InputBar: View {
                 drafts: controller.draftAttachments,
                 onRemove: { controller.removeDraft($0) }
             )
-            HStack(alignment: .bottom, spacing: Metrics.Composer.gap) {
-                editor
-                VStack(spacing: 2) {
-                    SendButton(
-                        generating: state.chatState == .generating,
-                        canSend: !draft.isEmpty || !controller.draftAttachments.isEmpty,
-                        awaitingFirstToken: state.awaitingFirstToken,
-                        onTap: state.chatState == .generating ? onStop : onSubmit
-                    )
-                    HStack(spacing: 2) {
-                        MicButton(speechInput: speechInput) { text in
-                            NotificationCenter.default.post(
-                                name: .airplaneMicTranscript,
-                                object: nil,
-                                userInfo: ["text": text]
-                            )
-                        }
-                        attachButton
-                    }
+            VStack(alignment: .leading, spacing: 6) {
+                if speechInput.isListening {
+                    ListeningIndicator(transcriptIsEmpty: speechInput.transcript.isEmpty)
+                        .transition(.opacity)
                 }
-                .padding(.bottom, 2)
+                HStack(alignment: .bottom, spacing: Metrics.Composer.gap) {
+                    editor
+                    VStack(spacing: 2) {
+                        SendButton(
+                            generating: state.chatState == .generating,
+                            canSend: !composer.draft.isEmpty || !controller.draftAttachments.isEmpty,
+                            awaitingFirstToken: state.awaitingFirstToken,
+                            onTap: state.chatState == .generating ? onStop : onSubmit
+                        )
+                        HStack(spacing: 2) {
+                            MicButton(speechInput: speechInput) { _ in }
+                            attachButton
+                        }
+                    }
+                    .padding(.bottom, 2)
+                }
+                if let errorMessage = speechInput.errorMessage, !errorMessage.isEmpty {
+                    Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                        .padding(.leading, 2)
+                }
             }
             .padding(.horizontal, Metrics.Composer.horizontalPadding)
             .padding(.vertical, Metrics.Composer.verticalPadding)
             .overlay(resizeHandle, alignment: .topTrailing)
         }
-        .onAppear { focused.wrappedValue = true }
+        .onAppear {
+            if !ScreenshotMode.isEnabled {
+                focused.wrappedValue = true
+            }
+        }
+        .onChange(of: speechInput.isListening) { _, listening in
+            if listening {
+                composer.captureBeforeListening()
+                focused.wrappedValue = true
+            }
+        }
+        .onChange(of: speechInput.transcript) { _, text in
+            guard speechInput.isListening else { return }
+            composer.applyLivePartial(text)
+        }
         .fileImporter(
             isPresented: $showFilePicker,
             allowedContentTypes: SupportedFormats.allowedContentTypes,
@@ -272,7 +299,7 @@ struct InputBar: View {
     // as the cursor, so by construction they can never disagree.
     private var editor: some View {
         ComposerTextView(
-            text: $draft,
+            text: Binding(get: { composer.draft }, set: { composer.draft = $0 }),
             placeholder: placeholder,
             isFocused: focused.wrappedValue,
             sendOnEnter: sendWith != "cmd-enter",
@@ -281,7 +308,7 @@ struct InputBar: View {
             },
             onCancel: {
                 if state.chatState == .generating { onStop() }
-                else if !draft.isEmpty { draft = "" }
+                else if !composer.draft.isEmpty { composer.clear() }
             },
             onPasteImage: { image in controller.addImageDraft(image) }
         )
@@ -329,6 +356,45 @@ struct InputBar: View {
 
     private var placeholder: String {
         state.chatState == .generating ? L.chatGenerating : "Type a message, press Enter to send…"
+    }
+}
+
+private struct ListeningIndicator: View {
+    let transcriptIsEmpty: Bool
+    @State private var dotPhase: Int = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "waveform")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.accentColor)
+            if transcriptIsEmpty {
+                Text("Listening" + String(repeating: ".", count: dotPhase + 1))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .onAppear { if !reduceMotion { startDotAnimation() } }
+            } else {
+                Text("Listening…")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(
+            Capsule().fill(Color.accentColor.opacity(0.12))
+        )
+        .accessibilityLabel("Listening")
+    }
+
+    private func startDotAnimation() {
+        Task { @MainActor in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 400_000_000)
+                dotPhase = (dotPhase + 1) % 3
+            }
+        }
     }
 }
 

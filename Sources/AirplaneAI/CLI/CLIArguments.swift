@@ -23,6 +23,7 @@ public struct CLIArguments: Sendable, Equatable {
     public let prompt: String?
     public let name: String?
     public let continuing: Bool
+    public let replacing: Bool
     public let systemOverride: String?
     public let maxTokens: Int?
     public let seed: UInt64?
@@ -35,6 +36,7 @@ public struct CLIArguments: Sendable, Equatable {
         var prompt: String?
         var name: String?
         var continuing = false
+        var replacing = false
         var systemOverride: String?
         var maxTokens: Int?
         var seed: UInt64?
@@ -57,6 +59,8 @@ public struct CLIArguments: Sendable, Equatable {
                 name = try next(arg)
             case "--continue":
                 continuing = true
+            case "--new":
+                replacing = true
             case "--list":
                 explicitMode = .list
             case "--show":
@@ -109,7 +113,7 @@ public struct CLIArguments: Sendable, Equatable {
                 break
             }
             return CLIArguments(
-                mode: mode, prompt: prompt, name: name, continuing: continuing,
+                mode: mode, prompt: prompt, name: name, continuing: continuing, replacing: replacing,
                 systemOverride: systemOverride, maxTokens: maxTokens, seed: seed,
                 quiet: quiet, json: json
             )
@@ -122,10 +126,16 @@ public struct CLIArguments: Sendable, Equatable {
         if continuing, name == nil {
             throw CLIArgumentError.incompatibleFlags("--continue requires --name")
         }
+        if continuing && replacing {
+            throw CLIArgumentError.incompatibleFlags("--continue and --new are mutually exclusive")
+        }
+        if replacing && name == nil {
+            throw CLIArgumentError.incompatibleFlags("--new requires --name")
+        }
 
         let mode: CLIMode = name == nil ? .single : .named
         return CLIArguments(
-            mode: mode, prompt: finalPrompt, name: name, continuing: continuing,
+            mode: mode, prompt: finalPrompt, name: name, continuing: continuing, replacing: replacing,
             systemOverride: systemOverride, maxTokens: maxTokens, seed: seed,
             quiet: quiet, json: json
         )
@@ -137,6 +147,7 @@ public struct CLIArguments: Sendable, Equatable {
         let cliTriggers: Set<String> = [
             "-p", "--prompt",
             "-n", "--name",
+            "--new",
             "--list", "--show", "--delete",
             "-h", "--help",
             "-v", "--version",

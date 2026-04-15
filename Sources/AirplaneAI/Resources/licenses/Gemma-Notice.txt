@@ -1,8 +1,25 @@
 Gemma Terms of Use — https://ai.google.dev/gemma/terms
 
 This application bundles Gemma model weights licensed under the Gemma Terms of Use.
-You may not use Gemma, its derivatives, or outputs to develop models that compete
-with Gemma or its variants. See the URL above for full terms.
+Gemma is an open model family from Google. In Airplane AI, it is the bundled
+machine-learning model that generates text from your prompts.
+
+Important prohibited uses listed by Google include:
+
+- generating content that infringes copyright or other rights
+- dangerous, illegal, malicious, extremist, or fraudulent activity
+- scams, phishing, malware, spam, or deceptive automation
+- harassment, hate, violence, bullying, or self-harm promotion
+- deceptive impersonation, misinformation, or false claims of expertise
+- unauthorized professional advice or automated decisions in sensitive domains
+- sexually explicit content intended for pornography or sexual gratification
+
+You may not use Gemma, its derivatives, or outputs in prohibited ways or in
+violation of applicable law. See the Gemma Terms of Use and Prohibited Use
+Policy for the full controlling terms:
+
+- https://ai.google.dev/gemma/terms
+- https://ai.google.dev/gemma/prohibited_use_policy
 
 Model: gemma-3n-E4B-it (Q4_K_M)
 Source: https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF

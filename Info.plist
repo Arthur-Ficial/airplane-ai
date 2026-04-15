@@ -4,49 +4,49 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>CFBundleDisplayName</key>
+	<string>Airplane AI</string>
+	<key>CFBundleDocumentTypes</key>
+	<array/>
 	<key>CFBundleExecutable</key>
 	<string>AirplaneAI</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.franzai.airplane-ai</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>Airplane AI</string>
-	<key>CFBundleDisplayName</key>
-	<string>Airplane AI</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.0</string>
+	<string>0.3.1</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>0.3.1</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.productivity</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>15.0</string>
-	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2026 Franz Enzenhofer. All rights reserved.</string>
-	<key>NSHighResolutionCapable</key>
-	<true/>
-	<key>NSSupportsAutomaticTermination</key>
-	<true/>
-	<key>NSSupportsSuddenTermination</key>
-	<false/>
-	<key>CFBundleIconFile</key>
-	<string>AppIcon</string>
-	<key>CFBundleIconName</key>
-	<string>AppIcon</string>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 	<key>LSUIElement</key>
 	<false/>
-	<key>CFBundleDocumentTypes</key>
-	<array/>
-	<key>UTExportedTypeDeclarations</key>
-	<array/>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2026 Franz Enzenhofer. All rights reserved.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Airplane AI uses the microphone for on-device speech-to-text. No audio leaves your Mac.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Airplane AI uses on-device speech recognition to transcribe your voice. No audio leaves your Mac.</string>
+	<key>NSSupportsAutomaticTermination</key>
+	<true/>
+	<key>NSSupportsSuddenTermination</key>
+	<false/>
+	<key>UTExportedTypeDeclarations</key>
+	<array/>
 </dict>
 </plist>
