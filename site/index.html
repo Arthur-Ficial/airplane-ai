@@ -118,6 +118,24 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
 .trust-icon{width:44px;height:44px;border-radius:10px;background:var(--brand-light);color:var(--brand);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;}
 .trust-icon svg{display:block;}
 .trust-note{font-size:13px;color:var(--muted);line-height:1.6;max-width:720px;margin:28px auto 0;text-align:center;}
+.proof{list-style:none;max-width:720px;margin:0 auto;counter-reset:proof;}
+.proof li{counter-increment:proof;position:relative;padding:2px 0 2px 56px;margin-bottom:22px;font-size:15.5px;color:var(--text2);line-height:1.65;}
+.proof li:last-child{margin-bottom:0;}
+.proof li::before{content:counter(proof);position:absolute;left:0;top:-2px;width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.proof strong{color:var(--text);font-weight:700;}
+.proof code{background:var(--brand-light);color:var(--brand-dark);padding:1px 6px;border-radius:4px;font-family:ui-monospace,"SF Mono",monospace;font-size:13px;}
+.sec-dark .proof li{color:var(--dark-text2);}
+.sec-dark .proof strong{color:#fff;}
+.sec-dark .proof code{background:#1a2130;color:#8ab4ff;}
+.sec-dark .proof li::before{background:var(--brand-highlight);}
+.verify{max-width:720px;margin:36px auto 0;background:var(--dark);color:var(--dark-text);border-radius:10px;padding:18px 22px;font-family:ui-monospace,"SF Mono",monospace;font-size:13.5px;line-height:1.7;overflow-x:auto;border:1px solid #1a2130;}
+.verify .vp{color:#64a0ff;}
+.verify .vo{color:#8ec07c;}
+.sec-dark .verify{background:#050910;}
+.sec-kicker{font-size:16.5px;color:var(--text2);line-height:1.62;max-width:640px;margin:0 auto 36px;text-align:center;}
+.sec-dark .sec-kicker{color:var(--dark-text2);}
+.sec-foot{font-size:13.5px;color:var(--muted);line-height:1.6;max-width:720px;margin:28px auto 0;text-align:center;}
+.sec-dark .sec-foot{color:#8590a0;}
 .model-intro{max-width:720px;margin:0 auto;}
 .model-intro p{font-size:15.5px;color:var(--text2);line-height:1.68;margin-bottom:14px;}
 .model-intro p:last-child{margin-bottom:0;}
@@ -296,6 +314,83 @@ footer a{color:var(--brand);}
       </div>
     </div>
     <p class="trust-note">* <strong>NDA-safe for the general case</strong> &mdash; typical NDAs prohibit disclosure to third-party AI or cloud vendors. Airplane AI removes that path: no vendor, no disclosure. Unusual clauses exist. Read your specific NDA. We can't read it for you.</p>
+  </div>
+</section>
+
+<section class="sec" id="gdpr">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="lbl">GDPR</div>
+      <h2>GDPR-safe by design. Not by promise.</h2>
+    </div>
+    <p class="sec-kicker">Personal data never leaves your Mac. The usual GDPR obligations collapse to nothing &mdash; because the conditions that trigger them don't exist.</p>
+    <ol class="proof">
+      <li><strong>No personal data transmitted.</strong> The binary ships with zero network entitlements. macOS blocks outbound connections at the kernel level. Nothing to transmit means nothing to protect in transit.</li>
+      <li><strong>No third-party processor.</strong> Article 28 governs vendors who process personal data on your behalf. There is no vendor here. There is no processor. The article does not apply.</li>
+      <li><strong>No cross-border transfer.</strong> Chapter V (Articles 44&ndash;50) governs data leaving the EEA. Nothing leaves your device. Nothing crosses a border.</li>
+      <li><strong>Data minimization, enforced.</strong> The app stores only what you type. Delete a conversation &mdash; it's gone. No server-side soft-delete. No backup we control.</li>
+      <li><strong>Right to erasure, satisfied locally.</strong> Remove the app &mdash; remove the data. No retention policy to navigate. No support ticket to file. No "processing within 30 days".</li>
+      <li><strong>No DPIA threshold met.</strong> A Data Protection Impact Assessment is triggered by high-risk processing. A sandboxed app that never transmits personal data does not meet the threshold.</li>
+    </ol>
+    <div class="verify"><span class="vp">$</span> codesign -d --entitlements :- /Applications/AirplaneAI.app<br>&nbsp;&nbsp;&lt;key&gt;<span class="vo">com.apple.security.app-sandbox</span>&lt;/key&gt;<br>&nbsp;&nbsp;&lt;true/&gt;<br><span class="vp">$</span> <span class="vo"># one entitlement. nothing else. verifiable on your own machine.</span></div>
+    <p class="sec-foot">We are not your controller. We are not your processor. We are the author of an app you bought, which runs on your hardware, under your control.</p>
+  </div>
+</section>
+
+<section class="sec sec-dark" id="airplane-mode">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="lbl">Airplane mode</div>
+      <h2>Works with Wi-Fi off. By construction.</h2>
+    </div>
+    <p class="sec-kicker">Not "works offline most of the time". Not "works offline except for licensing checks". The app cannot open a socket. macOS will not let it.</p>
+    <ol class="proof">
+      <li><strong>Zero network entitlements.</strong> No <code>com.apple.security.network.client</code>. No <code>.network.server</code>. The sandbox refuses every outbound connection, at the kernel, before the app even tries.</li>
+      <li><strong>Forbidden-symbol scan.</strong> A CI script (<code>verify-no-network-symbols.sh</code>) greps the binary for <code>URLSession</code>, <code>NWConnection</code>, <code>WKWebView</code>. Build fails on any match.</li>
+      <li><strong>No telemetry SDK.</strong> Not Crashlytics. Not Firebase. Not Sentry. Not PostHog. Not Amplitude. Not Mixpanel. None. Never.</li>
+      <li><strong>Model bundled.</strong> The ~4.5 GB GGUF model ships inside the <code>.app</code>. No first-launch download. No silent update. SHA-256 verified at startup.</li>
+      <li><strong>Dependencies pinned.</strong> <code>llama.cpp</code> is pinned to a full 40-character Git revision SHA in <code>Package.swift</code>. No floating branches. No surprise auto-updates.</li>
+      <li><strong>Audit it yourself.</strong> Open Activity Monitor &rarr; Network &rarr; filter AirplaneAI. Zero bytes sent. Zero bytes received. Every build. Every version. Forever.</li>
+    </ol>
+    <p class="sec-foot">The loudest sound this AI makes is the click of your keyboard.</p>
+  </div>
+</section>
+
+<section class="sec sec-light" id="nda">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="lbl">NDA</div>
+      <h2>Safe for the client work you can't paste anywhere else.</h2>
+    </div>
+    <p class="sec-kicker">Typical NDAs prohibit disclosure to third-party AI services and cloud processors. Airplane AI is neither. You are running weights on your own CPU.</p>
+    <ol class="proof">
+      <li><strong>No vendor in the data flow.</strong> Your prompt hits the local model. The response comes from your RAM. That is the whole trip.</li>
+      <li><strong>No cache, because we cache nothing.</strong> No server-side conversation history. No 30-day retention. No admin console we could be subpoenaed over.</li>
+      <li><strong>No training on your data.</strong> Weights are frozen GGUF bytes. Nothing you type updates the model &mdash; not now, not ever, not in a future release.</li>
+      <li><strong>Air-gap compatible.</strong> If your client requires a disconnected machine, this is the only AI you can run on it.</li>
+      <li><strong>Sandbox-enforced.</strong> The operating system itself blocks any outbound connection. Not a policy we promise to follow &mdash; a kernel rule your Mac enforces.</li>
+      <li><strong>Auditable source.</strong> <a href="https://github.com/Arthur-Ficial/airplane-ai" target="_blank" rel="noopener">Read the code</a>. Grep for networking. You will not find it.</li>
+    </ol>
+    <p class="sec-foot">Some NDAs have unusual clauses. Airplane AI removes the typical disclosure path. Unusual clauses &mdash; read your specific agreement. We cannot read it for you.</p>
+  </div>
+</section>
+
+<section class="sec" id="sandbox">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="lbl">Sandbox</div>
+      <h2>One entitlement. Nothing else.</h2>
+    </div>
+    <p class="sec-kicker">The app runs inside a macOS sandbox with exactly one capability: itself. No network. No files outside its container. No microphone, no camera, no contacts, no photos, no calendar.</p>
+    <ol class="proof">
+      <li><strong>One line in the entitlements file.</strong> <code>com.apple.security.app-sandbox = true</code>. Nothing below it. Nothing above it.</li>
+      <li><strong>Verify in one command.</strong> <code>codesign -d --entitlements :- /Applications/AirplaneAI.app</code>. Paste the output anywhere you like.</li>
+      <li><strong>CI enforces the allow-list.</strong> A script greps the built binary for forbidden entitlement keys and fails the build on any match. No human can quietly add network access in a future version.</li>
+      <li><strong>No arbitrary file access.</strong> The app cannot read your Desktop on its own. To open a file you explicitly pick one via the system file dialog.</li>
+      <li><strong>No outgoing connections possible.</strong> macOS intercepts at the kernel. The app cannot reach <code>localhost</code>, let alone the internet.</li>
+      <li><strong>No background helpers.</strong> No launch agents. No XPC services. No login items. One process. When you quit it, nothing of it remains running.</li>
+    </ol>
+    <div class="verify"><span class="vp">$</span> cat AirplaneAI.entitlements<br>&lt;?xml version=<span class="vo">"1.0"</span> encoding=<span class="vo">"UTF-8"</span>?&gt;<br>&lt;plist version=<span class="vo">"1.0"</span>&gt;<br>&lt;dict&gt;<br>&nbsp;&nbsp;&lt;key&gt;<span class="vo">com.apple.security.app-sandbox</span>&lt;/key&gt;<br>&nbsp;&nbsp;&lt;true/&gt;<br>&lt;/dict&gt;<br>&lt;/plist&gt;</div>
   </div>
 </section>
 
